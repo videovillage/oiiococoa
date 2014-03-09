@@ -9,7 +9,7 @@
 #import <Cocoa/Cocoa.h>
 #import "NSImage+OIIO.h"
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 
 @property (assign) IBOutlet NSWindow *window;
 @property (assign) IBOutlet NSImageView *imageView;
