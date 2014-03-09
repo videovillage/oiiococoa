@@ -18,8 +18,6 @@ Pod::Spec.new do |s|
 
   s.requires_arc = true
 
-  s.compiler_flags = '-stdlib=libc++'
-
   s.source_files  = [
       'Classes',
       'Classes/**/*.{h,m}',
@@ -47,5 +45,7 @@ Pod::Spec.new do |s|
   ]
 
   s.preserve_paths = "Vendor/**/*.a"
+
+  s.compiler_flags = '-stdlib=libc++'
 
 end
