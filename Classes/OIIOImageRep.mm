@@ -20,9 +20,9 @@ OIIO_NAMESPACE_USING
 
 @implementation OIIOImageRep
 
-+ (void)load {
-    [NSImageRep registerImageRepClass:self];
-}
+//+ (void)load {
+//    [NSImageRep registerImageRepClass:self];
+//}
 
 
 + (BOOL)canInitWithData:(NSData *)data {
