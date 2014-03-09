@@ -45,42 +45,24 @@ OIIO_NAMESPACE_USING
     int yres = spec.height;
     int channels = spec.nchannels;
 
-    std::vector<double> pixels (xres*yres*channels);
-
-    in->read_image (TypeDesc::DOUBLE, &pixels[0]);
+    std::vector<unsigned short> pixels (xres*yres*channels);
+    
+    
+    in->read_image (TypeDesc::UINT16, &pixels[0]);
     in->close ();
     delete in;
     
-
-    __block NSBitmapImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:nil
-                                                                   pixelsWide:spec.width
-                                                                   pixelsHigh:spec.height
-                                                                bitsPerSample:16
-                                                              samplesPerPixel:3
-                                                                     hasAlpha:NO
-                                                                     isPlanar:NO
-                                                               colorSpaceName:NSCalibratedRGBColorSpace
-                                                                  bytesPerRow:0
-                                                                 bitsPerPixel:0];
     
-    OIIOTimer(@"SetColorLoop", ^{
-        for (NSUInteger x = 0; x < spec.width; x++) {
-            for (NSUInteger y = 0; y < spec.height; y++) {
-                
-                NSUInteger i = x + y * spec.width;
-                
-                double red = pixels[i * spec.nchannels];
-                double green = pixels[i * spec.nchannels + 1];
-                double blue = pixels[i * spec.nchannels + 2];
-                
-                [imageRep setColor:[NSColor colorWithCalibratedRed:red
-                                                             green:green
-                                                              blue:blue
-                                                             alpha:0] atX:x y:y];
-                
-            }
-        }
-    });
+    NSBitmapImageRep *imageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
+                                                                         pixelsWide:spec.width
+                                                                         pixelsHigh:spec.height
+                                                                      bitsPerSample:16
+                                                                    samplesPerPixel:3
+                                                                           hasAlpha:NO
+                                                                           isPlanar:NO
+                                                                     colorSpaceName:NSCalibratedRGBColorSpace
+                                                                        bytesPerRow:0
+                                                                       bitsPerPixel:0];
 
 
     return imageRep;
