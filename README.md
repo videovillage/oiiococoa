@@ -1,4 +1,4 @@
-DPXImage
+oiiococoa
 ========
 
-NSImage and DPX files, living in harmony.
+Shove some OpenImageIO magic into your NSWhatevers.

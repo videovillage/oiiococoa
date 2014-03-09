@@ -23,7 +23,7 @@ Pod::Spec.new do |s|
   s.libraries = [
     'z',
     'tiff',
-    'OpenImageIO_Util'
+    'OpenImageIO_Util',
     'OpenImageIO',
     'IlmImf',
     'jpeg',
