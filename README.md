@@ -1,7 +1,7 @@
 # oiiococoa
 
-[![Version](http://cocoapod-badges.herokuapp.com/v/oiiococoa/badge.png)](http://cocoadocs.org/docsets/CocoaLUT)
-[![Platform](http://cocoapod-badges.herokuapp.com/p/oiiococoa/badge.png)](http://cocoadocs.org/docsets/CocoaLUT)
+[![Version](http://cocoapod-badges.herokuapp.com/v/oiiococoa/badge.png)](http://cocoadocs.org/docsets/oiiococoa)
+[![Platform](http://cocoapod-badges.herokuapp.com/p/oiiococoa/badge.png)](http://cocoadocs.org/docsets/oiiococoa)
 ([pronunciation guide](http://www.youtube.com/watch?v=p7c3bQQmwVE#t=36))
 
 Easily use some [OpenImageIO](http://openimageio.org) magic in your Cocoa apps.
