@@ -7,7 +7,7 @@
 //
 
 #import "OIIOImageRep.h"
-#include <OpenImageIO/imageio.h>
+#include "imageio.h"
 
 OIIO_NAMESPACE_USING
 
@@ -33,15 +33,15 @@ OIIO_NAMESPACE_USING
     int xres = spec.width;
     int yres = spec.height;
     int channels = spec.nchannels;
-    
+
     std::vector<double> pixels (xres*yres*channels);
 
-    
+
     in->read_image (TypeDesc::DOUBLE, &pixels[0]);
     in->close ();
     delete in;
-    
-    
+
+
     NSBitmapImageRep *imageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil
                                                                         pixelsWide:spec.width
                                                                         pixelsHigh:spec.height
@@ -52,12 +52,12 @@ OIIO_NAMESPACE_USING
                                                                     colorSpaceName:NSCalibratedRGBColorSpace
                                                                        bytesPerRow:0
                                                                       bitsPerPixel:0];
-    
+
     for (NSUInteger x = 0; x < spec.width; x++) {
         for (NSUInteger y = 0; y < spec.height; y++) {
-            
+
             NSUInteger i = x + y * spec.width;
-        
+
             double red = pixels[i * spec.nchannels];
             double green = pixels[i * spec.nchannels + 1];
             double blue = pixels[i * spec.nchannels + 2];
@@ -66,13 +66,13 @@ OIIO_NAMESPACE_USING
                                                          green:green
                                                           blue:blue
                                                          alpha:0] atX:x y:y];
-            
+
         }
     }
 
     NSImage* image = [[NSImage alloc] initWithSize:NSMakeSize(spec.width, spec.height)];
     [image addRepresentation:imageRep];
-    
+
     return image;
 }
 
