@@ -13,4 +13,6 @@ void OIIOTimer(NSString *message, OIIOTimerBlockType block);
 
 @interface OIIOImageRep : NSBitmapImageRep
 
+@property (strong) NSDictionary *ooio_metadata;
+
 @end

@@ -36,5 +36,14 @@
     return image;
 }
 
+- (NSDictionary *)ooio_metadata {
+    for (NSImageRep *rep in self.representations) {
+        if ([rep respondsToSelector:@selector(ooio_metadata)]) {
+            return [rep performSelector:@selector(ooio_metadata) withObject:nil];
+        }
+    }
+    return nil;
+}
+
 
 @end

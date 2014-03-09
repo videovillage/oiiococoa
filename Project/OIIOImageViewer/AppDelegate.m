@@ -22,6 +22,7 @@
     self.imageView.image = image;
 
     NSLog(@"Image: %@", image);
+    NSLog(@"Image Metadata: %@", image.ooio_metadata);
 
 }
 

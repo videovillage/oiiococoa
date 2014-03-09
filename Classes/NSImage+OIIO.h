@@ -23,4 +23,7 @@
 + (instancetype)oiio_imageWithContentsOfURL:(NSURL *)url;
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep;
 
+// Convenience methods for finding metadata.
+- (NSDictionary *)ooio_metadata;
+
 @end
