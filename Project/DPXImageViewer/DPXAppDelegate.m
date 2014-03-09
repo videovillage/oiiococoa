@@ -14,18 +14,14 @@
     
     // Find data of image in bundle
     NSURL *file = [[NSBundle mainBundle] URLForResource:@"dlad_1920x1080" withExtension:@"dpx"];
-//    NSData *data = [NSData dataWithContentsOfURL:file];
-    
-    // Initialize an image
-//    NSImage *image = [[NSImage alloc] initWithData:data];
-//    NSLog(@"Image: %@", image);
-    
-    NSImage *image = [OIIOImageRep imageFromURL:file];
-    
-//    [@"" cStringUsingEncoding:NSUTF8StringEncoding];
 
+    // Initialize an image from URL.
+    NSImage *image = [NSImage oiio_initWithContentsOfURL:file];
+    
     // Display it
     self.imageView.image = image;
+    
+    NSLog(@"Image: %@", image);
     
 }
 

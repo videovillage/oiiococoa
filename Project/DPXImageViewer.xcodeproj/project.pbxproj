@@ -19,6 +19,7 @@
 		3B6645B318CC41600052E2DC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3B6645B118CC41600052E2DC /* InfoPlist.strings */; };
 		3B6645B518CC41600052E2DC /* DPXImageViewerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B6645B418CC41600052E2DC /* DPXImageViewerTests.m */; };
 		3B6645C218CC41DF0052E2DC /* dlad_1920x1080.dpx in Resources */ = {isa = PBXBuildFile; fileRef = 3B6645C118CC41A30052E2DC /* dlad_1920x1080.dpx */; };
+		3B7C8F8818CCA52300EC8F8E /* NSImage+OIIO.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B7C8F8718CCA52300EC8F8E /* NSImage+OIIO.m */; };
 		3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */; };
 		3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBC18CC6600003B40F3 /* libz.dylib */; };
 		3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CEDB18CC9397003B40F3 /* pugixml.cpp */; };
@@ -83,6 +84,8 @@
 		3B6645B218CC41600052E2DC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3B6645B418CC41600052E2DC /* DPXImageViewerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DPXImageViewerTests.m; sourceTree = "<group>"; };
 		3B6645C118CC41A30052E2DC /* dlad_1920x1080.dpx */ = {isa = PBXFileReference; lastKnownFileType = file; path = dlad_1920x1080.dpx; sourceTree = "<group>"; };
+		3B7C8F8618CCA52300EC8F8E /* NSImage+OIIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSImage+OIIO.h"; sourceTree = "<group>"; };
+		3B7C8F8718CCA52300EC8F8E /* NSImage+OIIO.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSImage+OIIO.m"; sourceTree = "<group>"; };
 		3BD6CE5618CC4E5E003B40F3 /* OIIOImageRep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OIIOImageRep.h; sourceTree = "<group>"; };
 		3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OIIOImageRep.mm; sourceTree = "<group>"; };
 		3BD6CEBC18CC6600003B40F3 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
@@ -273,6 +276,8 @@
 			children = (
 				3BD6CE5618CC4E5E003B40F3 /* OIIOImageRep.h */,
 				3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */,
+				3B7C8F8618CCA52300EC8F8E /* NSImage+OIIO.h */,
+				3B7C8F8718CCA52300EC8F8E /* NSImage+OIIO.m */,
 			);
 			name = Classes;
 			path = ../Classes;
@@ -450,6 +455,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B7C8F8818CCA52300EC8F8E /* NSImage+OIIO.m in Sources */,
 				3B66459718CC41600052E2DC /* main.m in Sources */,
 				3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */,
 				3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */,

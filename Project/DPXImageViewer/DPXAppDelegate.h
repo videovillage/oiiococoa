@@ -7,7 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "OIIOImageRep.h"
+#import "NSImage+OIIO.h"
 
 @interface DPXAppDelegate : NSObject <NSApplicationDelegate>
 

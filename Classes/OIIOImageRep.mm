@@ -19,12 +19,12 @@ OIIO_NAMESPACE_USING
 //}
 //
 //+ (BOOL)canInitWithData:(NSData *)data {
-//    NSLog(@"CEE PLUS PLUS");
 //    return YES;
 //}
 
-+ (NSImage *)imageFromURL:(NSURL *)url {
-
++ (id)imageRepWithContentsOfURL:(NSURL *)url {
+    
+    
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
         return nil;
@@ -70,10 +70,7 @@ OIIO_NAMESPACE_USING
         }
     }
 
-    NSImage* image = [[NSImage alloc] initWithSize:NSMakeSize(spec.width, spec.height)];
-    [image addRepresentation:imageRep];
-
-    return image;
+    return imageRep;
 }
 
 @end

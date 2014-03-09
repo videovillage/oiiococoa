@@ -8,8 +8,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface OIIOImageRep : NSImageRep
-
-+ (NSImage *)imageFromURL:(NSURL *)url;
+@interface OIIOImageRep : NSBitmapImageRep
 
 @end
