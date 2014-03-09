@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
       'Vendor/OpenImageIO/include/**/*.{h,cpp,hpp}'
   ]
 
-  s.libraries = ['z']
+  s.libraries = ['z', 'stdc++', 'libc++']
 
   s.vendored_libraries = [
     'Vendor/libtiff/lib/libtiff.a',
