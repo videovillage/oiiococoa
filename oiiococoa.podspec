@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.social_media_url = "http://twitter.com/wilgieseler"
 
   s.platform     = :osx
-  # s.osx.deployment_target = '10.9'
+  s.osx.deployment_target = '10.7'
 
   s.source       = { :git => "http://github.com/wilg/oiiococoa.git", :tag => "0.0.1" }
 
@@ -40,7 +40,7 @@ Pod::Spec.new do |s|
   ]
 
   s.xcconfig = {
-    # 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2',
+    'HEADER_SEARCH_PATHS' => "$(SRCROOT)/Pods/oiiococoa/Vendor/**",
     'LIBRARY_SEARCH_PATHS' => "$(SRCROOT)/Pods/oiiococoa/Vendor/**"
   }
 
