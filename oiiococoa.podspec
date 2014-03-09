@@ -16,17 +16,13 @@ Pod::Spec.new do |s|
 
   s.source       = { :git => "http://github.com/wilg/oiiococoa.git", :tag => "0.0.1" }
 
-  s.compiler_flags = '-stdlib=libc++'
-  s.requires_arc = true
-
-  s.xcconfig = { 'CLANG_CXX_LIBRARY' => 'libc++' }
-
   s.source_files  = [
       'Classes',
       'Classes/**/*.{h,m}',
       'Vendor/OpenImageIO/include/**/*.{h,cpp,hpp}'
   ]
 
+  s.requires_arc = true
   s.libraries = ['z', 'stdc++']
 
   s.vendored_libraries = [
