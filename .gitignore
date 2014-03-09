@@ -1,5 +1,3 @@
-Project/**/*.dpx
-
 # Xcode
 .DS_Store
 */build/*
