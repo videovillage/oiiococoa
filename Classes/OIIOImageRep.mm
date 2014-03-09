@@ -9,6 +9,13 @@
 #import "OIIOImageRep.h"
 #include "imageio.h"
 
+void OIIOTimer(NSString *message, OIIOTimerBlockType block) {
+    NSDate *methodStart = [NSDate date];
+    block();
+    NSTimeInterval executionTime = [[NSDate date] timeIntervalSinceDate:methodStart];
+    NSLog(@"%@: %fs", message, executionTime);
+}
+
 OIIO_NAMESPACE_USING
 
 @implementation OIIOImageRep
@@ -40,39 +47,41 @@ OIIO_NAMESPACE_USING
 
     std::vector<double> pixels (xres*yres*channels);
 
-
     in->read_image (TypeDesc::DOUBLE, &pixels[0]);
     in->close ();
     delete in;
+    
 
-
-    NSBitmapImageRep *imageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil
-                                                                        pixelsWide:spec.width
-                                                                        pixelsHigh:spec.height
-                                                                     bitsPerSample:16
-                                                                   samplesPerPixel:3
-                                                                          hasAlpha:NO
-                                                                          isPlanar:NO
-                                                                    colorSpaceName:NSCalibratedRGBColorSpace
-                                                                       bytesPerRow:0
-                                                                      bitsPerPixel:0];
-
-    for (NSUInteger x = 0; x < spec.width; x++) {
-        for (NSUInteger y = 0; y < spec.height; y++) {
-
-            NSUInteger i = x + y * spec.width;
-
-            double red = pixels[i * spec.nchannels];
-            double green = pixels[i * spec.nchannels + 1];
-            double blue = pixels[i * spec.nchannels + 2];
-
-            [imageRep setColor:[NSColor colorWithCalibratedRed:red
-                                                         green:green
-                                                          blue:blue
-                                                         alpha:0] atX:x y:y];
-
+    __block NSBitmapImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:nil
+                                                                   pixelsWide:spec.width
+                                                                   pixelsHigh:spec.height
+                                                                bitsPerSample:16
+                                                              samplesPerPixel:3
+                                                                     hasAlpha:NO
+                                                                     isPlanar:NO
+                                                               colorSpaceName:NSCalibratedRGBColorSpace
+                                                                  bytesPerRow:0
+                                                                 bitsPerPixel:0];
+    
+    OIIOTimer(@"SetColorLoop", ^{
+        for (NSUInteger x = 0; x < spec.width; x++) {
+            for (NSUInteger y = 0; y < spec.height; y++) {
+                
+                NSUInteger i = x + y * spec.width;
+                
+                double red = pixels[i * spec.nchannels];
+                double green = pixels[i * spec.nchannels + 1];
+                double blue = pixels[i * spec.nchannels + 2];
+                
+                [imageRep setColor:[NSColor colorWithCalibratedRed:red
+                                                             green:green
+                                                              blue:blue
+                                                             alpha:0] atX:x y:y];
+                
+            }
         }
-    }
+    });
+
 
     return imageRep;
 }

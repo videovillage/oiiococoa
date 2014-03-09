@@ -8,6 +8,9 @@
 
 #import <Cocoa/Cocoa.h>
 
+typedef void (^OIIOTimerBlockType)();
+void OIIOTimer(NSString *message, OIIOTimerBlockType block);
+
 @interface OIIOImageRep : NSBitmapImageRep
 
 @end
