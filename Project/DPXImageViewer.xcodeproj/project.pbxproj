@@ -20,22 +20,24 @@
 		3B6645B518CC41600052E2DC /* DPXImageViewerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B6645B418CC41600052E2DC /* DPXImageViewerTests.m */; };
 		3B6645C218CC41DF0052E2DC /* dlad_1920x1080.dpx in Resources */ = {isa = PBXBuildFile; fileRef = 3B6645C118CC41A30052E2DC /* dlad_1920x1080.dpx */; };
 		3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */; };
-		3BD6CE9318CC5F28003B40F3 /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CE9218CC5F28003B40F3 /* libtiff.a */; };
-		3BD6CE9518CC5F7B003B40F3 /* libIlmImf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CE9418CC5F7B003B40F3 /* libIlmImf.a */; };
-		3BD6CE9718CC5F9C003B40F3 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CE9618CC5F9C003B40F3 /* libjpeg.a */; };
-		3BD6CEA118CC6417003B40F3 /* libHalf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA018CC6417003B40F3 /* libHalf.a */; };
-		3BD6CEA618CC6425003B40F3 /* libIex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA218CC6425003B40F3 /* libIex.a */; };
-		3BD6CEA718CC6425003B40F3 /* libIexMath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA318CC6425003B40F3 /* libIexMath.a */; };
-		3BD6CEA818CC6425003B40F3 /* libIlmThread.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA418CC6425003B40F3 /* libIlmThread.a */; };
-		3BD6CEA918CC6425003B40F3 /* libImath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA518CC6425003B40F3 /* libImath.a */; };
-		3BD6CEB318CC64A3003B40F3 /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB018CC64A3003B40F3 /* libboost_filesystem.a */; };
-		3BD6CEB418CC64A3003B40F3 /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB118CC64A3003B40F3 /* libboost_regex.a */; };
-		3BD6CEB518CC64A3003B40F3 /* libboost_thread-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB218CC64A3003B40F3 /* libboost_thread-mt.a */; };
-		3BD6CEB718CC64AC003B40F3 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB618CC64AC003B40F3 /* libboost_system.a */; };
-		3BD6CEBA18CC6509003B40F3 /* libOpenImageIO_Util.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB818CC6508003B40F3 /* libOpenImageIO_Util.a */; };
-		3BD6CEBB18CC6509003B40F3 /* libOpenImageIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB918CC6508003B40F3 /* libOpenImageIO.a */; };
 		3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBC18CC6600003B40F3 /* libz.dylib */; };
-		3BD6CEBF18CC66A3003B40F3 /* libpng15.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBE18CC66A3003B40F3 /* libpng15.a */; };
+		3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CEDB18CC9397003B40F3 /* pugixml.cpp */; };
+		3BD6CEFE18CC93C2003B40F3 /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEEE18CC93C2003B40F3 /* libboost_filesystem.a */; };
+		3BD6CEFF18CC93C2003B40F3 /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEEF18CC93C2003B40F3 /* libboost_regex.a */; };
+		3BD6CF0018CC93C2003B40F3 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF018CC93C2003B40F3 /* libboost_system.a */; };
+		3BD6CF0118CC93C2003B40F3 /* libboost_thread-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF118CC93C2003B40F3 /* libboost_thread-mt.a */; };
+		3BD6CF0218CC93C2003B40F3 /* libHalf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF218CC93C2003B40F3 /* libHalf.a */; };
+		3BD6CF0318CC93C2003B40F3 /* libIex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF318CC93C2003B40F3 /* libIex.a */; };
+		3BD6CF0418CC93C2003B40F3 /* libIexMath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF418CC93C2003B40F3 /* libIexMath.a */; };
+		3BD6CF0518CC93C2003B40F3 /* libIlmImf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF518CC93C2003B40F3 /* libIlmImf.a */; };
+		3BD6CF0618CC93C2003B40F3 /* libIlmThread.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF618CC93C2003B40F3 /* libIlmThread.a */; };
+		3BD6CF0718CC93C2003B40F3 /* libImath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF718CC93C2003B40F3 /* libImath.a */; };
+		3BD6CF0818CC93C2003B40F3 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF818CC93C2003B40F3 /* libjpeg.a */; };
+		3BD6CF0918CC93C3003B40F3 /* libOpenImageIO_Util.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF918CC93C2003B40F3 /* libOpenImageIO_Util.a */; };
+		3BD6CF0A18CC93C3003B40F3 /* libOpenImageIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFA18CC93C2003B40F3 /* libOpenImageIO.a */; };
+		3BD6CF0B18CC93C3003B40F3 /* libpng15.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFB18CC93C2003B40F3 /* libpng15.a */; };
+		3BD6CF0C18CC93C3003B40F3 /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFC18CC93C2003B40F3 /* libtiff.a */; };
+		3BD6CF0D18CC93C3003B40F3 /* libtiffxx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,22 +85,63 @@
 		3B6645C118CC41A30052E2DC /* dlad_1920x1080.dpx */ = {isa = PBXFileReference; lastKnownFileType = file; path = dlad_1920x1080.dpx; sourceTree = "<group>"; };
 		3BD6CE5618CC4E5E003B40F3 /* OIIOImageRep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OIIOImageRep.h; sourceTree = "<group>"; };
 		3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OIIOImageRep.mm; sourceTree = "<group>"; };
-		3BD6CE9218CC5F28003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/4.0.3/lib/libtiff.a; sourceTree = "<group>"; };
-		3BD6CE9418CC5F7B003B40F3 /* libIlmImf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmImf.a; path = ../../Vendor/openexr/2.0.1/lib/libIlmImf.a; sourceTree = "<group>"; };
-		3BD6CE9618CC5F9C003B40F3 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../../Vendor/jpeg/8d/lib/libjpeg.a; sourceTree = "<group>"; };
-		3BD6CEA018CC6417003B40F3 /* libHalf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libHalf.a; path = ../../Vendor/ilmbase/2.0.1/lib/libHalf.a; sourceTree = "<group>"; };
-		3BD6CEA218CC6425003B40F3 /* libIex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIex.a; path = ../../Vendor/ilmbase/2.0.1/lib/libIex.a; sourceTree = "<group>"; };
-		3BD6CEA318CC6425003B40F3 /* libIexMath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIexMath.a; path = ../../Vendor/ilmbase/2.0.1/lib/libIexMath.a; sourceTree = "<group>"; };
-		3BD6CEA418CC6425003B40F3 /* libIlmThread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmThread.a; path = ../../Vendor/ilmbase/2.0.1/lib/libIlmThread.a; sourceTree = "<group>"; };
-		3BD6CEA518CC6425003B40F3 /* libImath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libImath.a; path = ../../Vendor/ilmbase/2.0.1/lib/libImath.a; sourceTree = "<group>"; };
-		3BD6CEB018CC64A3003B40F3 /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../../Vendor/boost/1.55.0/lib/libboost_filesystem.a; sourceTree = "<group>"; };
-		3BD6CEB118CC64A3003B40F3 /* libboost_regex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_regex.a; path = ../../Vendor/boost/1.55.0/lib/libboost_regex.a; sourceTree = "<group>"; };
-		3BD6CEB218CC64A3003B40F3 /* libboost_thread-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_thread-mt.a"; path = "../../Vendor/boost/1.55.0/lib/libboost_thread-mt.a"; sourceTree = "<group>"; };
-		3BD6CEB618CC64AC003B40F3 /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = ../../Vendor/boost/1.55.0/lib/libboost_system.a; sourceTree = "<group>"; };
-		3BD6CEB818CC6508003B40F3 /* libOpenImageIO_Util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO_Util.a; path = ../../Vendor/OpenImageIO/lib/libOpenImageIO_Util.a; sourceTree = "<group>"; };
-		3BD6CEB918CC6508003B40F3 /* libOpenImageIO.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO.a; path = ../../Vendor/OpenImageIO/lib/libOpenImageIO.a; sourceTree = "<group>"; };
 		3BD6CEBC18CC6600003B40F3 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
-		3BD6CEBE18CC66A3003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/1.5.18/lib/libpng15.a; sourceTree = "<group>"; };
+		3BD6CEC518CC9397003B40F3 /* argparse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = argparse.h; sourceTree = "<group>"; };
+		3BD6CEC618CC9397003B40F3 /* array_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = array_view.h; sourceTree = "<group>"; };
+		3BD6CEC718CC9397003B40F3 /* color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
+		3BD6CEC818CC9397003B40F3 /* dassert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dassert.h; sourceTree = "<group>"; };
+		3BD6CEC918CC9397003B40F3 /* errorhandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = errorhandler.h; sourceTree = "<group>"; };
+		3BD6CECA18CC9397003B40F3 /* export.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = export.h; sourceTree = "<group>"; };
+		3BD6CECB18CC9397003B40F3 /* filesystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = filesystem.h; sourceTree = "<group>"; };
+		3BD6CECC18CC9397003B40F3 /* filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = filter.h; sourceTree = "<group>"; };
+		3BD6CECD18CC9397003B40F3 /* fmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmath.h; sourceTree = "<group>"; };
+		3BD6CECE18CC9397003B40F3 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
+		3BD6CECF18CC9397003B40F3 /* image_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = image_view.h; sourceTree = "<group>"; };
+		3BD6CED018CC9397003B40F3 /* imagebuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imagebuf.h; sourceTree = "<group>"; };
+		3BD6CED118CC9397003B40F3 /* imagebufalgo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imagebufalgo.h; sourceTree = "<group>"; };
+		3BD6CED218CC9397003B40F3 /* imagebufalgo_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imagebufalgo_util.h; sourceTree = "<group>"; };
+		3BD6CED318CC9397003B40F3 /* imagecache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imagecache.h; sourceTree = "<group>"; };
+		3BD6CED418CC9397003B40F3 /* imageio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imageio.h; sourceTree = "<group>"; };
+		3BD6CED518CC9397003B40F3 /* oiioversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oiioversion.h; sourceTree = "<group>"; };
+		3BD6CED618CC9397003B40F3 /* optparser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = optparser.h; sourceTree = "<group>"; };
+		3BD6CED718CC9397003B40F3 /* osdep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osdep.h; sourceTree = "<group>"; };
+		3BD6CED818CC9397003B40F3 /* paramlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = paramlist.h; sourceTree = "<group>"; };
+		3BD6CED918CC9397003B40F3 /* plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin.h; sourceTree = "<group>"; };
+		3BD6CEDA18CC9397003B40F3 /* pugiconfig.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugiconfig.hpp; sourceTree = "<group>"; };
+		3BD6CEDB18CC9397003B40F3 /* pugixml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pugixml.cpp; sourceTree = "<group>"; };
+		3BD6CEDC18CC9397003B40F3 /* pugixml.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugixml.hpp; sourceTree = "<group>"; };
+		3BD6CEDD18CC9397003B40F3 /* refcnt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = refcnt.h; sourceTree = "<group>"; };
+		3BD6CEDE18CC9397003B40F3 /* SHA1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SHA1.h; sourceTree = "<group>"; };
+		3BD6CEDF18CC9397003B40F3 /* strided_ptr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strided_ptr.h; sourceTree = "<group>"; };
+		3BD6CEE018CC9397003B40F3 /* string_ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string_ref.h; sourceTree = "<group>"; };
+		3BD6CEE118CC9397003B40F3 /* strutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strutil.h; sourceTree = "<group>"; };
+		3BD6CEE218CC9397003B40F3 /* sysutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sysutil.h; sourceTree = "<group>"; };
+		3BD6CEE318CC9397003B40F3 /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
+		3BD6CEE418CC9397003B40F3 /* thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thread.h; sourceTree = "<group>"; };
+		3BD6CEE518CC9397003B40F3 /* timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = timer.h; sourceTree = "<group>"; };
+		3BD6CEE618CC9397003B40F3 /* tinyformat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyformat.h; sourceTree = "<group>"; };
+		3BD6CEE718CC9397003B40F3 /* typedesc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = typedesc.h; sourceTree = "<group>"; };
+		3BD6CEE818CC9397003B40F3 /* unittest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unittest.h; sourceTree = "<group>"; };
+		3BD6CEE918CC9397003B40F3 /* unordered_map_concurrent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unordered_map_concurrent.h; sourceTree = "<group>"; };
+		3BD6CEEA18CC9397003B40F3 /* ustring.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ustring.h; sourceTree = "<group>"; };
+		3BD6CEEB18CC9397003B40F3 /* varyingref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = varyingref.h; sourceTree = "<group>"; };
+		3BD6CEEC18CC9397003B40F3 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
+		3BD6CEEE18CC93C2003B40F3 /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../../Vendor/boost/lib/libboost_filesystem.a; sourceTree = "<group>"; };
+		3BD6CEEF18CC93C2003B40F3 /* libboost_regex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_regex.a; path = ../../Vendor/boost/lib/libboost_regex.a; sourceTree = "<group>"; };
+		3BD6CEF018CC93C2003B40F3 /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = ../../Vendor/boost/lib/libboost_system.a; sourceTree = "<group>"; };
+		3BD6CEF118CC93C2003B40F3 /* libboost_thread-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_thread-mt.a"; path = "../../Vendor/boost/lib/libboost_thread-mt.a"; sourceTree = "<group>"; };
+		3BD6CEF218CC93C2003B40F3 /* libHalf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libHalf.a; path = ../../Vendor/ilmbase/lib/libHalf.a; sourceTree = "<group>"; };
+		3BD6CEF318CC93C2003B40F3 /* libIex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIex.a; path = ../../Vendor/ilmbase/lib/libIex.a; sourceTree = "<group>"; };
+		3BD6CEF418CC93C2003B40F3 /* libIexMath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIexMath.a; path = ../../Vendor/ilmbase/lib/libIexMath.a; sourceTree = "<group>"; };
+		3BD6CEF518CC93C2003B40F3 /* libIlmImf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmImf.a; path = ../../Vendor/openexr/lib/libIlmImf.a; sourceTree = "<group>"; };
+		3BD6CEF618CC93C2003B40F3 /* libIlmThread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmThread.a; path = ../../Vendor/ilmbase/lib/libIlmThread.a; sourceTree = "<group>"; };
+		3BD6CEF718CC93C2003B40F3 /* libImath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libImath.a; path = ../../Vendor/ilmbase/lib/libImath.a; sourceTree = "<group>"; };
+		3BD6CEF818CC93C2003B40F3 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../../Vendor/jpeg/lib/libjpeg.a; sourceTree = "<group>"; };
+		3BD6CEF918CC93C2003B40F3 /* libOpenImageIO_Util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO_Util.a; path = ../../Vendor/OpenImageIO/lib/libOpenImageIO_Util.a; sourceTree = "<group>"; };
+		3BD6CEFA18CC93C2003B40F3 /* libOpenImageIO.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO.a; path = ../../Vendor/OpenImageIO/lib/libOpenImageIO.a; sourceTree = "<group>"; };
+		3BD6CEFB18CC93C2003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/lib/libpng15.a; sourceTree = "<group>"; };
+		3BD6CEFC18CC93C2003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/lib/libtiff.a; sourceTree = "<group>"; };
+		3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiffxx.a; path = ../../Vendor/libtiff/lib/libtiffxx.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,22 +150,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B66458B18CC41600052E2DC /* Cocoa.framework in Frameworks */,
+				3BD6CF0418CC93C2003B40F3 /* libIexMath.a in Frameworks */,
+				3BD6CF0818CC93C2003B40F3 /* libjpeg.a in Frameworks */,
+				3BD6CF0018CC93C2003B40F3 /* libboost_system.a in Frameworks */,
+				3BD6CF0D18CC93C3003B40F3 /* libtiffxx.a in Frameworks */,
+				3BD6CF0718CC93C2003B40F3 /* libImath.a in Frameworks */,
+				3BD6CF0A18CC93C3003B40F3 /* libOpenImageIO.a in Frameworks */,
 				3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */,
-				3BD6CEBF18CC66A3003B40F3 /* libpng15.a in Frameworks */,
-				3BD6CEA618CC6425003B40F3 /* libIex.a in Frameworks */,
-				3BD6CEB418CC64A3003B40F3 /* libboost_regex.a in Frameworks */,
-				3BD6CEA118CC6417003B40F3 /* libHalf.a in Frameworks */,
-				3BD6CEB318CC64A3003B40F3 /* libboost_filesystem.a in Frameworks */,
-				3BD6CEA818CC6425003B40F3 /* libIlmThread.a in Frameworks */,
-				3BD6CE9318CC5F28003B40F3 /* libtiff.a in Frameworks */,
-				3BD6CEB718CC64AC003B40F3 /* libboost_system.a in Frameworks */,
-				3BD6CEA918CC6425003B40F3 /* libImath.a in Frameworks */,
-				3BD6CEB518CC64A3003B40F3 /* libboost_thread-mt.a in Frameworks */,
-				3BD6CE9518CC5F7B003B40F3 /* libIlmImf.a in Frameworks */,
-				3BD6CE9718CC5F9C003B40F3 /* libjpeg.a in Frameworks */,
-				3BD6CEA718CC6425003B40F3 /* libIexMath.a in Frameworks */,
-				3BD6CEBA18CC6509003B40F3 /* libOpenImageIO_Util.a in Frameworks */,
-				3BD6CEBB18CC6509003B40F3 /* libOpenImageIO.a in Frameworks */,
+				3BD6CEFE18CC93C2003B40F3 /* libboost_filesystem.a in Frameworks */,
+				3BD6CF0618CC93C2003B40F3 /* libIlmThread.a in Frameworks */,
+				3BD6CF0C18CC93C3003B40F3 /* libtiff.a in Frameworks */,
+				3BD6CF0318CC93C2003B40F3 /* libIex.a in Frameworks */,
+				3BD6CF0118CC93C2003B40F3 /* libboost_thread-mt.a in Frameworks */,
+				3BD6CF0B18CC93C3003B40F3 /* libpng15.a in Frameworks */,
+				3BD6CF0218CC93C2003B40F3 /* libHalf.a in Frameworks */,
+				3BD6CEFF18CC93C2003B40F3 /* libboost_regex.a in Frameworks */,
+				3BD6CF0518CC93C2003B40F3 /* libIlmImf.a in Frameworks */,
+				3BD6CF0918CC93C3003B40F3 /* libOpenImageIO_Util.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +185,7 @@
 		3B66457E18CC41600052E2DC = {
 			isa = PBXGroup;
 			children = (
+				3BD6CEC418CC9397003B40F3 /* OpenImageIO */,
 				3BD6CE8A18CC5BA8003B40F3 /* lib */,
 				3B6645C318CC42150052E2DC /* Classes */,
 				3B66459018CC41600052E2DC /* DPXImageViewer */,
@@ -236,23 +281,72 @@
 		3BD6CE8A18CC5BA8003B40F3 /* lib */ = {
 			isa = PBXGroup;
 			children = (
-				3BD6CE9218CC5F28003B40F3 /* libtiff.a */,
-				3BD6CEB818CC6508003B40F3 /* libOpenImageIO_Util.a */,
-				3BD6CEB918CC6508003B40F3 /* libOpenImageIO.a */,
-				3BD6CE9418CC5F7B003B40F3 /* libIlmImf.a */,
-				3BD6CE9618CC5F9C003B40F3 /* libjpeg.a */,
-				3BD6CEA018CC6417003B40F3 /* libHalf.a */,
-				3BD6CEA218CC6425003B40F3 /* libIex.a */,
-				3BD6CEA318CC6425003B40F3 /* libIexMath.a */,
-				3BD6CEA418CC6425003B40F3 /* libIlmThread.a */,
-				3BD6CEA518CC6425003B40F3 /* libImath.a */,
-				3BD6CEB018CC64A3003B40F3 /* libboost_filesystem.a */,
-				3BD6CEB118CC64A3003B40F3 /* libboost_regex.a */,
-				3BD6CEB218CC64A3003B40F3 /* libboost_thread-mt.a */,
-				3BD6CEB618CC64AC003B40F3 /* libboost_system.a */,
-				3BD6CEBE18CC66A3003B40F3 /* libpng15.a */,
+				3BD6CEEE18CC93C2003B40F3 /* libboost_filesystem.a */,
+				3BD6CEEF18CC93C2003B40F3 /* libboost_regex.a */,
+				3BD6CEF018CC93C2003B40F3 /* libboost_system.a */,
+				3BD6CEF118CC93C2003B40F3 /* libboost_thread-mt.a */,
+				3BD6CEF218CC93C2003B40F3 /* libHalf.a */,
+				3BD6CEF318CC93C2003B40F3 /* libIex.a */,
+				3BD6CEF418CC93C2003B40F3 /* libIexMath.a */,
+				3BD6CEF518CC93C2003B40F3 /* libIlmImf.a */,
+				3BD6CEF618CC93C2003B40F3 /* libIlmThread.a */,
+				3BD6CEF718CC93C2003B40F3 /* libImath.a */,
+				3BD6CEF818CC93C2003B40F3 /* libjpeg.a */,
+				3BD6CEF918CC93C2003B40F3 /* libOpenImageIO_Util.a */,
+				3BD6CEFA18CC93C2003B40F3 /* libOpenImageIO.a */,
+				3BD6CEFB18CC93C2003B40F3 /* libpng15.a */,
+				3BD6CEFC18CC93C2003B40F3 /* libtiff.a */,
+				3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */,
 			);
 			path = lib;
+			sourceTree = "<group>";
+		};
+		3BD6CEC418CC9397003B40F3 /* OpenImageIO */ = {
+			isa = PBXGroup;
+			children = (
+				3BD6CEC518CC9397003B40F3 /* argparse.h */,
+				3BD6CEC618CC9397003B40F3 /* array_view.h */,
+				3BD6CEC718CC9397003B40F3 /* color.h */,
+				3BD6CEC818CC9397003B40F3 /* dassert.h */,
+				3BD6CEC918CC9397003B40F3 /* errorhandler.h */,
+				3BD6CECA18CC9397003B40F3 /* export.h */,
+				3BD6CECB18CC9397003B40F3 /* filesystem.h */,
+				3BD6CECC18CC9397003B40F3 /* filter.h */,
+				3BD6CECD18CC9397003B40F3 /* fmath.h */,
+				3BD6CECE18CC9397003B40F3 /* hash.h */,
+				3BD6CECF18CC9397003B40F3 /* image_view.h */,
+				3BD6CED018CC9397003B40F3 /* imagebuf.h */,
+				3BD6CED118CC9397003B40F3 /* imagebufalgo.h */,
+				3BD6CED218CC9397003B40F3 /* imagebufalgo_util.h */,
+				3BD6CED318CC9397003B40F3 /* imagecache.h */,
+				3BD6CED418CC9397003B40F3 /* imageio.h */,
+				3BD6CED518CC9397003B40F3 /* oiioversion.h */,
+				3BD6CED618CC9397003B40F3 /* optparser.h */,
+				3BD6CED718CC9397003B40F3 /* osdep.h */,
+				3BD6CED818CC9397003B40F3 /* paramlist.h */,
+				3BD6CED918CC9397003B40F3 /* plugin.h */,
+				3BD6CEDA18CC9397003B40F3 /* pugiconfig.hpp */,
+				3BD6CEDB18CC9397003B40F3 /* pugixml.cpp */,
+				3BD6CEDC18CC9397003B40F3 /* pugixml.hpp */,
+				3BD6CEDD18CC9397003B40F3 /* refcnt.h */,
+				3BD6CEDE18CC9397003B40F3 /* SHA1.h */,
+				3BD6CEDF18CC9397003B40F3 /* strided_ptr.h */,
+				3BD6CEE018CC9397003B40F3 /* string_ref.h */,
+				3BD6CEE118CC9397003B40F3 /* strutil.h */,
+				3BD6CEE218CC9397003B40F3 /* sysutil.h */,
+				3BD6CEE318CC9397003B40F3 /* texture.h */,
+				3BD6CEE418CC9397003B40F3 /* thread.h */,
+				3BD6CEE518CC9397003B40F3 /* timer.h */,
+				3BD6CEE618CC9397003B40F3 /* tinyformat.h */,
+				3BD6CEE718CC9397003B40F3 /* typedesc.h */,
+				3BD6CEE818CC9397003B40F3 /* unittest.h */,
+				3BD6CEE918CC9397003B40F3 /* unordered_map_concurrent.h */,
+				3BD6CEEA18CC9397003B40F3 /* ustring.h */,
+				3BD6CEEB18CC9397003B40F3 /* varyingref.h */,
+				3BD6CEEC18CC9397003B40F3 /* version.h */,
+			);
+			name = OpenImageIO;
+			path = ../Vendor/OpenImageIO/include/OpenImageIO;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -358,6 +452,7 @@
 			files = (
 				3B66459718CC41600052E2DC /* main.m in Sources */,
 				3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */,
+				3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */,
 				3B66459E18CC41600052E2DC /* DPXAppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -510,6 +605,13 @@
 					/Users/wil/Code/DPXImage/Vendor/boost/1.55.0/lib,
 					/Users/wil/Code/DPXImage/Vendor/OpenImageIO/lib,
 					/Users/wil/Code/DPXImage/Vendor/libpng/1.5.18/lib,
+					/Users/wil/Code/oiiococoa/Vendor/boost/lib,
+					/Users/wil/Code/oiiococoa/Vendor/ilmbase/lib,
+					/Users/wil/Code/oiiococoa/Vendor/openexr/lib,
+					/Users/wil/Code/oiiococoa/Vendor/jpeg/lib,
+					/Users/wil/Code/oiiococoa/Vendor/OpenImageIO/lib,
+					/Users/wil/Code/oiiococoa/Vendor/libpng/lib,
+					/Users/wil/Code/oiiococoa/Vendor/libtiff/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -543,6 +645,13 @@
 					/Users/wil/Code/DPXImage/Vendor/boost/1.55.0/lib,
 					/Users/wil/Code/DPXImage/Vendor/OpenImageIO/lib,
 					/Users/wil/Code/DPXImage/Vendor/libpng/1.5.18/lib,
+					/Users/wil/Code/oiiococoa/Vendor/boost/lib,
+					/Users/wil/Code/oiiococoa/Vendor/ilmbase/lib,
+					/Users/wil/Code/oiiococoa/Vendor/openexr/lib,
+					/Users/wil/Code/oiiococoa/Vendor/jpeg/lib,
+					/Users/wil/Code/oiiococoa/Vendor/OpenImageIO/lib,
+					/Users/wil/Code/oiiococoa/Vendor/libpng/lib,
+					/Users/wil/Code/oiiococoa/Vendor/libtiff/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
