@@ -44,6 +44,6 @@ Pod::Spec.new do |s|
     'Vendor/libpng/libpng15.a'
   ]
 
-  s.preserve_paths = "Vendoer/**/*.a"
+  s.preserve_paths = "Vendor/**/*.a"
 
 end
