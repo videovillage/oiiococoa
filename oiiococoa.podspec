@@ -40,8 +40,8 @@ Pod::Spec.new do |s|
   ]
 
   s.xcconfig = {
-    'HEADER_SEARCH_PATHS' => "$(SRCROOT)/Pods/oiiococoa/Vendor/OpenImageIO/include",
-    'LIBRARY_SEARCH_PATHS' => "$(SRCROOT)/Pods/oiiococoa/Vendor/**"
+    'HEADER_SEARCH_PATHS' => "$(SRCROOT)/oiiococoa/Vendor/OpenImageIO/include",
+    'LIBRARY_SEARCH_PATHS' => "$(SRCROOT)/oiiococoa/Vendor/**"
   }
 
 end
