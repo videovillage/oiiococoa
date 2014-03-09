@@ -1,0 +1,626 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3B66458B18CC41600052E2DC /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B66458A18CC41600052E2DC /* Cocoa.framework */; };
+		3B66459518CC41600052E2DC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3B66459318CC41600052E2DC /* InfoPlist.strings */; };
+		3B66459718CC41600052E2DC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B66459618CC41600052E2DC /* main.m */; };
+		3B66459B18CC41600052E2DC /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 3B66459918CC41600052E2DC /* Credits.rtf */; };
+		3B66459E18CC41600052E2DC /* DPXAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B66459D18CC41600052E2DC /* DPXAppDelegate.m */; };
+		3B6645A118CC41600052E2DC /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3B66459F18CC41600052E2DC /* MainMenu.xib */; };
+		3B6645A318CC41600052E2DC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B6645A218CC41600052E2DC /* Images.xcassets */; };
+		3B6645AA18CC41600052E2DC /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B6645A918CC41600052E2DC /* XCTest.framework */; };
+		3B6645AB18CC41600052E2DC /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B66458A18CC41600052E2DC /* Cocoa.framework */; };
+		3B6645B318CC41600052E2DC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3B6645B118CC41600052E2DC /* InfoPlist.strings */; };
+		3B6645B518CC41600052E2DC /* DPXImageViewerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B6645B418CC41600052E2DC /* DPXImageViewerTests.m */; };
+		3B6645C218CC41DF0052E2DC /* dlad_1920x1080.dpx in Resources */ = {isa = PBXBuildFile; fileRef = 3B6645C118CC41A30052E2DC /* dlad_1920x1080.dpx */; };
+		3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */; };
+		3BD6CE9318CC5F28003B40F3 /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CE9218CC5F28003B40F3 /* libtiff.a */; };
+		3BD6CE9518CC5F7B003B40F3 /* libIlmImf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CE9418CC5F7B003B40F3 /* libIlmImf.a */; };
+		3BD6CE9718CC5F9C003B40F3 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CE9618CC5F9C003B40F3 /* libjpeg.a */; };
+		3BD6CEA118CC6417003B40F3 /* libHalf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA018CC6417003B40F3 /* libHalf.a */; };
+		3BD6CEA618CC6425003B40F3 /* libIex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA218CC6425003B40F3 /* libIex.a */; };
+		3BD6CEA718CC6425003B40F3 /* libIexMath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA318CC6425003B40F3 /* libIexMath.a */; };
+		3BD6CEA818CC6425003B40F3 /* libIlmThread.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA418CC6425003B40F3 /* libIlmThread.a */; };
+		3BD6CEA918CC6425003B40F3 /* libImath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEA518CC6425003B40F3 /* libImath.a */; };
+		3BD6CEB318CC64A3003B40F3 /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB018CC64A3003B40F3 /* libboost_filesystem.a */; };
+		3BD6CEB418CC64A3003B40F3 /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB118CC64A3003B40F3 /* libboost_regex.a */; };
+		3BD6CEB518CC64A3003B40F3 /* libboost_thread-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB218CC64A3003B40F3 /* libboost_thread-mt.a */; };
+		3BD6CEB718CC64AC003B40F3 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB618CC64AC003B40F3 /* libboost_system.a */; };
+		3BD6CEBA18CC6509003B40F3 /* libOpenImageIO_Util.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB818CC6508003B40F3 /* libOpenImageIO_Util.a */; };
+		3BD6CEBB18CC6509003B40F3 /* libOpenImageIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEB918CC6508003B40F3 /* libOpenImageIO.a */; };
+		3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBC18CC6600003B40F3 /* libz.dylib */; };
+		3BD6CEBF18CC66A3003B40F3 /* libpng15.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBE18CC66A3003B40F3 /* libpng15.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3B6645AC18CC41600052E2DC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3B66457F18CC41600052E2DC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3B66458618CC41600052E2DC;
+			remoteInfo = DPXImageViewer;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3BD6CE5D18CC56AF003B40F3 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		3B66458718CC41600052E2DC /* DPXImageViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DPXImageViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B66458A18CC41600052E2DC /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		3B66458D18CC41600052E2DC /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		3B66458E18CC41600052E2DC /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		3B66458F18CC41600052E2DC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		3B66459218CC41600052E2DC /* DPXImageViewer-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DPXImageViewer-Info.plist"; sourceTree = "<group>"; };
+		3B66459418CC41600052E2DC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		3B66459618CC41600052E2DC /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		3B66459818CC41600052E2DC /* DPXImageViewer-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DPXImageViewer-Prefix.pch"; sourceTree = "<group>"; };
+		3B66459A18CC41600052E2DC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		3B66459C18CC41600052E2DC /* DPXAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DPXAppDelegate.h; sourceTree = "<group>"; };
+		3B66459D18CC41600052E2DC /* DPXAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DPXAppDelegate.m; sourceTree = "<group>"; };
+		3B6645A018CC41600052E2DC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		3B6645A218CC41600052E2DC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		3B6645A818CC41600052E2DC /* DPXImageViewerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DPXImageViewerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B6645A918CC41600052E2DC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		3B6645B018CC41600052E2DC /* DPXImageViewerTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DPXImageViewerTests-Info.plist"; sourceTree = "<group>"; };
+		3B6645B218CC41600052E2DC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		3B6645B418CC41600052E2DC /* DPXImageViewerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DPXImageViewerTests.m; sourceTree = "<group>"; };
+		3B6645C118CC41A30052E2DC /* dlad_1920x1080.dpx */ = {isa = PBXFileReference; lastKnownFileType = file; path = dlad_1920x1080.dpx; sourceTree = "<group>"; };
+		3BD6CE5618CC4E5E003B40F3 /* OIIOImageRep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OIIOImageRep.h; sourceTree = "<group>"; };
+		3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OIIOImageRep.mm; sourceTree = "<group>"; };
+		3BD6CE9218CC5F28003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/4.0.3/lib/libtiff.a; sourceTree = "<group>"; };
+		3BD6CE9418CC5F7B003B40F3 /* libIlmImf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmImf.a; path = ../../Vendor/openexr/2.0.1/lib/libIlmImf.a; sourceTree = "<group>"; };
+		3BD6CE9618CC5F9C003B40F3 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../../Vendor/jpeg/8d/lib/libjpeg.a; sourceTree = "<group>"; };
+		3BD6CEA018CC6417003B40F3 /* libHalf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libHalf.a; path = ../../Vendor/ilmbase/2.0.1/lib/libHalf.a; sourceTree = "<group>"; };
+		3BD6CEA218CC6425003B40F3 /* libIex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIex.a; path = ../../Vendor/ilmbase/2.0.1/lib/libIex.a; sourceTree = "<group>"; };
+		3BD6CEA318CC6425003B40F3 /* libIexMath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIexMath.a; path = ../../Vendor/ilmbase/2.0.1/lib/libIexMath.a; sourceTree = "<group>"; };
+		3BD6CEA418CC6425003B40F3 /* libIlmThread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmThread.a; path = ../../Vendor/ilmbase/2.0.1/lib/libIlmThread.a; sourceTree = "<group>"; };
+		3BD6CEA518CC6425003B40F3 /* libImath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libImath.a; path = ../../Vendor/ilmbase/2.0.1/lib/libImath.a; sourceTree = "<group>"; };
+		3BD6CEB018CC64A3003B40F3 /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../../Vendor/boost/1.55.0/lib/libboost_filesystem.a; sourceTree = "<group>"; };
+		3BD6CEB118CC64A3003B40F3 /* libboost_regex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_regex.a; path = ../../Vendor/boost/1.55.0/lib/libboost_regex.a; sourceTree = "<group>"; };
+		3BD6CEB218CC64A3003B40F3 /* libboost_thread-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_thread-mt.a"; path = "../../Vendor/boost/1.55.0/lib/libboost_thread-mt.a"; sourceTree = "<group>"; };
+		3BD6CEB618CC64AC003B40F3 /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = ../../Vendor/boost/1.55.0/lib/libboost_system.a; sourceTree = "<group>"; };
+		3BD6CEB818CC6508003B40F3 /* libOpenImageIO_Util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO_Util.a; path = ../../Vendor/OpenImageIO/lib/libOpenImageIO_Util.a; sourceTree = "<group>"; };
+		3BD6CEB918CC6508003B40F3 /* libOpenImageIO.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO.a; path = ../../Vendor/OpenImageIO/lib/libOpenImageIO.a; sourceTree = "<group>"; };
+		3BD6CEBC18CC6600003B40F3 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		3BD6CEBE18CC66A3003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/1.5.18/lib/libpng15.a; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3B66458418CC41600052E2DC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B66458B18CC41600052E2DC /* Cocoa.framework in Frameworks */,
+				3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */,
+				3BD6CEBF18CC66A3003B40F3 /* libpng15.a in Frameworks */,
+				3BD6CEA618CC6425003B40F3 /* libIex.a in Frameworks */,
+				3BD6CEB418CC64A3003B40F3 /* libboost_regex.a in Frameworks */,
+				3BD6CEA118CC6417003B40F3 /* libHalf.a in Frameworks */,
+				3BD6CEB318CC64A3003B40F3 /* libboost_filesystem.a in Frameworks */,
+				3BD6CEA818CC6425003B40F3 /* libIlmThread.a in Frameworks */,
+				3BD6CE9318CC5F28003B40F3 /* libtiff.a in Frameworks */,
+				3BD6CEB718CC64AC003B40F3 /* libboost_system.a in Frameworks */,
+				3BD6CEA918CC6425003B40F3 /* libImath.a in Frameworks */,
+				3BD6CEB518CC64A3003B40F3 /* libboost_thread-mt.a in Frameworks */,
+				3BD6CE9518CC5F7B003B40F3 /* libIlmImf.a in Frameworks */,
+				3BD6CE9718CC5F9C003B40F3 /* libjpeg.a in Frameworks */,
+				3BD6CEA718CC6425003B40F3 /* libIexMath.a in Frameworks */,
+				3BD6CEBA18CC6509003B40F3 /* libOpenImageIO_Util.a in Frameworks */,
+				3BD6CEBB18CC6509003B40F3 /* libOpenImageIO.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3B6645A518CC41600052E2DC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B6645AB18CC41600052E2DC /* Cocoa.framework in Frameworks */,
+				3B6645AA18CC41600052E2DC /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3B66457E18CC41600052E2DC = {
+			isa = PBXGroup;
+			children = (
+				3BD6CE8A18CC5BA8003B40F3 /* lib */,
+				3B6645C318CC42150052E2DC /* Classes */,
+				3B66459018CC41600052E2DC /* DPXImageViewer */,
+				3B6645AE18CC41600052E2DC /* DPXImageViewerTests */,
+				3B66458918CC41600052E2DC /* Frameworks */,
+				3B66458818CC41600052E2DC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3B66458818CC41600052E2DC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3B66458718CC41600052E2DC /* DPXImageViewer.app */,
+				3B6645A818CC41600052E2DC /* DPXImageViewerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3B66458918CC41600052E2DC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3BD6CEBC18CC6600003B40F3 /* libz.dylib */,
+				3B66458A18CC41600052E2DC /* Cocoa.framework */,
+				3B6645A918CC41600052E2DC /* XCTest.framework */,
+				3B66458C18CC41600052E2DC /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3B66458C18CC41600052E2DC /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3B66458D18CC41600052E2DC /* AppKit.framework */,
+				3B66458E18CC41600052E2DC /* CoreData.framework */,
+				3B66458F18CC41600052E2DC /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		3B66459018CC41600052E2DC /* DPXImageViewer */ = {
+			isa = PBXGroup;
+			children = (
+				3B6645C118CC41A30052E2DC /* dlad_1920x1080.dpx */,
+				3B66459C18CC41600052E2DC /* DPXAppDelegate.h */,
+				3B66459D18CC41600052E2DC /* DPXAppDelegate.m */,
+				3B66459F18CC41600052E2DC /* MainMenu.xib */,
+				3B6645A218CC41600052E2DC /* Images.xcassets */,
+				3B66459118CC41600052E2DC /* Supporting Files */,
+			);
+			path = DPXImageViewer;
+			sourceTree = "<group>";
+		};
+		3B66459118CC41600052E2DC /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				3B66459218CC41600052E2DC /* DPXImageViewer-Info.plist */,
+				3B66459318CC41600052E2DC /* InfoPlist.strings */,
+				3B66459618CC41600052E2DC /* main.m */,
+				3B66459818CC41600052E2DC /* DPXImageViewer-Prefix.pch */,
+				3B66459918CC41600052E2DC /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3B6645AE18CC41600052E2DC /* DPXImageViewerTests */ = {
+			isa = PBXGroup;
+			children = (
+				3B6645B418CC41600052E2DC /* DPXImageViewerTests.m */,
+				3B6645AF18CC41600052E2DC /* Supporting Files */,
+			);
+			path = DPXImageViewerTests;
+			sourceTree = "<group>";
+		};
+		3B6645AF18CC41600052E2DC /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				3B6645B018CC41600052E2DC /* DPXImageViewerTests-Info.plist */,
+				3B6645B118CC41600052E2DC /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3B6645C318CC42150052E2DC /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				3BD6CE5618CC4E5E003B40F3 /* OIIOImageRep.h */,
+				3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */,
+			);
+			name = Classes;
+			path = ../Classes;
+			sourceTree = "<group>";
+		};
+		3BD6CE8A18CC5BA8003B40F3 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				3BD6CE9218CC5F28003B40F3 /* libtiff.a */,
+				3BD6CEB818CC6508003B40F3 /* libOpenImageIO_Util.a */,
+				3BD6CEB918CC6508003B40F3 /* libOpenImageIO.a */,
+				3BD6CE9418CC5F7B003B40F3 /* libIlmImf.a */,
+				3BD6CE9618CC5F9C003B40F3 /* libjpeg.a */,
+				3BD6CEA018CC6417003B40F3 /* libHalf.a */,
+				3BD6CEA218CC6425003B40F3 /* libIex.a */,
+				3BD6CEA318CC6425003B40F3 /* libIexMath.a */,
+				3BD6CEA418CC6425003B40F3 /* libIlmThread.a */,
+				3BD6CEA518CC6425003B40F3 /* libImath.a */,
+				3BD6CEB018CC64A3003B40F3 /* libboost_filesystem.a */,
+				3BD6CEB118CC64A3003B40F3 /* libboost_regex.a */,
+				3BD6CEB218CC64A3003B40F3 /* libboost_thread-mt.a */,
+				3BD6CEB618CC64AC003B40F3 /* libboost_system.a */,
+				3BD6CEBE18CC66A3003B40F3 /* libpng15.a */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3B66458618CC41600052E2DC /* DPXImageViewer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3B6645B818CC41600052E2DC /* Build configuration list for PBXNativeTarget "DPXImageViewer" */;
+			buildPhases = (
+				3B66458318CC41600052E2DC /* Sources */,
+				3B66458418CC41600052E2DC /* Frameworks */,
+				3B66458518CC41600052E2DC /* Resources */,
+				3BD6CE5D18CC56AF003B40F3 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DPXImageViewer;
+			productName = DPXImageViewer;
+			productReference = 3B66458718CC41600052E2DC /* DPXImageViewer.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3B6645A718CC41600052E2DC /* DPXImageViewerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3B6645BB18CC41600052E2DC /* Build configuration list for PBXNativeTarget "DPXImageViewerTests" */;
+			buildPhases = (
+				3B6645A418CC41600052E2DC /* Sources */,
+				3B6645A518CC41600052E2DC /* Frameworks */,
+				3B6645A618CC41600052E2DC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3B6645AD18CC41600052E2DC /* PBXTargetDependency */,
+			);
+			name = DPXImageViewerTests;
+			productName = DPXImageViewerTests;
+			productReference = 3B6645A818CC41600052E2DC /* DPXImageViewerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3B66457F18CC41600052E2DC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = DPX;
+				LastUpgradeCheck = 0500;
+				ORGANIZATIONNAME = "Wil Gieseler";
+				TargetAttributes = {
+					3B6645A718CC41600052E2DC = {
+						TestTargetID = 3B66458618CC41600052E2DC;
+					};
+				};
+			};
+			buildConfigurationList = 3B66458218CC41600052E2DC /* Build configuration list for PBXProject "DPXImageViewer" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 3B66457E18CC41600052E2DC;
+			productRefGroup = 3B66458818CC41600052E2DC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3B66458618CC41600052E2DC /* DPXImageViewer */,
+				3B6645A718CC41600052E2DC /* DPXImageViewerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3B66458518CC41600052E2DC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B66459518CC41600052E2DC /* InfoPlist.strings in Resources */,
+				3B6645A318CC41600052E2DC /* Images.xcassets in Resources */,
+				3B6645C218CC41DF0052E2DC /* dlad_1920x1080.dpx in Resources */,
+				3B66459B18CC41600052E2DC /* Credits.rtf in Resources */,
+				3B6645A118CC41600052E2DC /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3B6645A618CC41600052E2DC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B6645B318CC41600052E2DC /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3B66458318CC41600052E2DC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B66459718CC41600052E2DC /* main.m in Sources */,
+				3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */,
+				3B66459E18CC41600052E2DC /* DPXAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3B6645A418CC41600052E2DC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B6645B518CC41600052E2DC /* DPXImageViewerTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3B6645AD18CC41600052E2DC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3B66458618CC41600052E2DC /* DPXImageViewer */;
+			targetProxy = 3B6645AC18CC41600052E2DC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		3B66459318CC41600052E2DC /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3B66459418CC41600052E2DC /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3B66459918CC41600052E2DC /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3B66459A18CC41600052E2DC /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		3B66459F18CC41600052E2DC /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3B6645A018CC41600052E2DC /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		3B6645B118CC41600052E2DC /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3B6645B218CC41600052E2DC /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		3B6645B618CC41600052E2DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		3B6645B718CC41600052E2DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		3B6645B918CC41600052E2DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DPXImageViewer/DPXImageViewer-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/../Vendor/OpenImageIO/include",
+				);
+				INFOPLIST_FILE = "DPXImageViewer/DPXImageViewer-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/wil/Code/DPXImage/Project,
+					/Users/wil/Code/DPXImage/Project/lib,
+					/Users/wil/Code/DPXImage/Vendor/libtiff/4.0.3/lib,
+					/Users/wil/Code/DPXImage/Vendor/openexr/2.0.1/lib,
+					/Users/wil/Code/DPXImage/Vendor/jpeg/8d/lib,
+					/usr/local/Cellar/boost/1.55.0/lib,
+					/Users/wil/Code/DPXImage/Vendor/ilmbase/2.0.1/lib,
+					/Users/wil/Code/DPXImage/Vendor/boost/1.55.0/lib,
+					/Users/wil/Code/DPXImage/Vendor/OpenImageIO/lib,
+					/Users/wil/Code/DPXImage/Vendor/libpng/1.5.18/lib,
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		3B6645BA18CC41600052E2DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DPXImageViewer/DPXImageViewer-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/../Vendor/OpenImageIO/include",
+				);
+				INFOPLIST_FILE = "DPXImageViewer/DPXImageViewer-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/wil/Code/DPXImage/Project,
+					/Users/wil/Code/DPXImage/Project/lib,
+					/Users/wil/Code/DPXImage/Vendor/libtiff/4.0.3/lib,
+					/Users/wil/Code/DPXImage/Vendor/openexr/2.0.1/lib,
+					/Users/wil/Code/DPXImage/Vendor/jpeg/8d/lib,
+					/usr/local/Cellar/boost/1.55.0/lib,
+					/Users/wil/Code/DPXImage/Vendor/ilmbase/2.0.1/lib,
+					/Users/wil/Code/DPXImage/Vendor/boost/1.55.0/lib,
+					/Users/wil/Code/DPXImage/Vendor/OpenImageIO/lib,
+					/Users/wil/Code/DPXImage/Vendor/libpng/1.5.18/lib,
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		3B6645BC18CC41600052E2DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/DPXImageViewer.app/Contents/MacOS/DPXImageViewer";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DPXImageViewer/DPXImageViewer-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "DPXImageViewerTests/DPXImageViewerTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Debug;
+		};
+		3B6645BD18CC41600052E2DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/DPXImageViewer.app/Contents/MacOS/DPXImageViewer";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DPXImageViewer/DPXImageViewer-Prefix.pch";
+				INFOPLIST_FILE = "DPXImageViewerTests/DPXImageViewerTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3B66458218CC41600052E2DC /* Build configuration list for PBXProject "DPXImageViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B6645B618CC41600052E2DC /* Debug */,
+				3B6645B718CC41600052E2DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3B6645B818CC41600052E2DC /* Build configuration list for PBXNativeTarget "DPXImageViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B6645B918CC41600052E2DC /* Debug */,
+				3B6645BA18CC41600052E2DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3B6645BB18CC41600052E2DC /* Build configuration list for PBXNativeTarget "DPXImageViewerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B6645BC18CC41600052E2DC /* Debug */,
+				3B6645BD18CC41600052E2DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3B66457F18CC41600052E2DC /* Project object */;
+}
