@@ -11,7 +11,7 @@
 @interface NSImage (OIIO)
 
 /**
- *  Initializes an image with the contents of the URL, using OpenImageIO. If OpenImageIO fails to read the image, it will be loaded using [NSImage initWithContentsOfURL:].
+ *  Initializes an image with the contents of the URL. If NSImage's default implementation fails to read the image, it will be loaded using OpenImageIO.
  *
  *  @param url A file URL.
  *

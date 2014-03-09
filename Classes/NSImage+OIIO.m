@@ -17,13 +17,17 @@
 
 
 + (instancetype)oiio_initWithContentsOfURL:(NSURL *)url {
-    OIIOImageRep *rep = [OIIOImageRep imageRepWithContentsOfURL:url];
-    if (rep) {
-        return [self oiio_imageWithRepresentation:rep];
+    NSImage *imageLoadedByDefaultImplementation = [[self alloc] initWithContentsOfURL:url];
+    if (imageLoadedByDefaultImplementation) {
+        return imageLoadedByDefaultImplementation;
     }
     else {
-        return [[self alloc] initWithContentsOfURL:url];
+        OIIOImageRep *rep = [OIIOImageRep imageRepWithContentsOfURL:url];
+        if (rep) {
+            return [self oiio_imageWithRepresentation:rep];
+        }
     }
+    return nil;
 }
 
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep {

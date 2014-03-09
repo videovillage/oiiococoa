@@ -13,14 +13,18 @@ OIIO_NAMESPACE_USING
 
 @implementation OIIOImageRep
 
-//+ (void)load {
-//    NSLog(@"load PLUS");
-//    [NSImageRep registerImageRepClass:self];
-//}
-//
-//+ (BOOL)canInitWithData:(NSData *)data {
-//    return YES;
-//}
++ (void)load {
+    [NSImageRep registerImageRepClass:self];
+}
+
+
++ (BOOL)canInitWithData:(NSData *)data {
+    return NO;
+}
+
++ (NSArray *)imageUnfilteredTypes {
+    return @[@"org.smpte.dpx"];
+}
 
 + (id)imageRepWithContentsOfURL:(NSURL *)url {
     
