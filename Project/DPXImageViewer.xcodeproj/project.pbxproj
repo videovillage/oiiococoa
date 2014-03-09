@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B1BC5C918CD272C007B416E /* liblzma.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B1BC5C818CD272C007B416E /* liblzma.a */; };
 		3B66458B18CC41600052E2DC /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B66458A18CC41600052E2DC /* Cocoa.framework */; };
 		3B66459518CC41600052E2DC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3B66459318CC41600052E2DC /* InfoPlist.strings */; };
 		3B66459718CC41600052E2DC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B66459618CC41600052E2DC /* main.m */; };
@@ -64,6 +65,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3B1BC5C818CD272C007B416E /* liblzma.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblzma.a; path = ../../Vendor/xz/lib/liblzma.a; sourceTree = "<group>"; };
 		3B66458718CC41600052E2DC /* DPXImageViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DPXImageViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B66458A18CC41600052E2DC /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		3B66458D18CC41600052E2DC /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -153,13 +155,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B66458B18CC41600052E2DC /* Cocoa.framework in Frameworks */,
+				3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */,
 				3BD6CF0418CC93C2003B40F3 /* libIexMath.a in Frameworks */,
 				3BD6CF0818CC93C2003B40F3 /* libjpeg.a in Frameworks */,
+				3B1BC5C918CD272C007B416E /* liblzma.a in Frameworks */,
 				3BD6CF0018CC93C2003B40F3 /* libboost_system.a in Frameworks */,
 				3BD6CF0D18CC93C3003B40F3 /* libtiffxx.a in Frameworks */,
 				3BD6CF0718CC93C2003B40F3 /* libImath.a in Frameworks */,
 				3BD6CF0A18CC93C3003B40F3 /* libOpenImageIO.a in Frameworks */,
-				3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */,
 				3BD6CEFE18CC93C2003B40F3 /* libboost_filesystem.a in Frameworks */,
 				3BD6CF0618CC93C2003B40F3 /* libIlmThread.a in Frameworks */,
 				3BD6CF0C18CC93C3003B40F3 /* libtiff.a in Frameworks */,
@@ -302,6 +305,7 @@
 				3BD6CEFB18CC93C2003B40F3 /* libpng15.a */,
 				3BD6CEFC18CC93C2003B40F3 /* libtiff.a */,
 				3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */,
+				3B1BC5C818CD272C007B416E /* liblzma.a */,
 			);
 			path = lib;
 			sourceTree = "<group>";
@@ -618,6 +622,7 @@
 					/Users/wil/Code/oiiococoa/Vendor/OpenImageIO/lib,
 					/Users/wil/Code/oiiococoa/Vendor/libpng/lib,
 					/Users/wil/Code/oiiococoa/Vendor/libtiff/lib,
+					/Users/wil/Code/oiiococoa/Vendor/xz/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -658,6 +663,7 @@
 					/Users/wil/Code/oiiococoa/Vendor/OpenImageIO/lib,
 					/Users/wil/Code/oiiococoa/Vendor/libpng/lib,
 					/Users/wil/Code/oiiococoa/Vendor/libtiff/lib,
+					/Users/wil/Code/oiiococoa/Vendor/xz/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
