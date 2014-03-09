@@ -53,16 +53,16 @@ OIIO_NAMESPACE_USING
     delete in;
     
     
-    NSBitmapImageRep *imageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
-                                                                         pixelsWide:spec.width
-                                                                         pixelsHigh:spec.height
-                                                                      bitsPerSample:16
-                                                                    samplesPerPixel:3
-                                                                           hasAlpha:NO
-                                                                           isPlanar:NO
-                                                                     colorSpaceName:NSCalibratedRGBColorSpace
-                                                                        bytesPerRow:0
-                                                                       bitsPerPixel:0];
+    OIIOImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
+                                                               pixelsWide:spec.width
+                                                               pixelsHigh:spec.height
+                                                            bitsPerSample:16
+                                                          samplesPerPixel:3
+                                                                 hasAlpha:NO
+                                                                 isPlanar:NO
+                                                           colorSpaceName:NSCalibratedRGBColorSpace
+                                                              bytesPerRow:0
+                                                             bitsPerPixel:0];
 
 
     return imageRep;
