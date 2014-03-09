@@ -27,21 +27,21 @@ Pod::Spec.new do |s|
   s.libraries = ['z']
 
   s.vendored_libraries = [
-    'Vendor/libtiff/libtiff.a',
-    'Vendor/OpenImageIO/libOpenImageIO.a',
-    'Vendor/OpenImageIO/libOpenImageIO_Util.a',
-    'Vendor/openexr/libIlmImf.a',
-    'Vendor/jpeg/libjpeg.a',
-    'Vendor/ilmbase/libHalf.a',
-    'Vendor/ilmbase/libIex.a',
-    'Vendor/ilmbase/libIexMath.a',
-    'Vendor/ilmbase/libIlmThread.a',
-    'Vendor/ilmbase/libImath.a',
-    'Vendor/boost/libboost_filesystem.a',
-    'Vendor/boost/libboost_regex.a',
-    'Vendor/boost/libboost_thread-mt.a',
-    'Vendor/boost/libboost_system.a',
-    'Vendor/libpng/libpng15.a'
+    'Vendor/libtiff/lib/libtiff.a',
+    'Vendor/OpenImageIO/lib/libOpenImageIO.a',
+    'Vendor/OpenImageIO/lib/libOpenImageIO_Util.a',
+    'Vendor/openexr/lib/libIlmImf.a',
+    'Vendor/jpeg/lib/libjpeg.a',
+    'Vendor/ilmbase/lib/libHalf.a',
+    'Vendor/ilmbase/lib/libIex.a',
+    'Vendor/ilmbase/lib/libIexMath.a',
+    'Vendor/ilmbase/lib/libIlmThread.a',
+    'Vendor/ilmbase/lib/libImath.a',
+    'Vendor/boost/lib/libboost_filesystem.a',
+    'Vendor/boost/lib/libboost_regex.a',
+    'Vendor/boost/lib/libboost_thread-mt.a',
+    'Vendor/boost/lib/libboost_system.a',
+    'Vendor/lib/libpng/libpng15.a'
   ]
 
   s.preserve_paths = "Vendor/**/*.a"
