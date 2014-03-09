@@ -19,6 +19,15 @@
  */
 + (instancetype)oiio_initWithContentsOfURL:(NSURL *)url;
 
+/**
+ *  Initializes an image with the contents of the URL, loaded using OpenImageIO. This will not fall back to NSImage's default implementation.
+ *
+ *  @param url A file URL.
+ *
+ *  @return An image.
+ */
++ (instancetype)oiio_forceInitWithContentsOfURL:(NSURL *)url;
+
 // Convenience methods for creating images.
 + (instancetype)oiio_imageWithContentsOfURL:(NSURL *)url;
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep;

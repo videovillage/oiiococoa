@@ -22,14 +22,19 @@
         return imageLoadedByDefaultImplementation;
     }
     else {
-        OIIOImageRep *rep = [OIIOImageRep imageRepWithContentsOfURL:url];
-        if (rep) {
-            return [self oiio_imageWithRepresentation:rep];
-        }
+        return [self oiio_forceInitWithContentsOfURL:url];
     }
     return nil;
 }
-
+    
++ (instancetype)oiio_forceInitWithContentsOfURL:(NSURL *)url {
+    OIIOImageRep *rep = [OIIOImageRep imageRepWithContentsOfURL:url];
+    if (rep) {
+        return [self oiio_imageWithRepresentation:rep];
+    }
+    return nil;
+}
+    
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep {
     NSImage* image = [[NSImage alloc] initWithSize:NSMakeSize(rep.pixelsWide, rep.pixelsHigh)];
     [image addRepresentation:rep];
