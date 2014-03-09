@@ -16,6 +16,7 @@ Pod::Spec.new do |s|
 
   s.source       = { :git => "http://github.com/wilg/oiiococoa.git", :tag => "0.0.1" }
 
+  s.compiler_flags = '-stdlib=libc++'
   s.requires_arc = true
 
   s.source_files  = [
@@ -41,11 +42,9 @@ Pod::Spec.new do |s|
     'Vendor/boost/lib/libboost_regex.a',
     'Vendor/boost/lib/libboost_thread-mt.a',
     'Vendor/boost/lib/libboost_system.a',
-    'Vendor/lib/libpng/libpng15.a'
+    'Vendor/libpng/lib/libpng15.a'
   ]
 
   s.preserve_paths = "Vendor/**/*.a"
-
-  s.compiler_flags = '-stdlib=libc++'
 
 end
