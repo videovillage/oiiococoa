@@ -19,6 +19,8 @@ Pod::Spec.new do |s|
   s.compiler_flags = '-stdlib=libc++'
   s.requires_arc = true
 
+  spec.xcconfig = { 'CLANG_CXX_LIBRARY' => 'libc++' }
+
   s.source_files  = [
       'Classes',
       'Classes/**/*.{h,m}',
