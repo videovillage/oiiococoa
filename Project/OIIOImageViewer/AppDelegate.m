@@ -14,6 +14,7 @@
 
     // Find data of image in bundle
     NSURL *file = [[NSBundle mainBundle] URLForResource:@"Digital_LAD_2048x1556" withExtension:@"dpx"];
+//    NSURL *file = [[NSBundle mainBundle] URLForResource:@"test" withExtension:@"png"];
 
     // Initialize an image from URL.
     NSImage *image = [NSImage oiio_initWithContentsOfURL:file];
