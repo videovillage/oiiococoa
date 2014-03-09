@@ -36,4 +36,4 @@ Wil Gieseler ([wilg](//github.com/wilg))
 
 ## License
 
-CocoaLUT is available under the MIT license. See the LICENSE file for more info.
+oiiococoa is available under the MIT license. See the LICENSE file for more info.
