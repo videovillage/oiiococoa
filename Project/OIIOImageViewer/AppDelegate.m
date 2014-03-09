@@ -17,7 +17,7 @@
     NSURL *file = [[NSBundle mainBundle] URLForResource:@"test" withExtension:@"png"];
 
     // Initialize an image from URL.
-    NSImage *image = [NSImage oiio_forceInitWithContentsOfURL:file];
+    NSImage *image = [NSImage oiio_imageWithContentsOfURL:file];
 
     // Display it
     self.imageView.image = image;

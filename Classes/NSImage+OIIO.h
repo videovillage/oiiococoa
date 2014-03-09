@@ -17,7 +17,7 @@
  *
  *  @return An image.
  */
-+ (instancetype)oiio_initWithContentsOfURL:(NSURL *)url;
++ (instancetype)oiio_imageWithContentsOfURL:(NSURL *)url;
 
 /**
  *  Initializes an image with the contents of the URL, loaded using OpenImageIO. This will not fall back to NSImage's default implementation.
@@ -26,10 +26,9 @@
  *
  *  @return An image.
  */
-+ (instancetype)oiio_forceInitWithContentsOfURL:(NSURL *)url;
++ (instancetype)oiio_forceImageWithContentsOfURL:(NSURL *)url;
 
-// Convenience methods for creating images.
-+ (instancetype)oiio_imageWithContentsOfURL:(NSURL *)url;
+// Convenience for creating image with a representation.
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep;
 
 // Convenience methods for finding metadata.

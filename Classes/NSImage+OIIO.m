@@ -12,22 +12,17 @@
 @implementation NSImage (OIIO)
 
 + (instancetype)oiio_imageWithContentsOfURL:(NSURL *)url {
-    return [[self alloc] initWithContentsOfURL:url];
-}
-
-
-+ (instancetype)oiio_initWithContentsOfURL:(NSURL *)url {
     NSImage *imageLoadedByDefaultImplementation = [[self alloc] initWithContentsOfURL:url];
     if (imageLoadedByDefaultImplementation) {
         return imageLoadedByDefaultImplementation;
     }
     else {
-        return [self oiio_forceInitWithContentsOfURL:url];
+        return [self oiio_forceImageWithContentsOfURL:url];
     }
     return nil;
 }
-    
-+ (instancetype)oiio_forceInitWithContentsOfURL:(NSURL *)url {
+
++ (instancetype)oiio_forceImageWithContentsOfURL:(NSURL *)url {
     OIIOImageRep *rep = [OIIOImageRep imageRepWithContentsOfURL:url];
     if (rep) {
         return [self oiio_imageWithRepresentation:rep];
