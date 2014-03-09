@@ -221,7 +221,6 @@
 				3B6645A218CC41600052E2DC /* Images.xcassets */,
 				3B66459118CC41600052E2DC /* Supporting Files */,
 			);
-			name = OIIOImageViewer;
 			path = OIIOImageViewer;
 			sourceTree = "<group>";
 		};
@@ -560,24 +559,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/Users/wil/Code/DPXImage/Project,
-					/Users/wil/Code/DPXImage/Project/lib,
-					/Users/wil/Code/DPXImage/Vendor/libtiff/4.0.3/lib,
-					/Users/wil/Code/DPXImage/Vendor/openexr/2.0.1/lib,
-					/Users/wil/Code/DPXImage/Vendor/jpeg/8d/lib,
-					/usr/local/Cellar/boost/1.55.0/lib,
-					/Users/wil/Code/DPXImage/Vendor/ilmbase/2.0.1/lib,
-					/Users/wil/Code/DPXImage/Vendor/boost/1.55.0/lib,
-					/Users/wil/Code/DPXImage/Vendor/OpenImageIO/lib,
-					/Users/wil/Code/DPXImage/Vendor/libpng/1.5.18/lib,
-					/Users/wil/Code/oiiococoa/Vendor/boost/lib,
-					/Users/wil/Code/oiiococoa/Vendor/ilmbase/lib,
-					/Users/wil/Code/oiiococoa/Vendor/openexr/lib,
-					/Users/wil/Code/oiiococoa/Vendor/jpeg/lib,
-					/Users/wil/Code/oiiococoa/Vendor/OpenImageIO/lib,
-					/Users/wil/Code/oiiococoa/Vendor/libpng/lib,
-					/Users/wil/Code/oiiococoa/Vendor/libtiff/lib,
-					/Users/wil/Code/oiiococoa/Vendor/xz/lib,
+					"$(SRCROOT)/../Vendor/**",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;
@@ -601,24 +583,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/Users/wil/Code/DPXImage/Project,
-					/Users/wil/Code/DPXImage/Project/lib,
-					/Users/wil/Code/DPXImage/Vendor/libtiff/4.0.3/lib,
-					/Users/wil/Code/DPXImage/Vendor/openexr/2.0.1/lib,
-					/Users/wil/Code/DPXImage/Vendor/jpeg/8d/lib,
-					/usr/local/Cellar/boost/1.55.0/lib,
-					/Users/wil/Code/DPXImage/Vendor/ilmbase/2.0.1/lib,
-					/Users/wil/Code/DPXImage/Vendor/boost/1.55.0/lib,
-					/Users/wil/Code/DPXImage/Vendor/OpenImageIO/lib,
-					/Users/wil/Code/DPXImage/Vendor/libpng/1.5.18/lib,
-					/Users/wil/Code/oiiococoa/Vendor/boost/lib,
-					/Users/wil/Code/oiiococoa/Vendor/ilmbase/lib,
-					/Users/wil/Code/oiiococoa/Vendor/openexr/lib,
-					/Users/wil/Code/oiiococoa/Vendor/jpeg/lib,
-					/Users/wil/Code/oiiococoa/Vendor/OpenImageIO/lib,
-					/Users/wil/Code/oiiococoa/Vendor/libpng/lib,
-					/Users/wil/Code/oiiococoa/Vendor/libtiff/lib,
-					/Users/wil/Code/oiiococoa/Vendor/xz/lib,
+					"$(SRCROOT)/../Vendor/**",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;
