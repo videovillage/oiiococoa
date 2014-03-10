@@ -85,8 +85,8 @@ OIIO_NAMESPACE_USING
                                                                  hasAlpha:NO
                                                                  isPlanar:NO
                                                            colorSpaceName:NSCalibratedRGBColorSpace
-                                                              bytesPerRow:0
-                                                             bitsPerPixel:0];
+                                                              bytesPerRow:spec.width * ((16 * spec.nchannels) / 8)
+                                                             bitsPerPixel:16 * spec.nchannels];
     imageRep.ooio_metadata = [attributes copy];
 
     delete in;
