@@ -82,7 +82,7 @@ OIIO_NAMESPACE_USING
                                                                pixelsHigh:spec.height
                                                             bitsPerSample:16
                                                           samplesPerPixel:spec.nchannels
-                                                                 hasAlpha:NO
+                                                                 hasAlpha:spec.nchannels > 3
                                                                  isPlanar:NO
                                                            colorSpaceName:NSCalibratedRGBColorSpace
                                                               bytesPerRow:spec.width * ((16 * spec.nchannels) / 8)
