@@ -41,29 +41,12 @@ OIIO_NAMESPACE_USING
         return nil;
     }
     const ImageSpec &spec = in->spec();
-    int xres = spec.width;
-    int yres = spec.height;
-    int channels = spec.nchannels;
 
-    std::vector<unsigned short> pixels (xres*yres*channels);
-    
+    std::vector<unsigned short> pixels (spec.width * spec.height * spec.nchannels);
     
     in->read_image (TypeDesc::UINT16, &pixels[0]);
     in->close ();
-    delete in;
     
-    
-    OIIOImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
-                                                               pixelsWide:spec.width
-                                                               pixelsHigh:spec.height
-                                                            bitsPerSample:16
-                                                          samplesPerPixel:3
-                                                                 hasAlpha:NO
-                                                                 isPlanar:NO
-                                                           colorSpaceName:NSCalibratedRGBColorSpace
-                                                              bytesPerRow:0
-                                                             bitsPerPixel:0];
-
     NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
     for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
         
@@ -83,17 +66,30 @@ OIIO_NAMESPACE_USING
         else if (p.type() == TypeDesc::UINT){
             value = @(*(const unsigned int *)p.data());
         }
-//        else if (p.type() == TypeDesc::TypeMatrix) {
-//            const float *f = (const float *)p.data();
-//            printf ("\%f \%f \%f \%f \%f \%f \%f \%f "
-//                    "\%f \%f \%f \%f \%f \%f \%f \%f",
-//                    f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7],
-//                    f[8], f[9], f[10], f[11], f[12], f[13], f[14], f[15]);
-//        } else
-//            printf ("<unknown data type>");
+        //        else if (p.type() == TypeDesc::TypeMatrix) {
+        //            const float *f = (const float *)p.data();
+        //            printf ("\%f \%f \%f \%f \%f \%f \%f \%f "
+        //                    "\%f \%f \%f \%f \%f \%f \%f \%f",
+        //                    f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7],
+        //                    f[8], f[9], f[10], f[11], f[12], f[13], f[14], f[15]);
+        //        } else
+        //            printf ("<unknown data type>");
         attributes[name] = value;
     }
+    
+    OIIOImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
+                                                               pixelsWide:spec.width
+                                                               pixelsHigh:spec.height
+                                                            bitsPerSample:16
+                                                          samplesPerPixel:spec.nchannels
+                                                                 hasAlpha:NO
+                                                                 isPlanar:NO
+                                                           colorSpaceName:NSCalibratedRGBColorSpace
+                                                              bytesPerRow:0
+                                                             bitsPerPixel:0];
     imageRep.ooio_metadata = [attributes copy];
+
+    delete in;
 
     return imageRep;
 }
