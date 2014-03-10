@@ -4,21 +4,47 @@
    version = "2.0">
    <Breakpoints>
       <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.SymbolicBreakpoint">
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            symbolName = "[NSImageRep drawInRect:fromRect:operation:fraction:respectFlipped:hints:]"
-            moduleName = "">
+            filePath = "../Classes/OIIOImageRep.mm"
+            timestampString = "416103545.783753"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "98"
+            endingLineNumber = "98"
+            landmarkName = "@implementation OIIOImageRep"
+            landmarkType = "3">
             <Locations>
                <Location
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "-[NSImageRep drawInRect:fromRect:operation:fraction:respectFlipped:hints:]"
-                  moduleName = "AppKit"
-                  offsetFromSymbolStart = "0">
+                  symbolName = "-[OIIOImageRep drawInRect:fromRect:operation:fraction:respectFlipped:hints:]"
+                  moduleName = "OIIOImageViewer"
+                  urlString = "file:///Users/wil/Code/oiiococoa/Classes/OIIOImageRep.mm"
+                  timestampString = "416103552.696374"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "99"
+                  endingLineNumber = "99"
+                  offsetFromSymbolStart = "75">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[OIIOImageRep drawInRect:fromRect:operation:fraction:respectFlipped:hints:]"
+                  moduleName = "OIIOImageViewer"
+                  urlString = "file:///Users/wil/Code/oiiococoa/Classes/OIIOImageRep.mm"
+                  timestampString = "416103552.696654"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "99"
+                  endingLineNumber = "99"
+                  offsetFromSymbolStart = "350">
                </Location>
             </Locations>
          </BreakpointContent>
