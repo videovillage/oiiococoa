@@ -84,7 +84,7 @@ OIIO_NAMESPACE_USING
                                                           samplesPerPixel:spec.nchannels
                                                                  hasAlpha:spec.nchannels > 3
                                                                  isPlanar:NO
-                                                           colorSpaceName:NSCalibratedRGBColorSpace
+                                                           colorSpaceName:NSDeviceRGBColorSpace
                                                               bytesPerRow:(spec.width * (16 * spec.nchannels)) / 8
                                                              bitsPerPixel:16 * spec.nchannels];
     
