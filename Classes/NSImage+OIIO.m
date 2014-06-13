@@ -36,6 +36,16 @@
     return image;
 }
 
++ (NSArray *)oiio_imageFileTypes{
+    return @[@"DPX", @"dpx", @"EXR", @"exr"];
+}
+
++ (NSArray *)oiio_allImageFileTypes{
+    NSMutableArray *combinedFileTypes = [[NSImage imageFileTypes] mutableCopy];
+    [combinedFileTypes addObjectsFromArray:[[self class] oiio_imageFileTypes]];
+    return combinedFileTypes;
+}
+
 - (NSDictionary *)ooio_metadata {
     for (NSImageRep *rep in self.representations) {
         if ([rep respondsToSelector:@selector(ooio_metadata)]) {

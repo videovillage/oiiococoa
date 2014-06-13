@@ -31,6 +31,13 @@
 // Convenience for creating image with a representation.
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep;
 
+
++ (NSArray *)oiio_imageFileTypes;
+
++ (NSArray *)oiio_allImageFileTypes;
+
+
+
 // Convenience methods for finding metadata.
 - (NSDictionary *)ooio_metadata;
 
