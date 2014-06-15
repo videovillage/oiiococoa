@@ -9,7 +9,29 @@ Easily use some [OpenImageIO](http://openimageio.org) magic in your Cocoa apps.
 ## Features
 
 - Read into image files into NSImage via OpenImageIO. 
-  - Supports TIFF, JPEG/JFIF, OpenEXR, PNG, HDR/RGBE, Targa, JPEG-2000, DPX, Cineon, FITS, BMP, ICO, RMan Zfile, Softimage PIC, DDS, SGI, Maya IFF, PNM/PPM/PGM/PBM, Field3d, WebP, Photoshop PSD, Wavefront RLA
+- Supported file formats:
+  - TIFF
+  - JPEG/JFIF
+  - OpenEXR
+  - PNG
+  - HDR/RGBE
+  - Targa
+  - JPEG-2000
+  - DPX
+  - Cineon
+  - FITS
+  - BMP
+  - ICO
+  - RMan Zfile
+  - Softimage PIC
+  - DDS
+  - SGI
+  - Maya IFF
+  - PNM/PPM/PGM/PBM
+  - Field3d
+  - WebP
+  - Photoshop PSD
+  - Wavefront RLA
 
 ## Installation
 
@@ -36,4 +58,6 @@ Wil Gieseler ([wilg](//github.com/wilg))
 
 ## License
 
-oiiococoa is available under the MIT license. See the LICENSE file for more info.
+oiiococoa is available under the MIT license. 
+
+License details and the licenses for dependencies are included in [LICENSE.md](LICENSE.md).
