@@ -37,7 +37,7 @@
 }
 
 + (NSArray *)oiio_imageFileTypes{
-    return @[@"DPX", @"dpx", @"EXR", @"exr"];
+    return @[@"DPX", @"dpx"];
 }
 
 + (NSArray *)oiio_allImageFileTypes{
