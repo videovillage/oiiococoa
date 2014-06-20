@@ -18,6 +18,12 @@ void OIIOTimer(NSString *message, OIIOTimerBlockType block) {
 
 OIIO_NAMESPACE_USING
 
+@interface OIIOImageRep ()
+
+@property (strong) NSData *pixelData;
+
+@end
+
 @implementation OIIOImageRep
 
 //+ (void)load {
@@ -42,7 +48,7 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
 
-    std::vector<unsigned short> pixels (spec.width * spec.height * spec.nchannels);
+    std::vector<unsigned char*> pixels (spec.width * spec.height * spec.nchannels);
     
     in->read_image (TypeDesc::UINT16, &pixels[0]);
     in->close ();
@@ -85,14 +91,15 @@ OIIO_NAMESPACE_USING
                                                                  hasAlpha:spec.nchannels > 3
                                                                  isPlanar:NO
                                                            colorSpaceName:NSDeviceRGBColorSpace
-                                                              bytesPerRow:(spec.width * (16 * spec.nchannels)) / 8
-                                                             bitsPerPixel:16 * spec.nchannels];
+                                                              bytesPerRow:NULL
+                                                             bitsPerPixel:NULL];
+    
     
     //imageRep.ooio_metadata = [attributes copy];
 
     delete in;
 
-    return imageRep;
+    return [[NSBitmapImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
 }
     
 - (BOOL)drawInRect:(NSRect)dstSpacePortionRect fromRect:(NSRect)srcSpacePortionRect operation:(NSCompositingOperation)op fraction:(CGFloat)requestedAlpha respectFlipped:(BOOL)respectContextIsFlipped hints:(NSDictionary *)hints NS_AVAILABLE_MAC(10_6) {
