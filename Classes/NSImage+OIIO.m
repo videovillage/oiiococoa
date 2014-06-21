@@ -22,6 +22,9 @@
 }
 
 + (instancetype)oiio_forceImageWithContentsOfURL:(NSURL *)url {
+    if(url == nil || [[NSFileManager defaultManager] fileExistsAtPath:[url path]] == NO){
+        return nil;
+    }
     OIIOImageRep *rep = [OIIOImageRep imageRepWithContentsOfURL:url];
     if (rep) {
         return [self oiio_imageWithRepresentation:rep];
