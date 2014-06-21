@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "OIIOImageRep.h"
 
 @implementation AppDelegate
 
@@ -23,6 +24,8 @@
 
     // Initialize an image from URL. Always use OpenImageIO.
     NSImage *image = [NSImage oiio_forceImageWithContentsOfURL:file];
+    
+    [image oiio_forceWriteToURL:[NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"] encodingType:OIIOImageEncodingTypeUINT10];
 
     // Display it
     [self setImage:image];

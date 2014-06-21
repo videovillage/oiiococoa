@@ -7,6 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "OIIOImageRep.h"
 
 @interface NSImage (OIIO)
 
@@ -30,6 +31,9 @@
 
 // Convenience for creating image with a representation.
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep;
+
+- (void)oiio_forceWriteToURL:(NSURL *)url
+                encodingType:(OIIOImageEncodingType)encodingType;
 
 
 + (NSArray *)oiio_imageFileTypes;

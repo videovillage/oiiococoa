@@ -55,5 +55,12 @@
     return nil;
 }
 
+- (void)oiio_forceWriteToURL:(NSURL *)url
+                encodingType:(OIIOImageEncodingType)encodingType{
+    OIIOImageRep *imageRep = self.representations[0];
+    [imageRep writeToURL:url encodingType:encodingType];
+    
+}
+
 
 @end

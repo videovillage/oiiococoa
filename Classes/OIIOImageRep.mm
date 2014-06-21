@@ -18,9 +18,9 @@ void OIIOTimer(NSString *message, OIIOTimerBlockType block) {
 
 OIIO_NAMESPACE_USING
 
-@interface OIIOImageRep ()
-
-@property (strong) NSData *pixelData;
+@interface OIIOImageRep (){
+    
+}
 
 @end
 
@@ -93,13 +93,71 @@ OIIO_NAMESPACE_USING
                                                            colorSpaceName:NSDeviceRGBColorSpace
                                                               bytesPerRow:NULL
                                                              bitsPerPixel:NULL];
-    
-    
+
     //imageRep.ooio_metadata = [attributes copy];
 
     delete in;
 
-    return [[NSBitmapImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
+    return [[OIIOImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
+}
+
+- (BOOL)writeToURL:(NSURL *)url
+      encodingType:(OIIOImageEncodingType)encodingType{
+    ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
+    [[self class] setSpec:&outspec withEncodingType:encodingType];
+    
+    output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
+    
+    output->write_image(outspec.format, &self.bitmapData[0]);
+    output->close();
+    delete output;
+    
+    
+    if([[NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding] length] > 0){
+        NSLog(@"%@", [NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding]);
+        return NO;
+    }
+    
+    return YES;
+}
+
++ (void)setSpec:(ImageSpec *)spec withEncodingType:(OIIOImageEncodingType)type{
+    if(type == OIIOImageEncodingTypeUINT8){
+        spec->set_format (TypeDesc::UINT8);
+    }
+    else if(type == OIIOImageEncodingTypeINT8){
+        spec->set_format (TypeDesc::INT8);
+    }
+    else if(type == OIIOImageEncodingTypeUINT10){
+        spec->attribute ("oiio:BitsPerSample", 10);
+        spec->set_format (TypeDesc::UINT16);
+    }
+    else if(type == OIIOImageEncodingTypeUINT12){
+        spec->attribute ("oiio:BitsPerSample", 12);
+        spec->set_format (TypeDesc::UINT16);
+    }
+    else if(type == OIIOImageEncodingTypeUINT16){
+        spec->set_format (TypeDesc::UINT16);
+    }
+    else if(type == OIIOImageEncodingTypeINT16){
+        spec->set_format (TypeDesc::INT16);
+    }
+    else if(type == OIIOImageEncodingTypeUINT32){
+        spec->set_format (TypeDesc::UINT32);
+    }
+    else if(type == OIIOImageEncodingTypeINT32){
+        spec->set_format (TypeDesc::INT32);
+    }
+    else if(type == OIIOImageEncodingTypeHALF){
+        spec->set_format (TypeDesc::HALF);
+    }
+    else if(type == OIIOImageEncodingTypeFLOAT){
+        spec->set_format (TypeDesc::FLOAT);
+    }
+    else if(type == OIIOImageEncodingTypeDOUBLE){
+        spec->set_format (TypeDesc::DOUBLE);
+    }
 }
     
 - (BOOL)drawInRect:(NSRect)dstSpacePortionRect fromRect:(NSRect)srcSpacePortionRect operation:(NSCompositingOperation)op fraction:(CGFloat)requestedAlpha respectFlipped:(BOOL)respectContextIsFlipped hints:(NSDictionary *)hints NS_AVAILABLE_MAC(10_6) {
