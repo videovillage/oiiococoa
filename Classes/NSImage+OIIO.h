@@ -32,17 +32,19 @@
 // Convenience for creating image with a representation.
 + (instancetype)oiio_imageWithRepresentation:(NSBitmapImageRep *)rep;
 
-- (void)oiio_forceWriteToURL:(NSURL *)url
+- (BOOL)oiio_forceWriteToURL:(NSURL *)url
                 encodingType:(OIIOImageEncodingType)encodingType;
 
+- (OIIOImageEncodingType)oiio_getEncodingType;
+
+- (NSDictionary *)oiio_metadata;
 
 + (NSArray *)oiio_imageFileTypes;
 
 + (NSArray *)oiio_allImageFileTypes;
 
-
-
 // Convenience methods for finding metadata.
-- (NSDictionary *)ooio_metadata;
+
++ (NSString *)oiio_stringFromEncodingType:(OIIOImageEncodingType)type;
 
 @end

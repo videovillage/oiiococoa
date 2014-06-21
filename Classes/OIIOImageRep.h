@@ -19,7 +19,8 @@ typedef NS_ENUM(NSInteger, OIIOImageEncodingType) {
     OIIOImageEncodingTypeINT32,
     OIIOImageEncodingTypeHALF,
     OIIOImageEncodingTypeFLOAT,
-    OIIOImageEncodingTypeDOUBLE
+    OIIOImageEncodingTypeDOUBLE,
+    OIIOImageEncodingTypeNONE
 };
 
 typedef void (^OIIOTimerBlockType)();
@@ -27,12 +28,12 @@ void OIIOTimer(NSString *message, OIIOTimerBlockType block);
 
 @interface OIIOImageRep : NSBitmapImageRep
 
-@property (strong) NSDictionary *ooio_metadata;
+@property (strong) NSDictionary *oiio_metadata;
 
-+(BOOL)writeBitmapImageRep:(NSBitmapImageRep *)imageRep
-                     toURL:(NSURL *)url
-              encodingType:(OIIOImageEncodingType)encodingType;
+@property (assign) OIIOImageEncodingType encodingType;
 
+-(BOOL)writeToURL:(NSURL *)url
+     encodingType:(OIIOImageEncodingType)encodingType;
 
 
 @end

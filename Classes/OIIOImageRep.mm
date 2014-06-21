@@ -19,7 +19,7 @@ void OIIOTimer(NSString *message, OIIOTimerBlockType block) {
 OIIO_NAMESPACE_USING
 
 @interface OIIOImageRep (){
-    
+    ImageIOParameterList extra_attribs;
 }
 
 @end
@@ -39,6 +39,18 @@ OIIO_NAMESPACE_USING
     return @[@"org.smpte.dpx"];
 }
 
+- (instancetype)init{
+    if(self = [super init]){
+        self.oiio_metadata = [NSDictionary dictionary];
+        self.encodingType = OIIOImageEncodingTypeNONE;
+    }
+    return self;
+}
+
+- (void)setExtraAttribs:(ImageIOParameterList)attribs{
+    extra_attribs = attribs;
+}
+
 + (id)imageRepWithContentsOfURL:(NSURL *)url {
     
     
@@ -53,37 +65,37 @@ OIIO_NAMESPACE_USING
     in->read_image (TypeDesc::UINT16, &pixels[0]);
     in->close ();
     
-//    NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
-//    for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
-//        
-//        const ParamValue &p (spec.extra_attribs[i]);
-//        NSString *name = [NSString stringWithCString:p.name().c_str() encoding:NSUTF8StringEncoding];
-//        id value = [NSNull null];
-//        
-//        if (p.type() == TypeDesc::TypeString){
-//            value = @(*(const char **)p.data());
-//        }
-//        else if (p.type() == TypeDesc::TypeFloat) {
-//            value = @(*(const float *)p.data());
-//        }
-//        else if (p.type() == TypeDesc::TypeInt) {
-//            value = @(*(const int *)p.data());
-//        }
-//        else if (p.type() == TypeDesc::UINT){
-//            value = @(*(const unsigned int *)p.data());
-//        }
-//        //        else if (p.type() == TypeDesc::TypeMatrix) {
-//        //            const float *f = (const float *)p.data();
-//        //            printf ("\%f \%f \%f \%f \%f \%f \%f \%f "
-//        //                    "\%f \%f \%f \%f \%f \%f \%f \%f",
-//        //                    f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7],
-//        //                    f[8], f[9], f[10], f[11], f[12], f[13], f[14], f[15]);
-//        //        } else
-//        //            printf ("<unknown data type>");
-//        attributes[name] = value;
-//    }
+    NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+    for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
+        
+        const ParamValue &p (spec.extra_attribs[i]);
+        NSString *name = [NSString stringWithCString:p.name().c_str() encoding:NSUTF8StringEncoding];
+        id value = [NSNull null];
+        
+        if (p.type() == TypeDesc::TypeString){
+            value = @(*(const char **)p.data());
+        }
+        else if (p.type() == TypeDesc::TypeFloat) {
+            value = @(*(const float *)p.data());
+        }
+        else if (p.type() == TypeDesc::TypeInt) {
+            value = @(*(const int *)p.data());
+        }
+        else if (p.type() == TypeDesc::UINT){
+            value = @(*(const unsigned int *)p.data());
+        }
+        //        else if (p.type() == TypeDesc::TypeMatrix) {
+        //            const float *f = (const float *)p.data();
+        //            printf ("\%f \%f \%f \%f \%f \%f \%f \%f "
+        //                    "\%f \%f \%f \%f \%f \%f \%f \%f",
+        //                    f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7],
+        //                    f[8], f[9], f[10], f[11], f[12], f[13], f[14], f[15]);
+        //        } else
+        //            printf ("<unknown data type>");
+        attributes[name] = value;
+    }
     
-    OIIOImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
+    NSBitmapImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
                                                                pixelsWide:spec.width
                                                                pixelsHigh:spec.height
                                                             bitsPerSample:16
@@ -94,23 +106,32 @@ OIIO_NAMESPACE_USING
                                                               bytesPerRow:NULL
                                                              bitsPerPixel:NULL];
 
-    //imageRep.ooio_metadata = [attributes copy];
-
+    
+    OIIOImageRep *oiioImageRep = [[OIIOImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
+    
+    oiioImageRep.encodingType = [self getEncodingTypeFromSpec:&spec];
+    
+    oiioImageRep.oiio_metadata = [attributes copy];
+    
+    [oiioImageRep setExtraAttribs:(ImageSpec(spec).extra_attribs)];
+    
     delete in;
-
-    return [[OIIOImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
+    
+    return oiioImageRep;
 }
 
-+(BOOL)writeBitmapImageRep:(NSBitmapImageRep *)imageRep
-                      toURL:(NSURL *)url
-               encodingType:(OIIOImageEncodingType)encodingType{
+-(BOOL)writeToURL:(NSURL *)url
+     encodingType:(OIIOImageEncodingType)encodingType{
     ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
-    ImageSpec outspec = ImageSpec((int)imageRep.pixelsWide, (int)imageRep.pixelsHigh, 3);
+    ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
     [[self class] setSpec:&outspec withEncodingType:encodingType];
+    if(&extra_attribs != nil){
+        outspec.extra_attribs = extra_attribs;
+    }
     
     output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
     
-    output->write_image(outspec.format, &imageRep.bitmapData[0]);
+    output->write_image(outspec.format, &(self.bitmapData[0]));
     output->close();
     delete output;
     
@@ -121,6 +142,53 @@ OIIO_NAMESPACE_USING
     }
     
     return YES;
+}
+
++ (void)copyAttributes:(NSDictionary *)attributes toSpec:(ImageSpec *)spec{
+//    for(NSString *key in attributes.allKeys){
+//        
+//    }
+    return;
+}
+
++ (OIIOImageEncodingType)getEncodingTypeFromSpec:(const ImageSpec *)spec{
+    if(spec->format == TypeDesc::UINT8){
+        return OIIOImageEncodingTypeUINT8;
+    }
+    else if(spec->format == TypeDesc::INT8){
+        return OIIOImageEncodingTypeINT8;
+    }
+    else if(spec->format == TypeDesc::UINT16){
+        if(spec->get_int_attribute("oiio:BitsPerSample") == 10){
+            return OIIOImageEncodingTypeUINT10;
+        }
+        else if(spec->get_int_attribute("oiio:BitsPerSample") == 12){
+            return OIIOImageEncodingTypeUINT12;
+        }
+        else{
+            return OIIOImageEncodingTypeUINT16;
+        }
+    }
+    else if(spec->format == TypeDesc::INT16){
+        return OIIOImageEncodingTypeINT16;
+    }
+    else if(spec->format == TypeDesc::UINT32){
+        return OIIOImageEncodingTypeUINT32;
+    }
+    else if(spec->format == TypeDesc::INT32){
+        return OIIOImageEncodingTypeINT32;
+    }
+    else if(spec->format == TypeDesc::HALF){
+        return OIIOImageEncodingTypeHALF;
+    }
+    else if(spec->format == TypeDesc::FLOAT){
+        return OIIOImageEncodingTypeFLOAT;
+    }
+    else if(spec->format == TypeDesc::DOUBLE){
+        return OIIOImageEncodingTypeDOUBLE;
+    }
+    return OIIOImageEncodingTypeNONE;
+    
 }
 
 + (void)setSpec:(ImageSpec *)spec withEncodingType:(OIIOImageEncodingType)type{
@@ -165,5 +233,7 @@ OIIO_NAMESPACE_USING
     
     return [super drawInRect:dstSpacePortionRect fromRect:srcSpacePortionRect operation:op fraction:requestedAlpha respectFlipped:respectContextIsFlipped hints:hints];
 }
+
+
 
 @end

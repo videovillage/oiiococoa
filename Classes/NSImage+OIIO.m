@@ -7,7 +7,6 @@
 //
 
 #import "NSImage+OIIO.h"
-#import "OIIOImageRep.h"
 
 @implementation NSImage (OIIO)
 
@@ -46,23 +45,76 @@
     return combinedFileTypes;
 }
 
-- (NSDictionary *)ooio_metadata {
-    for (NSImageRep *rep in self.representations) {
-        if ([rep respondsToSelector:@selector(ooio_metadata)]) {
-            return [rep performSelector:@selector(ooio_metadata) withObject:nil];
+- (OIIOImageRep *)findOIIOImageRep{
+    for (NSImageRep *rep in self.representations){
+        if([rep class] == [OIIOImageRep class]){
+            return (OIIOImageRep *)rep;
         }
     }
     return nil;
 }
 
-- (void)oiio_forceWriteToURL:(NSURL *)url
-                encodingType:(OIIOImageEncodingType)encodingType{
-    
-    [OIIOImageRep writeBitmapImageRep:[[NSBitmapImageRep alloc] initWithData:[self TIFFRepresentation]]
-                                toURL:url
-                         encodingType:encodingType];
-    
+- (NSDictionary *)oiio_metadata{
+    OIIOImageRep *rep = [self findOIIOImageRep];
+    if(rep != nil){
+        return rep.oiio_metadata;
+    }
+    return nil;
 }
 
+- (BOOL)oiio_forceWriteToURL:(NSURL *)url
+                encodingType:(OIIOImageEncodingType)encodingType{
+    OIIOImageRep *imageRep = [self findOIIOImageRep] == nil ? [[OIIOImageRep alloc] initWithData:[self TIFFRepresentation]] : [self findOIIOImageRep];
+    
+    return [imageRep writeToURL:url encodingType:encodingType];
+
+}
+
+
+
+- (OIIOImageEncodingType)oiio_getEncodingType{
+    OIIOImageRep *imageRep = [self findOIIOImageRep];
+    if(imageRep != nil){
+        return imageRep.encodingType;
+    }
+    return OIIOImageEncodingTypeNONE;
+}
+
++ (NSString *)oiio_stringFromEncodingType:(OIIOImageEncodingType)type{
+    if(type == OIIOImageEncodingTypeUINT8){
+        return @"UINT8";
+    }
+    else if(type == OIIOImageEncodingTypeINT8){
+        return @"INT8";
+    }
+    else if(type == OIIOImageEncodingTypeUINT10){
+        return @"UINT10";
+    }
+    else if(type == OIIOImageEncodingTypeUINT12){
+        return @"UINT12";
+    }
+    else if(type == OIIOImageEncodingTypeUINT16){
+        return @"UINT16";
+    }
+    else if(type == OIIOImageEncodingTypeINT16){
+        return @"INT16";
+    }
+    else if(type == OIIOImageEncodingTypeUINT32){
+        return @"UINT32";
+    }
+    else if(type == OIIOImageEncodingTypeINT32){
+        return @"INT32";
+    }
+    else if(type == OIIOImageEncodingTypeHALF){
+        return @"HALF";
+    }
+    else if(type == OIIOImageEncodingTypeFLOAT){
+        return @"FLOAT";
+    }
+    else if(type == OIIOImageEncodingTypeDOUBLE){
+        return @"DOUBLE";
+    }
+    return @"NONE";
+}
 
 @end

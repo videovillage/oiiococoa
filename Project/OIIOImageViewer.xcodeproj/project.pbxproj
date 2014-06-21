@@ -38,7 +38,6 @@
 		3BD6CF0B18CC93C3003B40F3 /* libpng15.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFB18CC93C2003B40F3 /* libpng15.a */; };
 		3BD6CF0C18CC93C3003B40F3 /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFC18CC93C2003B40F3 /* libtiff.a */; };
 		3BD6CF0D18CC93C3003B40F3 /* libtiffxx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */; };
-		F29DAC7118D047A500E132E7 /* test.dpx in Resources */ = {isa = PBXBuildFile; fileRef = F29DAC7018D0478F00E132E7 /* test.dpx */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -131,7 +130,6 @@
 		3BD6CEFB18CC93C2003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/lib/libpng15.a; sourceTree = "<group>"; };
 		3BD6CEFC18CC93C2003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/lib/libtiff.a; sourceTree = "<group>"; };
 		3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiffxx.a; path = ../../Vendor/libtiff/lib/libtiffxx.a; sourceTree = "<group>"; };
-		F29DAC7018D0478F00E132E7 /* test.dpx */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.dpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -218,7 +216,6 @@
 			children = (
 				3B66459C18CC41600052E2DC /* AppDelegate.h */,
 				3B66459D18CC41600052E2DC /* AppDelegate.m */,
-				F29DAC7018D0478F00E132E7 /* test.dpx */,
 				3B66459F18CC41600052E2DC /* MainMenu.xib */,
 				3B1BC5CA18CD2823007B416E /* Digital_LAD_2048x1556.dpx */,
 				3B6645A218CC41600052E2DC /* Images.xcassets */,
@@ -407,7 +404,6 @@
 				3B6645A318CC41600052E2DC /* Images.xcassets in Resources */,
 				3B66459B18CC41600052E2DC /* Credits.rtf in Resources */,
 				3B1BC5CB18CD282F007B416E /* Digital_LAD_2048x1556.dpx in Resources */,
-				F29DAC7118D047A500E132E7 /* test.dpx in Resources */,
 				3B6645A118CC41600052E2DC /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

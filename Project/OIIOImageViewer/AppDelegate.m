@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import "OIIOImageRep.h"
 
+
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -25,8 +26,17 @@
     // Initialize an image from URL. Always use OpenImageIO.
     NSImage *image = [NSImage oiio_forceImageWithContentsOfURL:file];
     
-    [image oiio_forceWriteToURL:[NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"] encodingType:OIIOImageEncodingTypeUINT10];
-
+    NSURL *saveURL = [NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"];
+    
+    BOOL success = [image oiio_forceWriteToURL:saveURL encodingType:OIIOImageEncodingTypeUINT10];
+    
+    if(!success){
+        NSLog(@"Failed to write.");
+    }
+    else{
+        NSLog(@"Write Success.");
+    }
+    
     // Display it
     [self setImage:image];
 }
@@ -35,7 +45,7 @@
     self.imageView.image = image;
     
     NSLog(@"Image: %@", image);
-    NSLog(@"Image Metadata: %@", image.ooio_metadata);
+    NSLog(@"Image Metadata: %@", image.oiio_metadata);
 }
 
 #pragma mark -
