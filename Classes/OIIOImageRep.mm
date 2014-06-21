@@ -124,10 +124,13 @@ OIIO_NAMESPACE_USING
      encodingType:(OIIOImageEncodingType)encodingType{
     ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
-    [[self class] setSpec:&outspec withEncodingType:encodingType];
+    
     if(&extra_attribs != nil){
         outspec.extra_attribs = extra_attribs;
     }
+    
+    [[self class] setSpec:&outspec withEncodingType:encodingType];
+    
     
     output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
     
