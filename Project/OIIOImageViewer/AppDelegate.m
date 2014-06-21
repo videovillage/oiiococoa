@@ -44,8 +44,8 @@
 - (void)setImage:(NSImage *)image {
     self.imageView.image = image;
     
-    NSLog(@"Image: %@", image);
-    NSLog(@"Image Metadata: %@", image.oiio_metadata);
+    //NSLog(@"Image: %@", image);
+    //NSLog(@"Image Metadata: %@", image.oiio_metadata);
 }
 
 #pragma mark -
