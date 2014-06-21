@@ -29,8 +29,9 @@ void OIIOTimer(NSString *message, OIIOTimerBlockType block);
 
 @property (strong) NSDictionary *ooio_metadata;
 
-- (BOOL)writeToURL:(NSURL *)url
-      encodingType:(OIIOImageEncodingType)encodingType;
++(BOOL)writeBitmapImageRep:(NSBitmapImageRep *)imageRep
+                     toURL:(NSURL *)url
+              encodingType:(OIIOImageEncodingType)encodingType;
 
 
 

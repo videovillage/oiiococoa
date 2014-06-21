@@ -101,15 +101,16 @@ OIIO_NAMESPACE_USING
     return [[OIIOImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
 }
 
-- (BOOL)writeToURL:(NSURL *)url
-      encodingType:(OIIOImageEncodingType)encodingType{
++(BOOL)writeBitmapImageRep:(NSBitmapImageRep *)imageRep
+                      toURL:(NSURL *)url
+               encodingType:(OIIOImageEncodingType)encodingType{
     ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
-    ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
+    ImageSpec outspec = ImageSpec((int)imageRep.pixelsWide, (int)imageRep.pixelsHigh, 3);
     [[self class] setSpec:&outspec withEncodingType:encodingType];
     
     output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
     
-    output->write_image(outspec.format, &self.bitmapData[0]);
+    output->write_image(outspec.format, &imageRep.bitmapData[0]);
     output->close();
     delete output;
     

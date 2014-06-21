@@ -57,8 +57,10 @@
 
 - (void)oiio_forceWriteToURL:(NSURL *)url
                 encodingType:(OIIOImageEncodingType)encodingType{
-    OIIOImageRep *imageRep = self.representations[0];
-    [imageRep writeToURL:url encodingType:encodingType];
+    
+    [OIIOImageRep writeBitmapImageRep:[[NSBitmapImageRep alloc] initWithData:[self TIFFRepresentation]]
+                                toURL:url
+                         encodingType:encodingType];
     
 }
 
