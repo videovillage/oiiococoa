@@ -48,7 +48,7 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
 
-    std::vector<unsigned char*> pixels (spec.width * spec.height * spec.nchannels);
+    std::vector<unsigned short> pixels (spec.width * spec.height * spec.nchannels);
     
     in->read_image (TypeDesc::UINT16, &pixels[0]);
     in->close ();
