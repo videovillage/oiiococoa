@@ -68,9 +68,8 @@
 - (BOOL)oiio_forceWriteToURL:(NSURL *)url
                 encodingType:(OIIOImageEncodingType)encodingType{
     OIIOImageRep *imageRep = [self findOIIOImageRep] == nil ? [[OIIOImageRep alloc] initWithData:[self TIFFRepresentation]] : [self findOIIOImageRep];
-    
-    return [imageRep writeToURL:url encodingType:encodingType];
 
+    return [imageRep writeToURL:url encodingType:encodingType];
 }
 
 
@@ -82,6 +81,8 @@
     }
     return OIIOImageEncodingTypeNONE;
 }
+
+
 
 + (NSString *)oiio_stringFromEncodingType:(OIIOImageEncodingType)type{
     if(type == OIIOImageEncodingTypeUINT8){

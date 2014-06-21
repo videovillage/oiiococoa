@@ -123,17 +123,17 @@ OIIO_NAMESPACE_USING
 -(BOOL)writeToURL:(NSURL *)url
      encodingType:(OIIOImageEncodingType)encodingType{
     ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    ImageSpec inspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3, [self.class typeDescForEncodingType:[self.class oiio_encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
     ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
     
     if(&extra_attribs != nil){
         outspec.extra_attribs = extra_attribs;
     }
     
-    [[self class] setSpec:&outspec withEncodingType:encodingType];
+    [self.class setSpec:&outspec withEncodingType:encodingType];
     
     
-    output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
-    
+    output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], inspec, ImageOutput::Create);
     output->write_image(outspec.format, &(self.bitmapData[0]));
     output->close();
     delete output;
@@ -152,6 +152,25 @@ OIIO_NAMESPACE_USING
 //        
 //    }
     return;
+}
+
++ (OIIOImageEncodingType)oiio_encodingTypeForBitsPerSample:(long)bitsPerSample{
+    if(bitsPerSample == 8){
+        return OIIOImageEncodingTypeUINT8;
+    }
+    else if(bitsPerSample == 10){
+        return OIIOImageEncodingTypeUINT10;
+    }
+    else if(bitsPerSample == 12){
+        return OIIOImageEncodingTypeUINT12;
+    }
+    else if(bitsPerSample == 16){
+        return OIIOImageEncodingTypeUINT16;
+    }
+    else if(bitsPerSample == 32){
+        return OIIOImageEncodingTypeUINT32;
+    }
+    return OIIOImageEncodingTypeNONE;
 }
 
 + (OIIOImageEncodingType)getEncodingTypeFromSpec:(const ImageSpec *)spec{
@@ -195,41 +214,51 @@ OIIO_NAMESPACE_USING
 }
 
 + (void)setSpec:(ImageSpec *)spec withEncodingType:(OIIOImageEncodingType)type{
-    if(type == OIIOImageEncodingTypeUINT8){
-        spec->set_format (TypeDesc::UINT8);
-    }
-    else if(type == OIIOImageEncodingTypeINT8){
-        spec->set_format (TypeDesc::INT8);
-    }
-    else if(type == OIIOImageEncodingTypeUINT10){
+    spec->set_format([self.class typeDescForEncodingType:type]);
+    if(type == OIIOImageEncodingTypeUINT10){
         spec->attribute ("oiio:BitsPerSample", 10);
-        spec->set_format (TypeDesc::UINT16);
     }
     else if(type == OIIOImageEncodingTypeUINT12){
         spec->attribute ("oiio:BitsPerSample", 12);
-        spec->set_format (TypeDesc::UINT16);
+    }
+    
+}
+
++(TypeDesc)typeDescForEncodingType:(OIIOImageEncodingType)type{
+    if(type == OIIOImageEncodingTypeUINT8){
+        return (TypeDesc::UINT8);
+    }
+    else if(type == OIIOImageEncodingTypeINT8){
+        return (TypeDesc::INT8);
+    }
+    else if(type == OIIOImageEncodingTypeUINT10){
+        return (TypeDesc::UINT16);
+    }
+    else if(type == OIIOImageEncodingTypeUINT12){
+        return (TypeDesc::UINT16);
     }
     else if(type == OIIOImageEncodingTypeUINT16){
-        spec->set_format (TypeDesc::UINT16);
+        return (TypeDesc::UINT16);
     }
     else if(type == OIIOImageEncodingTypeINT16){
-        spec->set_format (TypeDesc::INT16);
+        return (TypeDesc::INT16);
     }
     else if(type == OIIOImageEncodingTypeUINT32){
-        spec->set_format (TypeDesc::UINT32);
+        return (TypeDesc::UINT32);
     }
     else if(type == OIIOImageEncodingTypeINT32){
-        spec->set_format (TypeDesc::INT32);
+        return (TypeDesc::INT32);
     }
     else if(type == OIIOImageEncodingTypeHALF){
-        spec->set_format (TypeDesc::HALF);
+        return (TypeDesc::HALF);
     }
     else if(type == OIIOImageEncodingTypeFLOAT){
-        spec->set_format (TypeDesc::FLOAT);
+        return (TypeDesc::FLOAT);
     }
     else if(type == OIIOImageEncodingTypeDOUBLE){
-        spec->set_format (TypeDesc::DOUBLE);
+        return (TypeDesc::DOUBLE);
     }
+    return TypeDesc::UNKNOWN;
 }
     
 - (BOOL)drawInRect:(NSRect)dstSpacePortionRect fromRect:(NSRect)srcSpacePortionRect operation:(NSCompositingOperation)op fraction:(CGFloat)requestedAlpha respectFlipped:(BOOL)respectContextIsFlipped hints:(NSDictionary *)hints NS_AVAILABLE_MAC(10_6) {

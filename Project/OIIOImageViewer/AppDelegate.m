@@ -21,10 +21,10 @@
     
 
     // Find data of image in bundle
-    NSURL *file = [[NSBundle mainBundle] URLForResource:@"Digital_LAD_2048x1556" withExtension:@"dpx"];
+    NSURL *file = [[NSBundle mainBundle] URLForResource:@"cover" withExtension:@"jpg"];
 
     // Initialize an image from URL. Always use OpenImageIO.
-    NSImage *image = [NSImage oiio_forceImageWithContentsOfURL:file];
+    NSImage *image = [NSImage oiio_imageWithContentsOfURL:file];
     
     NSURL *saveURL = [NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"];
     
