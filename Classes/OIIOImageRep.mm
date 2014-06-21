@@ -109,7 +109,7 @@ OIIO_NAMESPACE_USING
     
     OIIOImageRep *oiioImageRep = [[OIIOImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
     
-    oiioImageRep.encodingType = [self getEncodingTypeFromSpec:&spec];
+    oiioImageRep.encodingType = [self encodingTypeFromSpec:&spec];
     
     oiioImageRep.oiio_metadata = [attributes copy];
     
@@ -123,7 +123,8 @@ OIIO_NAMESPACE_USING
 -(BOOL)writeToURL:(NSURL *)url
      encodingType:(OIIOImageEncodingType)encodingType{
     ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
-    ImageSpec inspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3, [self.class typeDescForEncodingType:[self.class oiio_encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
+    ImageSpec selfspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3, [self.class typeDescForEncodingType:[self.class encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
+    
     ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
     
     if(&extra_attribs != nil){
@@ -133,7 +134,7 @@ OIIO_NAMESPACE_USING
     [self.class setSpec:&outspec withEncodingType:encodingType];
     
     
-    output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], inspec, ImageOutput::Create);
+    output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], selfspec, ImageOutput::Create);
     output->write_image(outspec.format, &(self.bitmapData[0]));
     output->close();
     delete output;
@@ -154,7 +155,7 @@ OIIO_NAMESPACE_USING
     return;
 }
 
-+ (OIIOImageEncodingType)oiio_encodingTypeForBitsPerSample:(long)bitsPerSample{
++ (OIIOImageEncodingType)encodingTypeForBitsPerSample:(long)bitsPerSample{
     if(bitsPerSample == 8){
         return OIIOImageEncodingTypeUINT8;
     }
@@ -173,7 +174,7 @@ OIIO_NAMESPACE_USING
     return OIIOImageEncodingTypeNONE;
 }
 
-+ (OIIOImageEncodingType)getEncodingTypeFromSpec:(const ImageSpec *)spec{
++ (OIIOImageEncodingType)encodingTypeFromSpec:(const ImageSpec *)spec{
     if(spec->format == TypeDesc::UINT8){
         return OIIOImageEncodingTypeUINT8;
     }
