@@ -48,7 +48,7 @@
     return combinedFileTypes;
 }
 
-- (OIIOImageRep *)findOIIOImageRep{
+- (OIIOImageRep *)oiio_findOIIOImageRep{
     for (NSImageRep *rep in self.representations){
         if([rep class] == [OIIOImageRep class]){
             return (OIIOImageRep *)rep;
@@ -58,7 +58,7 @@
 }
 
 - (NSDictionary *)oiio_metadata{
-    OIIOImageRep *rep = [self findOIIOImageRep];
+    OIIOImageRep *rep = [self oiio_findOIIOImageRep];
     if(rep != nil){
         return rep.oiio_metadata;
     }
@@ -67,7 +67,7 @@
 
 - (BOOL)oiio_forceWriteToURL:(NSURL *)url
                 encodingType:(OIIOImageEncodingType)encodingType{
-    OIIOImageRep *imageRep = [self findOIIOImageRep] == nil ? [[OIIOImageRep alloc] initWithData:[self TIFFRepresentation]] : [self findOIIOImageRep];
+    OIIOImageRep *imageRep = [self oiio_findOIIOImageRep] == nil ? [[OIIOImageRep alloc] initWithData:[self TIFFRepresentation]] : [self oiio_findOIIOImageRep];
 
     return [imageRep writeToURL:url encodingType:encodingType];
 }
@@ -75,7 +75,7 @@
 
 
 - (OIIOImageEncodingType)oiio_getEncodingType{
-    OIIOImageRep *imageRep = [self findOIIOImageRep];
+    OIIOImageRep *imageRep = [self oiio_findOIIOImageRep];
     if(imageRep != nil){
         return imageRep.encodingType;
     }

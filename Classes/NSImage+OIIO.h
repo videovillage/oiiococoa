@@ -39,6 +39,8 @@
 
 - (NSDictionary *)oiio_metadata;
 
+- (OIIOImageRep *)oiio_findOIIOImageRep;
+
 + (NSArray *)oiio_imageFileTypes;
 
 + (NSArray *)oiio_allImageFileTypes;
