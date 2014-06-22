@@ -21,14 +21,15 @@
     
 
     // Find data of image in bundle
-    NSURL *file = [[NSBundle mainBundle] URLForResource:@"Digital_LAD_2048x1556" withExtension:@"dpx"];
-
+    NSURL *file = [[NSBundle mainBundle] URLForResource:@"test" withExtension:@"png"];
+    
     // Initialize an image from URL. Always use OpenImageIO.
-    NSImage *image = [NSImage oiio_imageWithContentsOfURL:file];
+    NSImage *image = [NSImage oiio_imageWithContentsOfURL:[file filePathURL]];
+    
     
     NSURL *saveURL = [NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"];
     
-    BOOL success = [image oiio_forceWriteToURL:saveURL encodingType:OIIOImageEncodingTypeUINT10];
+    BOOL success = [image oiio_forceWriteToURL:saveURL encodingType:OIIOImageEncodingTypeUINT16];
     
     if(!success){
         NSLog(@"Failed to write.");
@@ -44,8 +45,8 @@
 - (void)setImage:(NSImage *)image {
     self.imageView.image = image;
     
-    //NSLog(@"Image: %@", image);
-    //NSLog(@"Image Metadata: %@", image.oiio_metadata);
+    NSLog(@"Image: %@", image);
+    NSLog(@"Image Metadata: %@", image.oiio_metadata);
 }
 
 #pragma mark -

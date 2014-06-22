@@ -123,8 +123,9 @@ OIIO_NAMESPACE_USING
 -(BOOL)writeToURL:(NSURL *)url
      encodingType:(OIIOImageEncodingType)encodingType{
     ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
-    ImageSpec selfspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3, [self.class typeDescForEncodingType:[self.class encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
     
+    ImageSpec selfspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3, [self.class typeDescForEncodingType:[self.class encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
+
     ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
     
     if(&extra_attribs != nil){
@@ -134,8 +135,8 @@ OIIO_NAMESPACE_USING
     [self.class setSpec:&outspec withEncodingType:encodingType];
     
     
-    output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], selfspec, ImageOutput::Create);
-    output->write_image(outspec.format, &(self.bitmapData[0]));
+    output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
+    output->write_image(selfspec.format, &(self.bitmapData[0]));
     output->close();
     delete output;
     
