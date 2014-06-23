@@ -45,6 +45,10 @@
 
 + (NSArray *)oiio_allImageFileTypes;
 
++ (NSArray *)oiio_imageTypes;
+
++ (NSArray *)oiio_allImageTypes;
+
 // Convenience methods for finding metadata.
 
 + (NSString *)oiio_stringFromEncodingType:(OIIOImageEncodingType)type;

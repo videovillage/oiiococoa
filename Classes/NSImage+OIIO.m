@@ -48,6 +48,16 @@
     return combinedFileTypes;
 }
 
++ (NSArray *)oiio_imageTypes{
+    return @[@"org.smpte.dpx"];
+}
+
++ (NSArray *)oiio_allImageTypes{
+    NSMutableArray *combinedTypes = [[NSImage imageTypes] mutableCopy];
+    [combinedTypes addObjectsFromArray:[[self class] oiio_imageTypes]];
+    return combinedTypes;
+}
+
 - (OIIOImageRep *)oiio_findOIIOImageRep{
     for (NSImageRep *rep in self.representations){
         if([rep class] == [OIIOImageRep class]){
