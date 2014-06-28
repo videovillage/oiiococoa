@@ -39,7 +39,7 @@
 }
 
 + (NSArray *)oiio_imageFileTypes{
-    return @[@"DPX", @"dpx"];
+    return @[@"DPX", @"dpx", @"RLA", @"rla", @"tx", @"TX", @"sgi", @"SGI", @"rgb", @"RGB", @"IFF", @"iff"];
 }
 
 + (NSArray *)oiio_allImageFileTypes{
