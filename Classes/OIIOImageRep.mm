@@ -92,7 +92,10 @@ OIIO_NAMESPACE_USING
         //                    f[8], f[9], f[10], f[11], f[12], f[13], f[14], f[15]);
         //        } else
         //            printf ("<unknown data type>");
-        attributes[name] = value;
+        if(value != nil){
+            attributes[name] = value;
+        }
+        
     }
     
     NSBitmapImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
