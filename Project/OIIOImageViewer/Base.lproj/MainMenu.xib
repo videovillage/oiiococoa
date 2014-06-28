@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="4514" systemVersion="13C64" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="5056" systemVersion="13D65" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="4514"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="5056"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -650,22 +650,47 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="442" height="410"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1058"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="778"/>
             <view key="contentView" id="372">
                 <rect key="frame" x="0.0" y="0.0" width="442" height="410"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="lCj-iK-Ifx">
-                        <rect key="frame" x="17" y="17" width="408" height="376"/>
+                        <rect key="frame" x="17" y="40" width="408" height="353"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" imageFrameStyle="grayBezel" id="qjy-hc-z2m"/>
                     </imageView>
+                    <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AYM-3B-eE9">
+                        <rect key="frame" x="18" y="11" width="217" height="26"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="212" id="g3s-IL-Gn5"/>
+                        </constraints>
+                        <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="wgu-tN-W43" id="U95-ai-vL7">
+                            <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <menu key="menu" title="OtherViews" id="EXD-2A-Wja">
+                                <items>
+                                    <menuItem title="Item 1" state="on" id="wgu-tN-W43"/>
+                                    <menuItem title="Item 2" id="9BH-KX-jwM"/>
+                                    <menuItem title="Item 3" id="Y25-bn-mBO"/>
+                                </items>
+                            </menu>
+                        </popUpButtonCell>
+                        <connections>
+                            <binding destination="HOk-ZJ-sQB" name="content" keyPath="arrangedObjects" id="3Va-bX-0HE"/>
+                            <binding destination="HOk-ZJ-sQB" name="contentValues" keyPath="arrangedObjects.lastPathComponent" previousBinding="3Va-bX-0HE" id="Hb0-1W-FhR"/>
+                            <binding destination="494" name="selectedObject" keyPath="self.selectedURL" previousBinding="Hb0-1W-FhR" id="FDI-HP-N9x"/>
+                        </connections>
+                    </popUpButton>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="lCj-iK-Ifx" firstAttribute="top" secondItem="372" secondAttribute="top" constant="20" symbolic="YES" id="47v-RF-Gvt"/>
-                    <constraint firstItem="lCj-iK-Ifx" firstAttribute="leading" secondItem="372" secondAttribute="leading" constant="20" symbolic="YES" id="Qql-s0-hcK"/>
-                    <constraint firstAttribute="trailing" secondItem="lCj-iK-Ifx" secondAttribute="trailing" constant="20" symbolic="YES" id="RPx-Y0-Da5"/>
-                    <constraint firstAttribute="bottom" secondItem="lCj-iK-Ifx" secondAttribute="bottom" constant="20" symbolic="YES" id="XqT-1e-ltr"/>
+                    <constraint firstAttribute="bottom" secondItem="AYM-3B-eE9" secondAttribute="bottom" constant="14" id="1FE-cJ-zxD"/>
+                    <constraint firstItem="AYM-3B-eE9" firstAttribute="top" secondItem="lCj-iK-Ifx" secondAttribute="bottom" constant="8" id="B6h-EO-qVw"/>
+                    <constraint firstItem="lCj-iK-Ifx" firstAttribute="leading" secondItem="372" secondAttribute="leading" constant="20" symbolic="YES" id="Rjl-jX-r95"/>
+                    <constraint firstItem="lCj-iK-Ifx" firstAttribute="leading" secondItem="AYM-3B-eE9" secondAttribute="leading" id="ceg-fu-WvL"/>
+                    <constraint firstItem="lCj-iK-Ifx" firstAttribute="top" secondItem="372" secondAttribute="top" constant="20" symbolic="YES" id="dsC-8h-ZlQ"/>
+                    <constraint firstAttribute="trailing" secondItem="lCj-iK-Ifx" secondAttribute="trailing" constant="20" symbolic="YES" id="q0a-Hh-R1r"/>
                 </constraints>
             </view>
         </window>
@@ -676,5 +701,11 @@
             </connections>
         </customObject>
         <customObject id="420" customClass="NSFontManager"/>
+        <arrayController objectClassName="NSURL" id="HOk-ZJ-sQB">
+            <connections>
+                <binding destination="494" name="contentArray" keyPath="self.urlList" id="SZd-fr-k7A"/>
+            </connections>
+        </arrayController>
+        <userDefaultsController representsSharedInstance="YES" id="B68-E6-OhT"/>
     </objects>
 </document>

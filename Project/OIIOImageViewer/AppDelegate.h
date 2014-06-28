@@ -14,4 +14,7 @@
 @property (assign) IBOutlet NSWindow *window;
 @property (assign) IBOutlet NSImageView *imageView;
 
+@property (strong) NSArray *urlList;
+@property (strong) NSURL *selectedURL;
+
 @end

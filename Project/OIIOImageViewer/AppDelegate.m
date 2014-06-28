@@ -21,25 +21,68 @@
     
 
     // Find data of image in bundle
-    NSURL *file = [[NSBundle mainBundle] URLForResource:@"test" withExtension:@"png"];
+    //NSURL *file = [[NSBundle mainBundle] URLForResource:@"test" withExtension:@"png"];
+    
+    NSString *unexpandedFilePathToFolder = @"~/Downloads/oiio-images-master/";
+    
+    NSURL *folder = [NSURL fileURLWithPath:unexpandedFilePathToFolder.stringByExpandingTildeInPath isDirectory:YES];
     
     // Initialize an image from URL. Always use OpenImageIO.
-    NSImage *image = [NSImage oiio_imageWithContentsOfURL:[file filePathURL]];
+    NSArray * dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:folder
+                              includingPropertiesForKeys:@[]
+                                                 options:NSDirectoryEnumerationSkipsHiddenFiles
+                                                   error:nil];
     
+    NSMutableArray *allFiles = [NSMutableArray array];
     
-    NSURL *saveURL = [NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"];
-    
-    BOOL success = [image oiio_forceWriteToURL:saveURL encodingType:OIIOImageEncodingTypeUINT16];
-    
-    if(!success){
-        NSLog(@"Failed to write.");
+    for (NSURL *url in dirContents) {
+        NSNumber *isDirectory;
+        [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+        if (![isDirectory boolValue] && [[NSImage oiio_imageFileTypes] containsObject:[url pathExtension]]) {
+            [allFiles addObject:url];
+        }
     }
-    else{
-        NSLog(@"Write Success.");
+    
+    [self addObserver:self
+           forKeyPath:@"selectedURL"
+              options:NSKeyValueObservingOptionNew
+              context:nil];
+    
+    self.urlList = [NSArray arrayWithArray:allFiles];
+    if(allFiles.count != 0){
+        self.selectedURL = allFiles[0];
     }
+    
+    
+    
+    //NSImage *image = [NSImage oiio_imageWithContentsOfURL:[file filePathURL]];
+    
+    
+//    NSURL *saveURL = [NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"];
+//    
+//    BOOL success = [image oiio_forceWriteToURL:saveURL encodingType:OIIOImageEncodingTypeUINT16];
+//    
+//    if(!success){
+//        NSLog(@"Failed to write.");
+//    }
+//    else{
+//        NSLog(@"Write Success.");
+//    }
     
     // Display it
-    [self setImage:image];
+    
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context{
+    if([keyPath isEqualToString:@"selectedURL"]){
+        NSImage *image = [NSImage oiio_forceImageWithContentsOfURL:self.selectedURL];
+        [self setImage:image];
+        
+    }
+    
 }
 
 - (void)setImage:(NSImage *)image {
