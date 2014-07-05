@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
   s.version      = begin; File.read('VERSION'); rescue; '9000.0.0'; end
   s.summary      = "OpenImageIO for Cocoa"
 
-  s.homepage     = "http://github.com/wilg/oiiococoa"
+  s.homepage     = "http://github.com/videovillage/oiiococoa"
 
   s.license      = 'MIT'
 
@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.platform     = :osx
   s.osx.deployment_target = '10.7'
 
-  s.source       = { :git => "https://github.com/wilg/oiiococoa.git", :tag => s.version.to_s }
+  s.source       = { :git => "https://github.com/videovillage/oiiococoa.git", :tag => s.version.to_s }
 
   s.source_files  = [
       'Classes',
