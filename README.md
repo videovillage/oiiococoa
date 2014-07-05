@@ -1,7 +1,8 @@
 # oiiococoa
 
-[![Version](http://cocoapod-badges.herokuapp.com/v/oiiococoa/badge.png)](http://cocoadocs.org/docsets/oiiococoa)
-[![Platform](http://cocoapod-badges.herokuapp.com/p/oiiococoa/badge.png)](http://cocoadocs.org/docsets/oiiococoa)
+[![Version](https://img.shields.io/cocoapods/v/oiiococoa.svg?style=flat)](http://cocoadocs.org/docsets/oiiococoa)
+[![License](https://img.shields.io/cocoapods/l/oiiococoa.svg?style=flat)](http://cocoadocs.org/docsets/oiiococoa)
+[![Platform](https://img.shields.io/cocoapods/p/oiiococoa.svg?style=flat)](http://cocoadocs.org/docsets/oiiococoa)
 ([pronunciation guide](http://www.youtube.com/watch?v=p7c3bQQmwVE#t=36))
 
 Easily use some [OpenImageIO](http://openimageio.org) magic in your Cocoa apps.
