@@ -56,6 +56,7 @@ NSImage *image = [NSImage oiio_initWithContentsOfURL:file];
 ## Authors
 
 Wil Gieseler ([wilg](//github.com/wilg))
+
 Greg Cotten ([gregcotten](//github.com/gregcotten))
 
 ## License
