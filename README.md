@@ -53,7 +53,7 @@ NSURL *file = [[NSBundle mainBundle] URLForResource:@"dlad_1920x1080" withExtens
 NSImage *image = [NSImage oiio_initWithContentsOfURL:file];
 ```
 
-## Author
+## Authors
 
 Wil Gieseler ([wilg](//github.com/wilg))
 Greg Cotten ([gregcotten](//github.com/gregcotten))
