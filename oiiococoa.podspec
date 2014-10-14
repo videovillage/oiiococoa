@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "oiiococoa"
-  s.version      = begin; File.read('VERSION'); rescue; '9000.0.0'; end
+  s.version      = '0.0.4-pre'
   s.summary      = "OpenImageIO for Cocoa"
 
   s.homepage     = "http://github.com/videovillage/oiiococoa"
