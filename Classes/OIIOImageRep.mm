@@ -140,14 +140,18 @@ OIIO_NAMESPACE_USING
     
     output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
     output->write_image(selfspec.format, &(self.bitmapData[0]));
-    output->close();
-    delete output;
+    
     
     
     if([[NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding] length] > 0){
         NSLog(@"%@", [NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding]);
+        output->close();
+        delete output;
         return NO;
     }
+    
+    output->close();
+    delete output;
     
     return YES;
 }
