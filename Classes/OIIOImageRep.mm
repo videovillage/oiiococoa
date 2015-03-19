@@ -115,8 +115,8 @@ OIIO_NAMESPACE_USING
     oiioImageRep.encodingType = [self encodingTypeFromSpec:&spec];
     
     oiioImageRep.oiio_metadata = [attributes copy];
-    
-    [oiioImageRep setExtraAttribs:(ImageSpec(spec).extra_attribs)];
+
+    //[oiioImageRep setExtraAttribs:(ImageSpec(spec).extra_attribs)];
     
     delete in;
     
