@@ -91,6 +91,14 @@
     return [imageRep writeToURL:url encodingType:encodingType];
 }
 
+- (OIIOImageEncodingType)oiio_getEncodingType{
+    OIIOImageRep *imageRep = [self oiio_findOIIOImageRep];
+    if(imageRep != nil){
+        return imageRep.encodingType;
+    }
+    return OIIOImageEncodingTypeNONE;
+}
+
 
 + (NSURL *)uniqueTempFileURLWithFileExtension:(NSString *)fileExtension{
     NSString *fileName = [NSString stringWithFormat:@"%@_%@", [[NSProcessInfo processInfo] globallyUniqueString], [NSString stringWithFormat:@"file.%@", fileExtension]];
