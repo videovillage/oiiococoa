@@ -8,67 +8,70 @@
 
 #import "AppDelegate.h"
 #import "OIIOImageRep.h"
+#import "NSImage+OIIO.h"
 
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     
-    // Setup drag and drop.
+//    // Setup drag and drop.
     [self.imageView unregisterDraggedTypes];
     [self.imageView.window registerForDraggedTypes:@[NSFilenamesPboardType]];
     [self.imageView.window setDelegate:self];
-    
+//
+//
+//    // Find data of image in bundle
+    NSURL *file = [[NSBundle mainBundle] URLForResource:@"testgen" withExtension:@"png"];
+//    NSString *unexpandedFilePathToFolder = @"~/Downloads/oiio-images-master/";
+//    
+//    NSURL *folder = [NSURL fileURLWithPath:unexpandedFilePathToFolder.stringByExpandingTildeInPath isDirectory:YES];
+//    
+//    // Initialize an image from URL. Always use OpenImageIO.
+//    NSArray * dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:folder
+//                              includingPropertiesForKeys:@[]
+//                                                 options:NSDirectoryEnumerationSkipsHiddenFiles
+//                                                   error:nil];
+//    
+//    NSMutableArray *allFiles = [NSMutableArray array];
+//    
+//    for (NSURL *url in dirContents) {
+//        NSNumber *isDirectory;
+//        [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+//        if (![isDirectory boolValue] && [[NSImage oiio_imageFileTypes] containsObject:[url pathExtension]]) {
+//            [allFiles addObject:url];
+//        }
+//    }
+//    
+//    [self addObserver:self
+//           forKeyPath:@"selectedURL"
+//              options:NSKeyValueObservingOptionNew
+//              context:nil];
+//    
+//    self.urlList = [NSArray arrayWithArray:allFiles];
+//    if(allFiles.count != 0){
+//        self.selectedURL = allFiles[0];
+//    }
 
-    // Find data of image in bundle
-    //NSURL *file = [[NSBundle mainBundle] URLForResource:@"test" withExtension:@"png"];
     
-    NSString *unexpandedFilePathToFolder = @"~/Downloads/oiio-images-master/";
     
-    NSURL *folder = [NSURL fileURLWithPath:unexpandedFilePathToFolder.stringByExpandingTildeInPath isDirectory:YES];
+    NSImage *image = [NSImage oiio_imageWithContentsOfURL:[file filePathURL]];
     
-    // Initialize an image from URL. Always use OpenImageIO.
-    NSArray * dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:folder
-                              includingPropertiesForKeys:@[]
-                                                 options:NSDirectoryEnumerationSkipsHiddenFiles
-                                                   error:nil];
     
-    NSMutableArray *allFiles = [NSMutableArray array];
-    
-    for (NSURL *url in dirContents) {
-        NSNumber *isDirectory;
-        [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
-        if (![isDirectory boolValue] && [[NSImage oiio_imageFileTypes] containsObject:[url pathExtension]]) {
-            [allFiles addObject:url];
-        }
+    NSURL *saveURL = [NSURL fileURLWithPath:@"/Users/gregcotten/Desktop/test.dpx"];
+    NSData *imageData = [image DPXRepresentationWithBitDepth:10];
+    if (!imageData) {
+        NSLog(@"Failed to create destination image data");
     }
+    BOOL success = [imageData writeToURL:saveURL atomically:YES];
     
-    [self addObserver:self
-           forKeyPath:@"selectedURL"
-              options:NSKeyValueObservingOptionNew
-              context:nil];
-    
-    self.urlList = [NSArray arrayWithArray:allFiles];
-    if(allFiles.count != 0){
-        self.selectedURL = allFiles[0];
+    if(!success){
+        NSLog(@"Failed to write.");
     }
-    
-    
-    
-    //NSImage *image = [NSImage oiio_imageWithContentsOfURL:[file filePathURL]];
-    
-    
-//    NSURL *saveURL = [NSURL URLWithString:@"/Users/gregcotten/Desktop/test.dpx"];
-//    
-//    BOOL success = [image oiio_forceWriteToURL:saveURL encodingType:OIIOImageEncodingTypeUINT16];
-//    
-//    if(!success){
-//        NSLog(@"Failed to write.");
-//    }
-//    else{
-//        NSLog(@"Write Success.");
-//    }
-    
+    else{
+        NSLog(@"Write Success.");
+    }
+
     // Display it
     
 }

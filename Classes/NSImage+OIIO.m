@@ -67,6 +67,15 @@
     return nil;
 }
 
+- (NSBitmapImageRep *)oiio_findNSBitmapImageRep{
+    for (NSImageRep *rep in self.representations){
+        if([[rep class] isSubclassOfClass:[NSBitmapImageRep class]]){
+            return (NSBitmapImageRep *)rep;
+        }
+    }
+    return nil;
+}
+
 - (NSDictionary *)oiio_metadata{
     OIIOImageRep *rep = [self oiio_findOIIOImageRep];
     if(rep != nil){
@@ -83,15 +92,46 @@
 }
 
 
-
-- (OIIOImageEncodingType)oiio_getEncodingType{
-    OIIOImageRep *imageRep = [self oiio_findOIIOImageRep];
-    if(imageRep != nil){
-        return imageRep.encodingType;
-    }
-    return OIIOImageEncodingTypeNONE;
++ (NSURL *)uniqueTempFileURLWithFileExtension:(NSString *)fileExtension{
+    NSString *fileName = [NSString stringWithFormat:@"%@_%@", [[NSProcessInfo processInfo] globallyUniqueString], [NSString stringWithFormat:@"file.%@", fileExtension]];
+    NSURL *fileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:fileName]];
+    return fileURL;
+    //remove with [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
 }
 
+
+- (NSData *)DPXRepresentationWithBitDepth:(NSInteger)bitDepth{
+    OIIOImageEncodingType encodingType;
+    switch (bitDepth) {
+        case 8:
+            encodingType = OIIOImageEncodingTypeUINT8;
+            break;
+        case 10:
+            encodingType = OIIOImageEncodingTypeUINT10;
+            break;
+        case 12:
+            encodingType = OIIOImageEncodingTypeUINT12;
+            break;
+        case 16:
+            encodingType = OIIOImageEncodingTypeUINT16;
+            break;
+        default:
+            encodingType = OIIOImageEncodingTypeUINT10;
+            break;
+    }
+    NSURL *dpxURL = [self.class uniqueTempFileURLWithFileExtension:@"dpx"];
+
+    BOOL success = [self oiio_forceWriteToURL:dpxURL encodingType:encodingType];
+
+    if (!success) {
+        return nil;
+    }
+
+    NSData *returnData = [NSData dataWithContentsOfURL:dpxURL];
+    [[NSFileManager defaultManager] removeItemAtURL:dpxURL error:nil];
+
+    return returnData;
+}
 
 
 + (NSString *)oiio_stringFromEncodingType:(OIIOImageEncodingType)type{

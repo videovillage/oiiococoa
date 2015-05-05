@@ -35,6 +35,8 @@
 - (BOOL)oiio_forceWriteToURL:(NSURL *)url
                 encodingType:(OIIOImageEncodingType)encodingType;
 
+- (NSData *)DPXRepresentationWithBitDepth:(NSInteger)bitDepth;
+
 - (OIIOImageEncodingType)oiio_getEncodingType;
 
 - (NSDictionary *)oiio_metadata;

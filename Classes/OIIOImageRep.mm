@@ -97,29 +97,45 @@ OIIO_NAMESPACE_USING
         }
         
     }
-    
-    NSBitmapImageRep *imageRep = [[self.class alloc] initWithBitmapDataPlanes:(unsigned char**)&pixels
-                                                               pixelsWide:spec.width
-                                                               pixelsHigh:spec.height
-                                                            bitsPerSample:16
-                                                          samplesPerPixel:spec.nchannels
-                                                                 hasAlpha:spec.nchannels > 3
-                                                                 isPlanar:NO
-                                                           colorSpaceName:NSDeviceRGBColorSpace
-                                                              bytesPerRow:NULL
-                                                             bitsPerPixel:NULL];
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, &pixels[0], 2*pixels.size(), NULL);
+    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
+    CGImageRef image = CGImageCreate(spec.width,
+                                     spec.height,
+                                     16,
+                                     16*spec.nchannels,
+                                     2*spec.nchannels*spec.width,
+                                     colorspace,
+                                     spec.nchannels>3 ? kCGBitmapByteOrder16Little | kCGImageAlphaLast : kCGBitmapByteOrder16Little | kCGImageAlphaNone,
+                                     provider,
+                                     NULL,
+                                     YES,
+                                     kCGRenderingIntentDefault);
 
-    
-    OIIOImageRep *oiioImageRep = [[OIIOImageRep alloc] initWithData:[imageRep TIFFRepresentation]];
-    
+
+    CGColorSpaceRelease(colorspace);
+
+    NSMutableData *mutableData = [NSMutableData data];
+
+    CGImageDestinationRef dest = CGImageDestinationCreateWithData((CFMutableDataRef)mutableData, (CFStringRef)@"public.tiff", 1, NULL);
+
+    CGImageDestinationAddImage(dest,image,NULL);
+    CGImageDestinationFinalize(dest);
+    CFRelease(dest);
+
+    CGImageRelease(image);
+    CGDataProviderRelease(provider);
+
+    delete in;
+
+
+    OIIOImageRep *oiioImageRep = [[self.class alloc] initWithData:mutableData];
+
     oiioImageRep.encodingType = [self encodingTypeFromSpec:&spec];
     
     oiioImageRep.oiio_metadata = [attributes copy];
-
+    
     //[oiioImageRep setExtraAttribs:(ImageSpec(spec).extra_attribs)];
-    
-    delete in;
-    
+
     return oiioImageRep;
 }
 
@@ -127,7 +143,7 @@ OIIO_NAMESPACE_USING
      encodingType:(OIIOImageEncodingType)encodingType{
     ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    ImageSpec selfspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3, [self.class typeDescForEncodingType:[self.class encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
+    ImageSpec selfspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, (int)self.samplesPerPixel, [self.class typeDescForEncodingType:[self.class encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
 
     ImageSpec outspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, 3);
     
@@ -136,11 +152,15 @@ OIIO_NAMESPACE_USING
     }
     
     [self.class setSpec:&outspec withEncodingType:encodingType];
-    
-    
+
+    outspec.attribute("oiio:Endian","little");
+
+//    stride_t stride = self.samplesPerPixel == 4 ? (self.bitsPerSample/8) : AutoStride;
+//    NSLog(@"%i %i", selfspec.nchannels, (int)selfspec.format.size());
+
     output->open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], outspec, ImageOutput::Create);
-    output->write_image(selfspec.format, &(self.bitmapData[0]));
-    
+    output->write_image(selfspec.format, &(self.bitmapData[0]), selfspec.nchannels * selfspec.format.size(), AutoStride, AutoStride);
+
     
     
     if([[NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding] length] > 0){

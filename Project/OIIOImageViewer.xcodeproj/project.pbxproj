@@ -38,6 +38,9 @@
 		3BD6CF0B18CC93C3003B40F3 /* libpng15.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFB18CC93C2003B40F3 /* libpng15.a */; };
 		3BD6CF0C18CC93C3003B40F3 /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFC18CC93C2003B40F3 /* libtiff.a */; };
 		3BD6CF0D18CC93C3003B40F3 /* libtiffxx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */; };
+		F2E195F81AF943430030DF17 /* testgen.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F2E195F71AF943430030DF17 /* testgen.tiff */; };
+		F2E195FA1AF9434D0030DF17 /* testgen.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E195F91AF9434D0030DF17 /* testgen.png */; };
+		F2E195FC1AF94A550030DF17 /* testgen.dpx in Resources */ = {isa = PBXBuildFile; fileRef = F2E195FB1AF949E70030DF17 /* testgen.dpx */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -130,6 +133,9 @@
 		3BD6CEFB18CC93C2003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/lib/libpng15.a; sourceTree = "<group>"; };
 		3BD6CEFC18CC93C2003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/lib/libtiff.a; sourceTree = "<group>"; };
 		3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiffxx.a; path = ../../Vendor/libtiff/lib/libtiffxx.a; sourceTree = "<group>"; };
+		F2E195F71AF943430030DF17 /* testgen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = testgen.tiff; sourceTree = "<group>"; };
+		F2E195F91AF9434D0030DF17 /* testgen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testgen.png; sourceTree = "<group>"; };
+		F2E195FB1AF949E70030DF17 /* testgen.dpx */ = {isa = PBXFileReference; lastKnownFileType = file; path = testgen.dpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -218,6 +224,9 @@
 				3B66459D18CC41600052E2DC /* AppDelegate.m */,
 				3B66459F18CC41600052E2DC /* MainMenu.xib */,
 				3B1BC5CA18CD2823007B416E /* Digital_LAD_2048x1556.dpx */,
+				F2E195FB1AF949E70030DF17 /* testgen.dpx */,
+				F2E195F91AF9434D0030DF17 /* testgen.png */,
+				F2E195F71AF943430030DF17 /* testgen.tiff */,
 				3B6645A218CC41600052E2DC /* Images.xcassets */,
 				3B66459118CC41600052E2DC /* Supporting Files */,
 			);
@@ -400,11 +409,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2E195F81AF943430030DF17 /* testgen.tiff in Resources */,
 				3B66459518CC41600052E2DC /* InfoPlist.strings in Resources */,
+				F2E195FA1AF9434D0030DF17 /* testgen.png in Resources */,
 				3B6645A318CC41600052E2DC /* Images.xcassets in Resources */,
 				3B66459B18CC41600052E2DC /* Credits.rtf in Resources */,
 				3B1BC5CB18CD282F007B416E /* Digital_LAD_2048x1556.dpx in Resources */,
 				3B6645A118CC41600052E2DC /* MainMenu.xib in Resources */,
+				F2E195FC1AF94A550030DF17 /* testgen.dpx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -606,7 +618,6 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = "OIIOImageViewerTests/OIIOImageViewerTests-Info.plist";
 				PRODUCT_NAME = OIIOImageViewerTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
@@ -624,7 +635,6 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "OIIOImageViewer/OIIOImageViewer-Prefix.pch";
-				INFOPLIST_FILE = "OIIOImageViewerTests/OIIOImageViewerTests-Info.plist";
 				PRODUCT_NAME = OIIOImageViewerTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
