@@ -8,7 +8,8 @@ Pod::Spec.new do |s|
 
   s.license      = 'MIT'
 
-  s.author             = { "Wil Gieseler" => "wil@wilgieseler.com" }
+  s.author             = { "Wil Gieseler" => "wil@wilgieseler.com",
+                            "Greg Cotten" => "gregcotten@gmail.com" }
   s.social_media_url = "http://twitter.com/wilgieseler"
 
   s.platform     = :osx
