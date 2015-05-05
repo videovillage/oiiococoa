@@ -179,4 +179,8 @@
     return @"NONE";
 }
 
++ (CFStringRef)dpxUTI{
+    return (__bridge CFStringRef)@"org.smpte.dpx";
+}
+
 @end

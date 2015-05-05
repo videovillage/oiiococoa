@@ -55,4 +55,6 @@
 
 + (NSString *)oiio_stringFromEncodingType:(OIIOImageEncodingType)type;
 
++ (CFStringRef)dpxUTI;
+
 @end
