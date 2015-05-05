@@ -37,8 +37,6 @@
 
 - (NSData *)DPXRepresentationWithBitDepth:(NSInteger)bitDepth;
 
-- (OIIOImageEncodingType)oiio_getEncodingType;
-
 - (NSDictionary *)oiio_metadata;
 
 - (OIIOImageRep *)oiio_findOIIOImageRep;
