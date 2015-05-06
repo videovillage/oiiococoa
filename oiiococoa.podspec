@@ -28,6 +28,7 @@ Pod::Spec.new do |s|
 
   s.vendored_libraries = [
     'Vendor/libtiff/lib/libtiff.a',
+    'Vendor/libtiff/lib/libtiffxx.a',
     'Vendor/xz/lib/liblzma.a',
     'Vendor/OpenImageIO/lib/libOpenImageIO.a',
     'Vendor/OpenImageIO/lib/libOpenImageIO_Util.a',
