@@ -42,7 +42,7 @@ Pod::Spec.new do |s|
     'Vendor/boost/lib/libboost_regex.a',
     'Vendor/boost/lib/libboost_thread-mt.a',
     'Vendor/boost/lib/libboost_system.a',
-    'Vendor/libpng/lib/libpng15.a'
+    'Vendor/libpng/lib/libpng16.a'
   ]
 
   s.preserve_paths = "Vendor/**/*.a"
