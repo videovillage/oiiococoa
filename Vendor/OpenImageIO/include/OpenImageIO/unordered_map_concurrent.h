@@ -35,7 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define OPENIMAGEIO_UNORDERED_MAP_CONCURRENT_H
 
 #include <boost/unordered_map.hpp>
-#include "sysutil.h"   // from OIIO
 #include "thread.h"    // from OIIO
 #include "hash.h"      // from OIIO
 #include "dassert.h"   // from OIIO
@@ -77,11 +76,12 @@ OIIO_NAMESPACE_ENTER
 ///
 
 template<class KEY, class VALUE, class HASH=boost::hash<KEY>,
-         class PRED=std::equal_to<KEY>, size_t BINS=16>
+         class PRED=std::equal_to<KEY>, size_t BINS=16,
+         class BINMAP=boost::unordered_map<KEY,VALUE,HASH,PRED> >
 class unordered_map_concurrent {
 public:
-    typedef boost::unordered_map<KEY,VALUE,HASH,PRED> BinMap_t;
-    typedef typename boost::unordered_map<KEY,VALUE,HASH,PRED>::iterator BinMap_iterator_t;
+    typedef BINMAP BinMap_t;
+    typedef typename BINMAP::iterator BinMap_iterator_t;
 
 public:
     unordered_map_concurrent () { m_size = 0; }
@@ -95,7 +95,7 @@ public:
     /// in the umc, and holds a lock to the bin the entry is in.
     class iterator {
     public:
-        friend class unordered_map_concurrent<KEY,VALUE,HASH,PRED,BINS>;
+        friend class unordered_map_concurrent<KEY,VALUE,HASH,PRED,BINS,BINMAP>;
     public:
         /// Construct an unordered_map_concurrent iterator that points
         /// to nothing.
@@ -294,6 +294,25 @@ public:
         return i;
     }
 
+    /// Search for key. If found, return true and store the value. If not
+    /// found, return false and do not alter value. If do_lock is true,
+    /// read-lock the bin while we're searching, and release it before
+    /// returning; however, if do_lock is false, assume that the caller
+    /// already has the bin locked, so do no locking or unlocking.
+    bool retrieve (const KEY &key, VALUE &value, bool do_lock = true) {
+        size_t b = whichbin(key);
+        Bin &bin (m_bins[b]);
+        if (do_lock)
+            bin.lock ();
+        typename BinMap_t::iterator it = bin.map.find (key);
+        bool found = (it != bin.map.end());
+        if (found)
+            value = it->second;
+        if (do_lock)
+            bin.unlock();
+        return found;
+    }
+
     /// Insert <key,value> into the hash map if it's not already there.
     /// Return true if added, false if it was already present.  
     /// If do_lock is true, lock the bin containing key while doing this
@@ -353,7 +372,7 @@ public:
 
 private:
     struct Bin {
-        // OIIO_CACHE_ALIGN // align to cache line -- doesn't seem to help
+        OIIO_CACHE_ALIGN             // align bin to cache line
         mutable spin_mutex mutex;    // mutex for this bin
         BinMap_t map;                // hash map for this bin
 #ifndef NDEBUG

@@ -177,8 +177,12 @@ public:
     /// made, whichever comes first. If a non-NULL imagecache is supplied,
     /// it will specifiy a custom ImageCache to use; if otherwise, the
     /// global/shared ImageCache will be used.
-    ImageBuf (const std::string &name, int subimage=0, int miplevel=0,
-              ImageCache *imagecache = NULL);
+    /// If 'config' is not NULL, it points to an ImageSpec giving requests
+    /// or special instructions to be passed on to the eventual
+    /// ImageInput::open() call.
+    explicit ImageBuf (string_view name, int subimage=0, int miplevel=0,
+                       ImageCache *imagecache = NULL,
+                       const ImageSpec *config = NULL);
 
     /// Construct an ImageBuf to read the named image -- but don't actually
     /// read it yet!  The image will actually be read when other methods
@@ -186,17 +190,17 @@ public:
     /// init_spec() or read() is made, whichever comes first. If a non-NULL
     /// imagecache is supplied, it will specifiy a custom ImageCache to use;
     /// if otherwise, the global/shared ImageCache will be used.
-    ImageBuf (const std::string &name, ImageCache *imagecache);
+    ImageBuf (string_view name, ImageCache *imagecache);
 
     /// Construct an Imagebuf given a proposed spec describing the image
     /// size and type, and allocate storage for the pixels of the image
     /// (whose values will be uninitialized).
-    ImageBuf (const ImageSpec &spec);
+    explicit ImageBuf (const ImageSpec &spec);
 
     /// Construct an Imagebuf given both a name and a proposed spec
     /// describing the image size and type, and allocate storage for
     /// the pixels of the image (whose values will be undefined).
-    ImageBuf (const std::string &name, const ImageSpec &spec);
+    ImageBuf (string_view name, const ImageSpec &spec);
 
     /// Construct an ImageBuf that "wraps" a memory buffer owned by the
     /// calling application.  It can write pixels to this buffer, but
@@ -206,7 +210,7 @@ public:
     /// Construct an ImageBuf that "wraps" a memory buffer owned by the
     /// calling application.  It can write pixels to this buffer, but
     /// can't change its resolution or data type.
-    ImageBuf (const std::string &name, const ImageSpec &spec, void *buffer);
+    ImageBuf (string_view name, const ImageSpec &spec, void *buffer);
 
     /// Construct a copy of an ImageBuf.
     ///
@@ -229,12 +233,16 @@ public:
 
     /// Forget all previous info, reset this ImageBuf to a new image
     /// that is uninitialized (no pixel values, no size or spec).
-    void reset (const std::string &name, int subimage, int miplevel,
-                ImageCache *imagecache = NULL);
+    /// If 'config' is not NULL, it points to an ImageSpec giving requests
+    /// or special instructions to be passed on to the eventual
+    /// ImageInput::open() call.
+    void reset (string_view name, int subimage, int miplevel,
+                ImageCache *imagecache = NULL,
+                const ImageSpec *config = NULL);
 
     /// Forget all previous info, reset this ImageBuf to a new image
     /// that is uninitialized (no pixel values, no size or spec).
-    void reset (const std::string &name, ImageCache *imagecache=NULL);
+    void reset (string_view name, ImageCache *imagecache=NULL);
 
     /// Forget all previous info, reset this ImageBuf to a blank
     /// image of the given dimensions.
@@ -242,16 +250,7 @@ public:
 
     /// Forget all previous info, reset this ImageBuf to a blank
     /// image of the given name and dimensions.
-    void reset (const std::string &name, const ImageSpec &spec);
-
-    /// Copy spec to *this, and then allocate enough space the right
-    /// size for an image described by the format spec.  If the ImageBuf
-    /// already has allocated pixels, their values will not be preserved
-    /// if the new spec does not describe an image of the same size and
-    /// data type as it used to be.
-    /// DEPRECATED (1.3) -- I don't see any reason why this should be
-    /// favored over reset(spec).
-    void alloc (const ImageSpec &spec);
+    void reset (string_view name, const ImageSpec &spec);
 
     /// Which type of storage is being used for the pixels?
     IBStorage storage () const;
@@ -273,14 +272,14 @@ public:
     /// header to fill out the spec correctly.  Return true if this
     /// succeeded, false if the file could not be read.  But don't
     /// allocate or read the pixels.
-    bool init_spec (const std::string &filename,
+    bool init_spec (string_view filename,
                     int subimage, int miplevel);
 
     /// Write the image to the named file and file format ("" means to infer
     /// the type from the filename extension). Return true if all went ok,
     /// false if there were errors writing.
-    bool write (const std::string &filename,
-                const std::string &fileformat = std::string(),
+    bool write (string_view filename,
+                string_view fileformat = string_view(),
                 ProgressCallback progress_callback=NULL,
                 void *progress_callback_data=NULL) const;
 
@@ -291,13 +290,6 @@ public:
     /// Inform the ImageBuf what tile size (or no tiling, for 0) for
     /// any subsequent write().
     void set_write_tiles (int width=0, int height=0, int depth=0);
-
-    /// DEPRECATED (1.3) synonym for write().  Kept for now for backward
-    /// compatibility.
-    bool save (const std::string &filename = std::string(),
-               const std::string &fileformat = std::string(),
-               ProgressCallback progress_callback=NULL,
-               void *progress_callback_data=NULL) const;
 
     /// Write the image to the open ImageOutput 'out'.  Return true if
     /// all went ok, false if there were errors writing.  It does NOT
@@ -371,12 +363,12 @@ public:
 
     /// Return the name of this image.
     ///
-    const std::string & name (void) const;
+    string_view name (void) const;
 
     /// Return the name of the image file format of the disk file we
     /// read into this image.  Returns an empty string if this image
     /// was not the result of a read().
-    const std::string & file_format_name (void) const;
+    string_view file_format_name (void) const;
 
     /// Return the index of the subimage are we currently viewing
     ///
@@ -407,39 +399,52 @@ public:
     ///
     float getchannel (int x, int y, int z, int c, WrapMode wrap=WrapBlack) const;
 
-    /// Retrieve the pixel value by x and y coordintes (on [0,res-1]),
+    /// Retrieve the pixel value by x and y pixel indices,
     /// storing the floating point version in pixel[].  Retrieve at most
     /// maxchannels (will be clamped to the actual number of channels).
     void getpixel (int x, int y, float *pixel, int maxchannels=1000) const {
         getpixel (x, y, 0, pixel, maxchannels);
     }
 
-    /// Retrieve the pixel value by x, y, z coordintes (on [0,res-1]),
+    /// Retrieve the pixel value by x, y, z pixel indices,
     /// storing the floating point version in pixel[].  Retrieve at most
     /// maxchannels (will be clamped to the actual number of channels).
     void getpixel (int x, int y, int z, float *pixel, int maxchannels=1000,
                    WrapMode wrap=WrapBlack) const;
 
-    /// Linearly interpolate at pixel coordinates (x,y), where (0,0) is
-    /// the upper left corner, (xres,yres) the lower right corner of
-    /// the pixel data.
+    /// Sample the image plane at coordinates (x,y), using linear
+    /// interpolation between pixels, placing the result in pixel[0..n-1]
+    /// where n is the smaller of maxchannels or the actual number of
+    /// channels stored in the buffer.  It is up to the application to
+    /// ensure that pixel points to enough memory to hold the required
+    /// number of channels. Note that pixel data values themselves are at
+    /// the pixel centers, so pixel (i,j) is at image plane coordinate
+    /// (i+0.5, j+0.5).
     void interppixel (float x, float y, float *pixel,
                       WrapMode wrap=WrapBlack) const;
 
-    /// Linearly interpolate at image data NDC coordinates (s,t), where
-    /// (0,0) is the upper left corner of the pixel data window, (1,1)
-    /// the lower right corner of the pixel data.
-    /// FIXME -- lg thinks that this is stupid, and the only useful NDC
-    /// space is the one used by interppixel_NDC_full.  We should deprecate
-    /// this in the future.
+    /// Linearly interpolate at NDC coordinates (s,t), where (0,0) is
+    /// the upper left corner of the display window, (1,1) the lower
+    /// right corner of the display window.
     void interppixel_NDC (float s, float t, float *pixel,
                           WrapMode wrap=WrapBlack) const;
 
-    /// Linearly interpolate at space coordinates (s,t), where (0,0) is
-    /// the upper left corner of the display window, (1,1) the lower
-    /// right corner of the display window.
+    /// DEPCRECATED (1.5) synonym for interppixel_NDC.
     void interppixel_NDC_full (float s, float t, float *pixel,
                                WrapMode wrap=WrapBlack) const;
+
+    /// Bicubic interpolation at pixel coordinates (x,y), where (0,0) is
+    /// the upper left corner, (xres,yres) the lower right corner of
+    /// the pixel data.
+    void interppixel_bicubic (float x, float y, float *pixel,
+                              WrapMode wrap=WrapBlack) const;
+
+    /// Bicubic interpolattion at NDC space coordinates (s,t), where (0,0)
+    /// is the upper left corner of the display (aka "full") window, (1,1)
+    /// the lower right corner of the display window.
+    void interppixel_bicubic_NDC (float s, float t, float *pixel,
+                                  WrapMode wrap=WrapBlack) const;
+
 
     /// Set the pixel with coordinates (x,y,0) to have the values in
     /// pixel[0..n-1].  The number of channels copied, n, is the minimum
@@ -539,6 +544,7 @@ public:
     }
 
     int orientation () const;
+    void set_orientation (int orient);
 
     int oriented_width () const;
     int oriented_height () const;
@@ -589,14 +595,6 @@ public:
     /// [ybegin,yend) x [zbegin,zend).
     void set_full (int xbegin, int xend, int ybegin, int yend,
                    int zbegin, int zend);
-
-    /// Set the "full" (a.k.a. display) window to [xbegin,xend) x
-    /// [ybegin,yend) x [zbegin,zend).  If bordercolor is not NULL, also
-    /// set the spec's "oiio:bordercolor" attribute.
-    /// DEPRECATED (1.3) -- we don't use the 'bordercolor' parameter, and
-    /// it seems strange, so let's phase it out.
-    void set_full (int xbegin, int xend, int ybegin, int yend,
-                   int zbegin, int zend, const float *bordercolor);
 
     /// Return pixel data window for this ImageBuf as a ROI.
     ROI roi () const;
@@ -658,6 +656,17 @@ public:
     /// coordinates or channel number are out of range or if it has no
     /// deep samples.
     float deep_value (int x, int y, int z, int c, int s) const;
+
+    /// Retrieve deep sample value within a pixel, as an untigned int.
+    uint32_t deep_value_uint (int x, int y, int z, int c, int s) const;
+    /// Set deep sample value within a pixel, as a float.
+    void set_deep_value (int x, int y, int z, int c, int s, float value);
+    /// Set deep sample value within a pixel, as a uint32.
+    void set_deep_value_uint (int x, int y, int z, int c, int s, uint32_t value);
+
+    /// Allocate all the deep samples, called after deepdata()->nsamples
+    /// is set.
+    void deep_alloc ();
 
     /// Retrieve the "deep" data.
     DeepData *deepdata ();
@@ -869,6 +878,25 @@ public:
                         m_rng_zbegin, m_rng_zend, 0, m_ib->nchannels());
         }
 
+        /// Reset the iteration range for this iterator and reposition to
+        /// the beginning of the range, but keep referring to the same
+        /// image.
+        void rerange (int xbegin, int xend, int ybegin, int yend,
+                      int zbegin, int zend, WrapMode wrap=WrapDefault)
+        {
+            m_x = 1<<31;
+            m_y = 1<<31;
+            m_z = 1<<31;
+            m_wrap = (wrap == WrapDefault ? WrapBlack : wrap);
+            m_rng_xbegin = xbegin;
+            m_rng_xend   = xend;
+            m_rng_ybegin = ybegin;
+            m_rng_yend   = yend;
+            m_rng_zbegin = zbegin;
+            m_rng_zend   = zend;
+            pos (xbegin, ybegin, zbegin);
+        }
+
     protected:
         friend class ImageBuf;
         friend class ImageBufImpl;
@@ -903,9 +931,9 @@ public:
             m_nchannels = spec.nchannels;
 //            m_tilewidth = spec.tile_width;
             m_pixel_bytes = spec.pixel_bytes();
-            m_x = 0xffffffff;
-            m_y = 0xffffffff;
-            m_z = 0xffffffff;
+            m_x = 1<<31;
+            m_y = 1<<31;
+            m_z = 1<<31;
             m_wrap = (wrap == WrapDefault ? WrapBlack : wrap);
         }
 

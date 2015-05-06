@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3B1BC5C918CD272C007B416E /* liblzma.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B1BC5C818CD272C007B416E /* liblzma.a */; };
 		3B1BC5CB18CD282F007B416E /* Digital_LAD_2048x1556.dpx in Resources */ = {isa = PBXBuildFile; fileRef = 3B1BC5CA18CD2823007B416E /* Digital_LAD_2048x1556.dpx */; };
 		3B66458B18CC41600052E2DC /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B66458A18CC41600052E2DC /* Cocoa.framework */; };
 		3B66459518CC41600052E2DC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3B66459318CC41600052E2DC /* InfoPlist.strings */; };
@@ -22,22 +21,24 @@
 		3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */; };
 		3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBC18CC6600003B40F3 /* libz.dylib */; };
 		3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CEDB18CC9397003B40F3 /* pugixml.cpp */; };
-		3BD6CEFE18CC93C2003B40F3 /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEEE18CC93C2003B40F3 /* libboost_filesystem.a */; };
-		3BD6CEFF18CC93C2003B40F3 /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEEF18CC93C2003B40F3 /* libboost_regex.a */; };
-		3BD6CF0018CC93C2003B40F3 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF018CC93C2003B40F3 /* libboost_system.a */; };
-		3BD6CF0118CC93C2003B40F3 /* libboost_thread-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF118CC93C2003B40F3 /* libboost_thread-mt.a */; };
-		3BD6CF0218CC93C2003B40F3 /* libHalf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF218CC93C2003B40F3 /* libHalf.a */; };
-		3BD6CF0318CC93C2003B40F3 /* libIex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF318CC93C2003B40F3 /* libIex.a */; };
-		3BD6CF0418CC93C2003B40F3 /* libIexMath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF418CC93C2003B40F3 /* libIexMath.a */; };
-		3BD6CF0518CC93C2003B40F3 /* libIlmImf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF518CC93C2003B40F3 /* libIlmImf.a */; };
-		3BD6CF0618CC93C2003B40F3 /* libIlmThread.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF618CC93C2003B40F3 /* libIlmThread.a */; };
-		3BD6CF0718CC93C2003B40F3 /* libImath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF718CC93C2003B40F3 /* libImath.a */; };
-		3BD6CF0818CC93C2003B40F3 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF818CC93C2003B40F3 /* libjpeg.a */; };
-		3BD6CF0918CC93C3003B40F3 /* libOpenImageIO_Util.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEF918CC93C2003B40F3 /* libOpenImageIO_Util.a */; };
-		3BD6CF0A18CC93C3003B40F3 /* libOpenImageIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFA18CC93C2003B40F3 /* libOpenImageIO.a */; };
-		3BD6CF0B18CC93C3003B40F3 /* libpng15.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFB18CC93C2003B40F3 /* libpng15.a */; };
-		3BD6CF0C18CC93C3003B40F3 /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFC18CC93C2003B40F3 /* libtiff.a */; };
-		3BD6CF0D18CC93C3003B40F3 /* libtiffxx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */; };
+		F28757701AF9BFC900E6A1CF /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287576F1AF9BFC900E6A1CF /* libpng16.a */; };
+		F28757751AF9C0BF00E6A1CF /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757711AF9C0BF00E6A1CF /* libboost_filesystem.a */; };
+		F28757761AF9C0BF00E6A1CF /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757721AF9C0BF00E6A1CF /* libboost_regex.a */; };
+		F28757771AF9C0BF00E6A1CF /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757731AF9C0BF00E6A1CF /* libboost_system.a */; };
+		F28757781AF9C0BF00E6A1CF /* libboost_thread-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757741AF9C0BF00E6A1CF /* libboost_thread-mt.a */; };
+		F287577E1AF9C0C900E6A1CF /* libHalf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757791AF9C0C900E6A1CF /* libHalf.a */; };
+		F287577F1AF9C0C900E6A1CF /* libIex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287577A1AF9C0C900E6A1CF /* libIex.a */; };
+		F28757801AF9C0C900E6A1CF /* libIexMath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287577B1AF9C0C900E6A1CF /* libIexMath.a */; };
+		F28757811AF9C0C900E6A1CF /* libIlmThread.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287577C1AF9C0C900E6A1CF /* libIlmThread.a */; };
+		F28757821AF9C0C900E6A1CF /* libImath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287577D1AF9C0C900E6A1CF /* libImath.a */; };
+		F28757841AF9C0CF00E6A1CF /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757831AF9C0CF00E6A1CF /* libjpeg.a */; };
+		F28757871AF9C0DC00E6A1CF /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757851AF9C0DC00E6A1CF /* libtiff.a */; };
+		F28757881AF9C0DC00E6A1CF /* libtiffxx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757861AF9C0DC00E6A1CF /* libtiffxx.a */; };
+		F287578D1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287578B1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a */; };
+		F287578E1AF9C0ED00E6A1CF /* libOpenImageIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287578C1AF9C0ED00E6A1CF /* libOpenImageIO.a */; };
+		F28757901AF9C0F300E6A1CF /* liblzma.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287578F1AF9C0F300E6A1CF /* liblzma.a */; };
+		F287579D1AF9D3B600E6A1CF /* libIlmImf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757891AF9C0E200E6A1CF /* libIlmImf.a */; };
+		F28757AB1AF9D99700E6A1CF /* testgen.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F28757AA1AF9D99700E6A1CF /* testgen.tiff */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -130,6 +131,24 @@
 		3BD6CEFB18CC93C2003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/lib/libpng15.a; sourceTree = "<group>"; };
 		3BD6CEFC18CC93C2003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/lib/libtiff.a; sourceTree = "<group>"; };
 		3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiffxx.a; path = ../../Vendor/libtiff/lib/libtiffxx.a; sourceTree = "<group>"; };
+		F287576F1AF9BFC900E6A1CF /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = ../Vendor/libpng/lib/libpng16.a; sourceTree = "<group>"; };
+		F28757711AF9C0BF00E6A1CF /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../Vendor/boost/lib/libboost_filesystem.a; sourceTree = "<group>"; };
+		F28757721AF9C0BF00E6A1CF /* libboost_regex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_regex.a; path = ../Vendor/boost/lib/libboost_regex.a; sourceTree = "<group>"; };
+		F28757731AF9C0BF00E6A1CF /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = ../Vendor/boost/lib/libboost_system.a; sourceTree = "<group>"; };
+		F28757741AF9C0BF00E6A1CF /* libboost_thread-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_thread-mt.a"; path = "../Vendor/boost/lib/libboost_thread-mt.a"; sourceTree = "<group>"; };
+		F28757791AF9C0C900E6A1CF /* libHalf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libHalf.a; path = ../Vendor/ilmbase/lib/libHalf.a; sourceTree = "<group>"; };
+		F287577A1AF9C0C900E6A1CF /* libIex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIex.a; path = ../Vendor/ilmbase/lib/libIex.a; sourceTree = "<group>"; };
+		F287577B1AF9C0C900E6A1CF /* libIexMath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIexMath.a; path = ../Vendor/ilmbase/lib/libIexMath.a; sourceTree = "<group>"; };
+		F287577C1AF9C0C900E6A1CF /* libIlmThread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmThread.a; path = ../Vendor/ilmbase/lib/libIlmThread.a; sourceTree = "<group>"; };
+		F287577D1AF9C0C900E6A1CF /* libImath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libImath.a; path = ../Vendor/ilmbase/lib/libImath.a; sourceTree = "<group>"; };
+		F28757831AF9C0CF00E6A1CF /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../Vendor/jpeg/lib/libjpeg.a; sourceTree = "<group>"; };
+		F28757851AF9C0DC00E6A1CF /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../Vendor/libtiff/lib/libtiff.a; sourceTree = "<group>"; };
+		F28757861AF9C0DC00E6A1CF /* libtiffxx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiffxx.a; path = ../Vendor/libtiff/lib/libtiffxx.a; sourceTree = "<group>"; };
+		F28757891AF9C0E200E6A1CF /* libIlmImf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIlmImf.a; path = ../Vendor/openexr/lib/libIlmImf.a; sourceTree = "<group>"; };
+		F287578B1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO_Util.a; path = ../Vendor/OpenImageIO/lib/libOpenImageIO_Util.a; sourceTree = "<group>"; };
+		F287578C1AF9C0ED00E6A1CF /* libOpenImageIO.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO.a; path = ../Vendor/OpenImageIO/lib/libOpenImageIO.a; sourceTree = "<group>"; };
+		F287578F1AF9C0F300E6A1CF /* liblzma.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblzma.a; path = ../Vendor/xz/lib/liblzma.a; sourceTree = "<group>"; };
+		F28757AA1AF9D99700E6A1CF /* testgen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = testgen.tiff; path = ../../../../../../Desktop/testgen.tiff; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,25 +156,25 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F28757751AF9C0BF00E6A1CF /* libboost_filesystem.a in Frameworks */,
+				F28757761AF9C0BF00E6A1CF /* libboost_regex.a in Frameworks */,
+				F28757771AF9C0BF00E6A1CF /* libboost_system.a in Frameworks */,
+				F28757781AF9C0BF00E6A1CF /* libboost_thread-mt.a in Frameworks */,
+				F287577E1AF9C0C900E6A1CF /* libHalf.a in Frameworks */,
+				F28757841AF9C0CF00E6A1CF /* libjpeg.a in Frameworks */,
+				F28757871AF9C0DC00E6A1CF /* libtiff.a in Frameworks */,
+				F287579D1AF9D3B600E6A1CF /* libIlmImf.a in Frameworks */,
+				F28757881AF9C0DC00E6A1CF /* libtiffxx.a in Frameworks */,
+				F28757701AF9BFC900E6A1CF /* libpng16.a in Frameworks */,
+				F287578D1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a in Frameworks */,
+				F287578E1AF9C0ED00E6A1CF /* libOpenImageIO.a in Frameworks */,
+				F287577F1AF9C0C900E6A1CF /* libIex.a in Frameworks */,
+				F28757901AF9C0F300E6A1CF /* liblzma.a in Frameworks */,
+				F28757801AF9C0C900E6A1CF /* libIexMath.a in Frameworks */,
+				F28757811AF9C0C900E6A1CF /* libIlmThread.a in Frameworks */,
+				F28757821AF9C0C900E6A1CF /* libImath.a in Frameworks */,
 				3B66458B18CC41600052E2DC /* Cocoa.framework in Frameworks */,
 				3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */,
-				3BD6CF0418CC93C2003B40F3 /* libIexMath.a in Frameworks */,
-				3BD6CF0818CC93C2003B40F3 /* libjpeg.a in Frameworks */,
-				3B1BC5C918CD272C007B416E /* liblzma.a in Frameworks */,
-				3BD6CF0018CC93C2003B40F3 /* libboost_system.a in Frameworks */,
-				3BD6CF0D18CC93C3003B40F3 /* libtiffxx.a in Frameworks */,
-				3BD6CF0718CC93C2003B40F3 /* libImath.a in Frameworks */,
-				3BD6CF0A18CC93C3003B40F3 /* libOpenImageIO.a in Frameworks */,
-				3BD6CEFE18CC93C2003B40F3 /* libboost_filesystem.a in Frameworks */,
-				3BD6CF0618CC93C2003B40F3 /* libIlmThread.a in Frameworks */,
-				3BD6CF0C18CC93C3003B40F3 /* libtiff.a in Frameworks */,
-				3BD6CF0318CC93C2003B40F3 /* libIex.a in Frameworks */,
-				3BD6CF0118CC93C2003B40F3 /* libboost_thread-mt.a in Frameworks */,
-				3BD6CF0B18CC93C3003B40F3 /* libpng15.a in Frameworks */,
-				3BD6CF0218CC93C2003B40F3 /* libHalf.a in Frameworks */,
-				3BD6CEFF18CC93C2003B40F3 /* libboost_regex.a in Frameworks */,
-				3BD6CF0518CC93C2003B40F3 /* libIlmImf.a in Frameworks */,
-				3BD6CF0918CC93C3003B40F3 /* libOpenImageIO_Util.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +212,23 @@
 		3B66458918CC41600052E2DC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F287578F1AF9C0F300E6A1CF /* liblzma.a */,
+				F287578B1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a */,
+				F287578C1AF9C0ED00E6A1CF /* libOpenImageIO.a */,
+				F28757891AF9C0E200E6A1CF /* libIlmImf.a */,
+				F28757851AF9C0DC00E6A1CF /* libtiff.a */,
+				F28757861AF9C0DC00E6A1CF /* libtiffxx.a */,
+				F28757831AF9C0CF00E6A1CF /* libjpeg.a */,
+				F28757791AF9C0C900E6A1CF /* libHalf.a */,
+				F287577A1AF9C0C900E6A1CF /* libIex.a */,
+				F287577B1AF9C0C900E6A1CF /* libIexMath.a */,
+				F287577C1AF9C0C900E6A1CF /* libIlmThread.a */,
+				F287577D1AF9C0C900E6A1CF /* libImath.a */,
+				F28757711AF9C0BF00E6A1CF /* libboost_filesystem.a */,
+				F28757721AF9C0BF00E6A1CF /* libboost_regex.a */,
+				F28757731AF9C0BF00E6A1CF /* libboost_system.a */,
+				F28757741AF9C0BF00E6A1CF /* libboost_thread-mt.a */,
+				F287576F1AF9BFC900E6A1CF /* libpng16.a */,
 				3BD6CEBC18CC6600003B40F3 /* libz.dylib */,
 				3B66458A18CC41600052E2DC /* Cocoa.framework */,
 				3B6645A918CC41600052E2DC /* XCTest.framework */,
@@ -217,6 +253,7 @@
 				3B66459C18CC41600052E2DC /* AppDelegate.h */,
 				3B66459D18CC41600052E2DC /* AppDelegate.m */,
 				3B66459F18CC41600052E2DC /* MainMenu.xib */,
+				F28757AA1AF9D99700E6A1CF /* testgen.tiff */,
 				3B1BC5CA18CD2823007B416E /* Digital_LAD_2048x1556.dpx */,
 				3B6645A218CC41600052E2DC /* Images.xcassets */,
 				3B66459118CC41600052E2DC /* Supporting Files */,
@@ -405,6 +442,7 @@
 				3B66459B18CC41600052E2DC /* Credits.rtf in Resources */,
 				3B1BC5CB18CD282F007B416E /* Digital_LAD_2048x1556.dpx in Resources */,
 				3B6645A118CC41600052E2DC /* MainMenu.xib in Resources */,
+				F28757AB1AF9D99700E6A1CF /* testgen.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -554,12 +592,13 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../Vendor/OpenImageIO/include",
+					/usr/local/include,
 				);
 				INFOPLIST_FILE = "OIIOImageViewer/OIIOImageViewer-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
 					"$(SRCROOT)/../Vendor/**",
+					"$(inherited)",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;
@@ -578,12 +617,13 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../Vendor/OpenImageIO/include",
+					/usr/local/include,
 				);
 				INFOPLIST_FILE = "OIIOImageViewer/OIIOImageViewer-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
 					"$(SRCROOT)/../Vendor/**",
+					"$(inherited)",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;

@@ -56,6 +56,7 @@
 
 #include "export.h"
 #include "oiioversion.h"
+#include "platform.h"
 #include "typedesc.h"   /* Needed for TypeDesc definition */
 #include "paramlist.h"
 
@@ -138,16 +139,15 @@ public:
     /// the imageio library itself.
     ImageIOParameterList extra_attribs;  ///< Additional attributes
 
-    /// Constructor: given just the data format, set the default quantize
-    /// and set all other channels to something reasonable.
+    /// Constructor: given just the data format, set all other fields to
+    /// something reasonable.
     ImageSpec (TypeDesc format = TypeDesc::UNKNOWN);
 
     /// Constructor for simple 2D scanline image with nothing special.
     /// If fmt is not supplied, default to unsigned 8-bit data.
     ImageSpec (int xres, int yres, int nchans, TypeDesc fmt = TypeDesc::UINT8);
 
-    /// Set the data format, and as a side effect set quantize
-    /// to good defaults for that format
+    /// Set the data format.
     void set_format (TypeDesc fmt);
 
     /// Set the channelnames to reasonable defaults ("R", "G", "B", "A"),
@@ -265,66 +265,73 @@ public:
 
     /// Add an optional attribute to the extra attribute list
     ///
-    void attribute (string_ref name, TypeDesc type, const void *value);
+    void attribute (string_view name, TypeDesc type, const void *value);
 
     /// Add an optional attribute to the extra attribute list.
     ///
-    void attribute (string_ref name, TypeDesc type, string_ref value);
+    void attribute (string_view name, TypeDesc type, string_view value);
 
     /// Add an unsigned int attribute
     ///
-    void attribute (string_ref name, unsigned int value) {
+    void attribute (string_view name, unsigned int value) {
         attribute (name, TypeDesc::UINT, &value);
     }
 
     /// Add an int attribute
     ///
-    void attribute (string_ref name, int value) {
+    void attribute (string_view name, int value) {
         attribute (name, TypeDesc::INT, &value);
     }
 
     /// Add a float attribute
     ///
-    void attribute (string_ref name, float value) {
+    void attribute (string_view name, float value) {
         attribute (name, TypeDesc::FLOAT, &value);
     }
 
     /// Add a string attribute
     ///
-    void attribute (string_ref name, string_ref value) {
+    void attribute (string_view name, string_view value) {
         const char *s = value.c_str();
         attribute (name, TypeDesc::STRING, &s);
     }
 
-    /// Remove the specified attribute from the list of extra
-    /// attributes. If not found, do nothing.
-    void erase_attribute (string_ref name,
+    /// Remove the specified attribute from the list of extra_attribs. If
+    /// not found, do nothing.  If searchtype is anything but UNKNOWN,
+    /// restrict matches to only those of the given type. If casesensitive
+    /// is true, the name search will be case-sensitive, otherwise the name
+    /// search will be performed without regard to case (this is the
+    /// default).
+    void erase_attribute (string_view name,
                           TypeDesc searchtype=TypeDesc::UNKNOWN,
                           bool casesensitive=false);
 
-    /// Search for a attribute of the given name in the list of extra
-    /// attributes.
-    ImageIOParameter * find_attribute (string_ref name,
+    /// Search for an attribute of the given name in the list of
+    /// extra_attribs. If searchtype is anything but UNKNOWN, restrict
+    /// matches to only those of the given type. If casesensitive is true,
+    /// the name search will be case-sensitive, otherwise the name search
+    /// will be performed without regard to case (this is the default).
+    ImageIOParameter * find_attribute (string_view name,
                                        TypeDesc searchtype=TypeDesc::UNKNOWN,
                                        bool casesensitive=false);
-    const ImageIOParameter *find_attribute (string_ref name,
+    const ImageIOParameter *find_attribute (string_view name,
                                             TypeDesc searchtype=TypeDesc::UNKNOWN,
                                             bool casesensitive=false) const;
 
     /// Simple way to get an integer attribute, with default provided.
     /// Automatically will return an int even if the data is really
     /// unsigned, short, or byte.
-    int get_int_attribute (string_ref name, int defaultval=0) const;
+    int get_int_attribute (string_view name, int defaultval=0) const;
 
     /// Simple way to get a float attribute, with default provided.
     /// Automatically will return a float even if the data is really
     /// double or half.
-    float get_float_attribute (string_ref name, float defaultval=0) const;
+    float get_float_attribute (string_view name, float defaultval=0) const;
 
     /// Simple way to get a string attribute, with default provided.
     ///
-    string_ref get_string_attribute (string_ref name,
-                           string_ref defaultval = string_ref()) const;
+    string_view get_string_attribute (string_view name,
+                           string_view defaultval = string_view()) const;
 
     /// For a given parameter (in this ImageSpec's extra_attribs),
     /// format the value nicely as a string.  If 'human' is true, use
@@ -357,7 +364,8 @@ public:
 
     /// Return teh channelformat of the given channel.
     TypeDesc channelformat (int chan) const {
-        return chan >= (int)channelformats.size() ? format : channelformats[chan];
+        return chan >= 0 && chan < (int)channelformats.size()
+            ? channelformats[chan] : format;
     }
 
     /// Fill in an array of channel formats describing all channels in
@@ -383,7 +391,8 @@ public:
     std::vector<char> data;          // for each sample [z][y][x][c][s]
 
     DeepData () : npixels(0), nchannels(0) { }
-    /// Initialize size and allocate nsamples, pointers
+    /// Initialize size and allocate nsamples, pointers. It is important to
+    /// completely fill in nsamples after init() but before alling alloc().
     void init (int npix, int nchan,
                const TypeDesc *chbegin, const TypeDesc *chend);
     /// After nsamples[] has been filled in, allocate enough scratch space
@@ -393,6 +402,17 @@ public:
     void clear ();
     /// Deallocate all space in the vectors
     void free ();
+    /// Retrieve the pointer to the first sample of the given pixel and
+    /// channel. Return NULL if there are no samples for that pixel.
+    void *channel_ptr (int pixel, int channel) const;
+    /// Retrieve deep sample value within a pixel, cast to a float.
+    float deep_value (int pixel, int channel, int sample) const;
+    /// Retrieve deep sample value within a pixel, as an untigned int.
+    uint32_t deep_value_uint (int pixel, int channel, int sample) const;
+    /// Set deep sample value within a pixel, as a float.
+    void set_deep_value (int pixel, int channel, int sample, float value);
+    /// Set deep sample value within a pixel, as a uint32.
+    void set_deep_value_uint (int pixel, int channel, int sample, uint32_t value);
 };
 
 
@@ -439,6 +459,22 @@ public:
     ///
     virtual const char *format_name (void) const = 0;
 
+    /// Given the name of a 'feature', return whether this ImageInput
+    /// supports input of images with the given properties.
+    /// Feature names that ImageIO plugins are expected to recognize
+    /// include:
+    ///    "arbitrary_metadata" Does this format allow metadata with
+    ///                        arbitrary names and types?
+    ///    "exif"           Can this format store Exif camera data?
+    ///    "iptc"           Can this format store IPTC data?
+    ///
+    /// Note that main advantage of this approach, versus having
+    /// separate individual supports_foo() methods, is that this allows
+    /// future expansion of the set of possible queries without changing
+    /// the API, adding new entry points, or breaking linkage
+    /// compatibility.
+    virtual bool supports (const std::string & /*feature*/) const { return false; }
+
     /// Return true if the named file is file of the type for this
     /// ImageInput.  The implementation will try to determine this as
     /// efficiently as possible, in most cases much less expensively
@@ -468,19 +504,6 @@ public:
     /// are invalid before open() or after close(), and may change with
     /// a call to seek_subimage().
     const ImageSpec &spec (void) const { return m_spec; }
-
-    /// Given the name of a 'feature', return whether this ImageInput
-    /// supports input of images with the given properties.
-    /// Feature names that ImageIO plugins are expected to recognize
-    /// include:
-    ///    none at this time
-    ///
-    /// Note that main advantage of this approach, versus having
-    /// separate individual supports_foo() methods, is that this allows
-    /// future expansion of the set of possible queries without changing
-    /// the API, adding new entry points, or breaking linkage
-    /// compatibility.
-    virtual bool supports (const std::string & /*feature*/) const { return false; }
 
     /// Close an image that we are totally done with.
     ///
@@ -576,10 +599,10 @@ public:
 
     /// Read the tile whose upper-left origin is (x,y,z) into data,
     /// converting if necessary from the native data format of the file
-    /// into the 'format' specified.  (z==0 for non-volume images.)  The
-    /// stride values give the data spacing of adjacent pixels,
-    /// scanlines, and volumetric slices (measured in bytes).  Strides
-    /// set to AutoStride imply 'contiguous' data, i.e.,
+    /// into the 'format' specified. (z==0 for non-volume images.) The
+    /// stride values give the data spacing of adjacent pixels, scanlines,
+    /// and volumetric slices (measured in bytes). Strides set to AutoStride
+    /// imply 'contiguous' data in the shape of a full tile, i.e.,
     ///     xstride == spec.nchannels*format.size()
     ///     ystride == xstride*spec.tile_width
     ///     zstride == ystride*spec.tile_height
@@ -617,6 +640,13 @@ public:
     /// boundaries, with the exception that it may also be the end of
     /// the image data if the image resolution is not a whole multiple
     /// of the tile size.
+    /// The stride values give the data spacing of adjacent pixels,
+    /// scanlines, and volumetric slices (measured in bytes). Strides set to
+    /// AutoStride imply 'contiguous' data in the shape of the [begin,end)
+    /// region, i.e.,
+    ///     xstride == spec.nchannels*format.size()
+    ///     ystride == xstride * (xend-xbegin)
+    ///     zstride == ystride * (yend-ybegin)
     virtual bool read_tiles (int xbegin, int xend, int ybegin, int yend,
                              int zbegin, int zend, TypeDesc format,
                              void *data, stride_t xstride=AutoStride,
@@ -825,6 +855,9 @@ public:
     ///    "mipmap"         Does this format support multiple resolutions
     ///                       for an image/subimage?
     ///    "volumes"        Does this format support "3D" pixel arrays?
+    ///    "alpha"          Can this format support an alpha channel?
+    ///    "nchannels"      Can this format support arbitrary number of
+    ///                        channels (beyond RGBA)?
     ///    "rewrite"        May the same scanline or tile be sent more than
     ///                       once?  (Generally, this will be true for
     ///                       plugins that implement interactive display.)
@@ -840,13 +873,17 @@ public:
     ///    "negativeorigin" Does the format support negative x,y,z
     ///                        and full_{x,y,z} origin values?
     ///    "deepdata"       Deep (multi-sample per pixel) data
+    ///    "arbitrary_metadata" Does this format allow metadata with
+    ///                        arbitrary names and types?
+    ///    "exif"           Can this format store Exif camera data?
+    ///    "iptc"           Can this format store IPTC data?
     ///
     /// Note that main advantage of this approach, versus having
     /// separate individual supports_foo() methods, is that this allows
     /// future expansion of the set of possible queries without changing
     /// the API, adding new entry points, or breaking linkage
     /// compatibility.
-    virtual bool supports (const std::string & /*feature*/) const { return false; }
+    virtual bool supports (const std::string &feature) const { return false; }
 
     enum OpenMode { Create, AppendSubimage, AppendMIPLevel };
 
@@ -923,7 +960,8 @@ public:
     /// ignored for 2D non-volume images.)  The three stride values give
     /// the distance (in bytes) between successive pixels, scanlines,
     /// and volumetric slices, respectively.  Strides set to AutoStride
-    /// imply 'contiguous' data, i.e.,
+    /// imply 'contiguous' data in the shape of a full tile, i.e.,
+
     ///     xstride == spec.nchannels*format.size()
     ///     ystride == xstride*spec.tile_width
     ///     zstride == ystride*spec.tile_height
@@ -941,13 +979,20 @@ public:
                              stride_t zstride=AutoStride);
 
     /// Write the block of multiple tiles that include all pixels in
-    /// [xbegin,xend) X [ybegin,yend) X [zbegin,zend).  This is
-    /// analogous to write_tile except that it may be used to write more
-    /// than one tile at a time (which, for some formats, may be able to
-    /// be done much more efficiently or in parallel).
-    /// The begin/end pairs must correctly delineate tile boundaries,
-    /// with the exception that it may also be the end of the image data
-    /// if the image resolution is not a whole multiple of the tile size.
+    /// [xbegin,xend) X [ybegin,yend) X [zbegin,zend).  This is analogous to
+    /// write_tile except that it may be used to write more than one tile at
+    /// a time (which, for some formats, may be able to be done much more
+    /// efficiently or in parallel).
+    /// The begin/end pairs must correctly delineate tile boundaries, with
+    /// the exception that it may also be the end of the image data if the
+    /// image resolution is not a whole multiple of the tile size.
+    /// The stride values give the data spacing of adjacent pixels,
+    /// scanlines, and volumetric slices (measured in bytes). Strides set to
+    /// AutoStride imply 'contiguous' data in the shape of the [begin,end)
+    /// region, i.e.,
+    ///     xstride == spec.nchannels*format.size()
+    ///     ystride == xstride * (xend-xbegin)
+    ///     zstride == ystride * (yend-ybegin)
     virtual bool write_tiles (int xbegin, int xend, int ybegin, int yend,
                               int zbegin, int zend, TypeDesc format,
                               const void *data, stride_t xstride=AutoStride,
@@ -956,13 +1001,13 @@ public:
 
     /// Write a rectangle of pixels given by the range
     ///   [xbegin,xend) X [ybegin,yend) X [zbegin,zend)
-    /// The three stride values give the distance (in bytes) between
-    /// successive pixels, scanlines, and volumetric slices,
-    /// respectively.  Strides set to AutoStride imply 'contiguous'
-    /// data, i.e.,
+    /// The stride values give the data spacing of adjacent pixels,
+    /// scanlines, and volumetric slices (measured in bytes). Strides set to
+    /// AutoStride imply 'contiguous' data in the shape of the [begin,end)
+    /// region, i.e.,
     ///     xstride == spec.nchannels*format.size()
-    ///     ystride == xstride * (xmax-xmin+1)
-    ///     zstride == ystride * (ymax-ymin+1)
+    ///     ystride == xstride * (xend-xbegin)
+    ///     zstride == ystride * (yend-ybegin)
     /// The data are automatically converted from 'format' to the actual
     /// output format (as specified to open()) by this method.  If
     /// format is TypeDesc::UNKNOWN, it will just copy pixels assuming
@@ -1146,15 +1191,15 @@ OIIO_API std::string geterror ();
 ///             are presumed to be used for that format.  Semicolons
 ///             separate the lists for formats.  For example,
 ///                "tiff:tif;jpeg:jpg,jpeg;openexr:exr"
-OIIO_API bool attribute (string_ref name, TypeDesc type, const void *val);
+OIIO_API bool attribute (string_view name, TypeDesc type, const void *val);
 // Shortcuts for common types
-inline bool attribute (string_ref name, int val) {
+inline bool attribute (string_view name, int val) {
     return attribute (name, TypeDesc::TypeInt, &val);
 }
-inline bool attribute (string_ref name, float val) {
+inline bool attribute (string_view name, float val) {
     return attribute (name, TypeDesc::TypeFloat, &val);
 }
-inline bool attribute (string_ref name, string_ref val) {
+inline bool attribute (string_view name, string_view val) {
     const char *s = val.c_str();
     return attribute (name, TypeDesc::TypeString, &s);
 }
@@ -1164,19 +1209,19 @@ inline bool attribute (string_ref name, string_ref val) {
 /// otherwise return false and do not modify the contents of *val.  It
 /// is up to the caller to ensure that val points to the right kind and
 /// size of storage for the given type.
-OIIO_API bool getattribute (string_ref name, TypeDesc type,
+OIIO_API bool getattribute (string_view name, TypeDesc type,
                              void *val);
 // Shortcuts for common types
-inline bool getattribute (string_ref name, int &val) {
+inline bool getattribute (string_view name, int &val) {
     return getattribute (name, TypeDesc::TypeInt, &val);
 }
-inline bool getattribute (string_ref name, float &val) {
+inline bool getattribute (string_view name, float &val) {
     return getattribute (name, TypeDesc::TypeFloat, &val);
 }
-inline bool getattribute (string_ref name, char **val) {
+inline bool getattribute (string_view name, char **val) {
     return getattribute (name, TypeDesc::TypeString, val);
 }
-inline bool getattribute (string_ref name, std::string &val) {
+inline bool getattribute (string_view name, std::string &val) {
     ustring s;
     bool ok = getattribute (name, TypeDesc::TypeString, &s);
     if (ok)
@@ -1197,12 +1242,12 @@ OIIO_API void declare_imageio_format (const std::string &format_name,
 /// Helper function: convert contiguous arbitrary data between two
 /// arbitrary types (specified by TypeDesc's)
 /// Return true if ok, false if it didn't know how to do the
-/// conversion.  If dst_type is UNKNWON, it will be assumed to be the
+/// conversion.  If dst_type is UNKNOWN, it will be assumed to be the
 /// same as src_type.
 OIIO_API bool convert_types (TypeDesc src_type, const void *src,
                               TypeDesc dst_type, void *dst, int n);
 
-/// DEPRECATED -- for some reason we had a convert_types that took
+/// DEPRECATED(1.4) -- for some reason we had a convert_types that took
 /// alpha_channel and z_channel parameters, but never did anything
 /// with them.
 OIIO_API bool convert_types (TypeDesc src_type, const void *src,
@@ -1252,6 +1297,14 @@ OIIO_API void add_dither (int nchannels, int width, int height, int depth,
                           int chorigin=0, int xorigin=0,
                           int yorigin=0, int zorigin=0);
 
+/// Convert unassociated to associated alpha by premultiplying all color
+/// (non-alpha, non-z) channels by alpha.
+OIIO_API void premult (int nchannels, int width, int height, int depth,
+                       int chbegin, int chend,
+                       TypeDesc datatype, void *data, stride_t xstride,
+                       stride_t ystride, stride_t zstride,
+                       int alpha_channel = -1, int z_channel = -1);
+
 /// Helper routine for data conversion: Copy an image of nchannels x
 /// width x height x depth from src to dst.  The src and dst may have
 /// different data layouts, but must have the same data type.  Clever
@@ -1276,6 +1329,12 @@ OIIO_API bool decode_exif (const void *exif, int length, ImageSpec &spec);
 /// Construct an Exif data block from the ImageSpec, appending the Exif 
 /// data as a big blob to the char vector.
 OIIO_API void encode_exif (const ImageSpec &spec, std::vector<char> &blob);
+
+/// Helper: For the given OIIO metadata attribute name, look up the Exif tag
+/// ID, TIFFDataType (expressed as an int), and count. Return true and fill
+/// in the fields if found, return false if not found.
+OIIO_API bool exif_tag_lookup (string_view name, int &tag,
+                               int &tifftype, int &count);
 
 /// Add metadata to spec based on raw IPTC (International Press
 /// Telecommunications Council) metadata in the form of an IIM

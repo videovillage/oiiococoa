@@ -71,8 +71,13 @@
 /// 
 
 #if defined(_MSC_VER) || defined(__CYGWIN__)
-  #define OIIO_IMPORT __declspec(dllimport)
-  #define OIIO_EXPORT __declspec(dllexport)
+  #ifndef OIIO_STATIC_BUILD
+    #define OIIO_IMPORT __declspec(dllimport)
+    #define OIIO_EXPORT __declspec(dllexport)
+  #else
+    #define OIIO_IMPORT
+    #define OIIO_EXPORT
+  #endif
   #define OIIO_LOCAL
 #else
   #if (10000*__GNUC__ + 100*__GNUC_MINOR__ + __GNUC_PATCHLEVEL__) > 40102
@@ -86,7 +91,7 @@
   #endif
 #endif
 
-#if defined(OpenImageIO_EXPORTS)
+#if defined(OpenImageIO_EXPORTS) || defined(OpenImageIO_Util_EXPORTS)
 #  define OIIO_API OIIO_EXPORT
 #else
 #  define OIIO_API OIIO_IMPORT

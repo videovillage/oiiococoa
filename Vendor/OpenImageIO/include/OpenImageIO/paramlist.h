@@ -59,7 +59,7 @@ OIIO_NAMESPACE_ENTER
 ///
 /// Nomenclature: if you have an array of 4 colors for each of 15 points...
 ///  - There are 15 VALUES
-///  - Each value has an array of 4 ELEMENTS, ecah of which is a color
+///  - Each value has an array of 4 ELEMENTS, each of which is a color
 ///  - A color has 3 COMPONENTS (R, G, B)
 ///
 class OIIO_API ParamValue {
@@ -82,30 +82,46 @@ public:
                 int _nvalues, const void *_value, bool _copy=true) {
         init_noclear (_name, _type, _nvalues, _value, _copy);
     }
-    ParamValue (string_ref _name, TypeDesc _type,
+    ParamValue (const ustring &_name, TypeDesc _type, int _nvalues,
+                Interp _interp, const void *_value, bool _copy=true) {
+        init_noclear (_name, _type, _nvalues, _interp, _value, _copy);
+    }
+    ParamValue (string_view _name, TypeDesc _type,
                 int _nvalues, const void *_value, bool _copy=true) {
         init_noclear (ustring(_name), _type, _nvalues, _value, _copy);
     }
+    ParamValue (string_view _name, TypeDesc _type, int _nvalues,
+                Interp _interp, const void *_value, bool _copy=true) {
+        init_noclear (ustring(_name), _type, _nvalues, _interp, _value, _copy);
+    }
     ParamValue (const ParamValue &p, bool _copy=true) {
-        init_noclear (p.name(), p.type(), p.nvalues(), p.data(), _copy);
+        init_noclear (p.name(), p.type(), p.nvalues(), p.interp(), p.data(), _copy);
     }
     ~ParamValue () { clear_value(); }
+    void init (ustring _name, TypeDesc _type, int _nvalues,
+               Interp _interp, const void *_value, bool _copy=true) {
+        clear_value ();
+        init_noclear (_name, _type, _nvalues, _interp, _value, _copy);
+    }
     void init (ustring _name, TypeDesc _type,
                int _nvalues, const void *_value, bool _copy=true) {
-        clear_value ();
-        init_noclear (_name, _type, _nvalues, _value, _copy);
+        init (_name, _type, _nvalues, INTERP_CONSTANT, _value, _copy);
     }
-    void init (string_ref _name, TypeDesc _type,
+    void init (string_view _name, TypeDesc _type,
                int _nvalues, const void *_value, bool _copy=true) {
         init (ustring(_name), _type, _nvalues, _value, _copy);
     }
+    void init (string_view _name, TypeDesc _type, int _nvalues,
+               Interp _interp, const void *_value, bool _copy=true) {
+        init (ustring(_name), _type, _nvalues, _interp, _value, _copy);
+    }
     const ParamValue& operator= (const ParamValue &p) {
-        init (p.name(), p.type(), p.nvalues(), p.data(), p.m_copy);
+        init (p.name(), p.type(), p.nvalues(), p.interp(), p.data(), p.m_copy);
         return *this;
     }
 
     // FIXME -- some time in the future (after more cleanup), we should make
-    // name() return a string_ref, and use uname() for the rare time when
+    // name() return a string_view, and use uname() for the rare time when
     // the caller truly requires the ustring.
     const ustring &name () const { return m_name; }
     const ustring &uname () const { return m_name; }
@@ -120,6 +136,7 @@ public:
         std::swap (a.m_name,     b.m_name);
         std::swap (a.m_type,     b.m_type);
         std::swap (a.m_nvalues,  b.m_nvalues);
+        std::swap (a.m_interp,   b.m_interp);
         std::swap (a.m_data.ptr, b.m_data.ptr);
         std::swap (a.m_copy,     b.m_copy);
         std::swap (a.m_nonlocal, b.m_nonlocal);
@@ -138,6 +155,9 @@ private:
 
     void init_noclear (ustring _name, TypeDesc _type,
                        int _nvalues, const void *_value, bool _copy=true);
+    void init_noclear (ustring _name, TypeDesc _type,int _nvalues,
+                       Interp _interp, const void *_value,
+                       bool _copy=true);
     void clear_value();
 };
 
@@ -162,6 +182,8 @@ public:
     iterator end () { return m_vals.end(); }
     const_iterator begin () const { return m_vals.begin(); }
     const_iterator end () const { return m_vals.end(); }
+    const_iterator cbegin () const { return m_vals.begin(); }
+    const_iterator cend () const { return m_vals.end(); }
 
     reference front () { return m_vals.front(); }
     reference back () { return m_vals.back(); }
@@ -187,6 +209,18 @@ public:
     ///
     void push_back (const ParamValue &p) { m_vals.push_back (p); }
     
+    /// Find the first entry with matching name, and if type != UNKNOWN,
+    /// then also with matching type. The name search is case sensitive if
+    /// casesensitive == true.
+    iterator find (string_view name, TypeDesc type = TypeDesc::UNKNOWN,
+                   bool casesensitive = true);
+    iterator find (ustring name, TypeDesc type = TypeDesc::UNKNOWN,
+                   bool casesensitive = true);
+    const_iterator find (string_view name, TypeDesc type = TypeDesc::UNKNOWN,
+                         bool casesensitive = true) const;
+    const_iterator find (ustring name, TypeDesc type = TypeDesc::UNKNOWN,
+                         bool casesensitive = true) const;
+
     /// Removes from the ParamValueList container a single element.
     /// 
     iterator erase (iterator position) { return m_vals.erase (position); }

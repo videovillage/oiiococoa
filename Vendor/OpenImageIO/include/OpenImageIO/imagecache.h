@@ -100,23 +100,23 @@ public:
     ///                               texture and image references.
     ///     int unassociatedalpha : if nonzero, keep unassociated alpha images
     ///
-    virtual bool attribute (string_ref name, TypeDesc type,
+    virtual bool attribute (string_view name, TypeDesc type,
                             const void *val) = 0;
     // Shortcuts for common types
-    virtual bool attribute (string_ref name, int val) = 0;
-    virtual bool attribute (string_ref name, float val) = 0;
-    virtual bool attribute (string_ref name, double val) = 0;
-    virtual bool attribute (string_ref name, string_ref val) = 0;
+    virtual bool attribute (string_view name, int val) = 0;
+    virtual bool attribute (string_view name, float val) = 0;
+    virtual bool attribute (string_view name, double val) = 0;
+    virtual bool attribute (string_view name, string_view val) = 0;
 
     /// Get the named attribute, store it in value.
-    virtual bool getattribute (string_ref name, TypeDesc type,
+    virtual bool getattribute (string_view name, TypeDesc type,
                                void *val) = 0;
     // Shortcuts for common types
-    virtual bool getattribute (string_ref name, int &val) = 0;
-    virtual bool getattribute (string_ref name, float &val) = 0;
-    virtual bool getattribute (string_ref name, double &val) = 0;
-    virtual bool getattribute (string_ref name, char **val) = 0;
-    virtual bool getattribute (string_ref name, std::string &val) = 0;
+    virtual bool getattribute (string_view name, int &val) = 0;
+    virtual bool getattribute (string_view name, float &val) = 0;
+    virtual bool getattribute (string_view name, double &val) = 0;
+    virtual bool getattribute (string_view name, char **val) = 0;
+    virtual bool getattribute (string_view name, std::string &val) = 0;
 
     /// Given possibly-relative 'filename', resolve it using the search
     /// path rules and return the full resolved filename.
@@ -128,12 +128,6 @@ public:
     /// doesn't match the type requested. or some other failure.
     virtual bool get_image_info (ustring filename, int subimage, int miplevel,
                          ustring dataname, TypeDesc datatype, void *data) = 0;
-
-    /// Back-compatible version of get_image_info -- DEPRECATED
-    bool get_image_info (ustring filename, ustring dataname,
-                         TypeDesc datatype, void *data) {
-        return get_image_info (filename, 0, 0, dataname, datatype, data);
-    }
 
     /// Get the ImageSpec associated with the named image (the first
     /// subimage & miplevel by default, or as set by 'subimage' and
@@ -226,18 +220,34 @@ public:
     /// the data type of the pixels in the disk file).
     virtual const void * tile_pixels (Tile *tile, TypeDesc &format) const = 0;
 
-    /// This creates a file entry in the cache that, instead of reading
-    /// from disk, uses a custom ImageInput to generate the image (note
-    /// that it will have no effect if there's already an image by the
-    /// same name in the cache).  The 'creator' is a factory that
-    /// creates the custom ImageInput and will be called like this:
-    /// ImageInput *in = creator(); Once created, the ImageCache owns
-    /// the ImageInput and is responsible for destroying it when done.
-    /// Custom ImageInputs allow "procedural" images, among other
-    /// things.  Also, this is the method you use to set up a
-    /// "writeable" ImageCache images (perhaps with a type of ImageInput
-    /// that's just a stub that does as little as possible).
-    virtual bool add_file (ustring filename, ImageInput::Creator creator) = 0;
+    /// The add_file() call causes a file to be opened or added to the
+    /// cache. There is no reason to use this method unless you are
+    /// supplying a custom creator, or configuration, or both.
+    /// 
+    /// If creator is not NULL, it points to an ImageInput::Creator that
+    /// will be used rather than the default ImageInput::create(), thus
+    /// instead of reading from disk, creates and uses a custom ImageInput
+    /// to generate the image. The 'creator' is a factory that creates the
+    /// custom ImageInput and will be called like this:
+    ///      ImageInput *in = creator();
+    /// Once created, the ImageCache owns the ImageInput and is responsible
+    /// for destroying it when done. Custom ImageInputs allow "procedural"
+    /// images, among other things.  Also, this is the method you use to set
+    /// up a "writeable" ImageCache images (perhaps with a type of
+    /// ImageInput that's just a stub that does as little as possible).
+    /// 
+    /// If config is not NULL, it points to an ImageSpec with configuration
+    /// options/hints that will be passed to the underlying
+    /// ImageInput::open() call. Thus, this can be used to ensure that the
+    /// ImageCache opens a call with special configuration options.
+    /// 
+    /// This call (including any custom creator or configuration hints) will
+    /// have no effect if there's already an image by the same name in the
+    /// cache. Custom creators or configurations only "work" the FIRST time
+    /// a particular filename is referenced in the lifetime of the
+    /// ImageCache.
+    virtual bool add_file (ustring filename, ImageInput::Creator creator=NULL,
+                           const ImageSpec *config=NULL) = 0;
 
     /// Preemptively add a tile corresponding to the named image, at the
     /// given subimage and MIP level.  The tile added is the one whose
