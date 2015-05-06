@@ -21,7 +21,6 @@
 		3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */; };
 		3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBC18CC6600003B40F3 /* libz.dylib */; };
 		3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CEDB18CC9397003B40F3 /* pugixml.cpp */; };
-		F28757701AF9BFC900E6A1CF /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287576F1AF9BFC900E6A1CF /* libpng16.a */; };
 		F28757751AF9C0BF00E6A1CF /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757711AF9C0BF00E6A1CF /* libboost_filesystem.a */; };
 		F28757761AF9C0BF00E6A1CF /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757721AF9C0BF00E6A1CF /* libboost_regex.a */; };
 		F28757771AF9C0BF00E6A1CF /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757731AF9C0BF00E6A1CF /* libboost_system.a */; };
@@ -38,7 +37,7 @@
 		F287578E1AF9C0ED00E6A1CF /* libOpenImageIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287578C1AF9C0ED00E6A1CF /* libOpenImageIO.a */; };
 		F28757901AF9C0F300E6A1CF /* liblzma.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F287578F1AF9C0F300E6A1CF /* liblzma.a */; };
 		F287579D1AF9D3B600E6A1CF /* libIlmImf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757891AF9C0E200E6A1CF /* libIlmImf.a */; };
-		F28757AB1AF9D99700E6A1CF /* testgen.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F28757AA1AF9D99700E6A1CF /* testgen.tiff */; };
+		F28757AF1AF9EAC100E6A1CF /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757AE1AF9EAC100E6A1CF /* libpng16.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -131,7 +130,6 @@
 		3BD6CEFB18CC93C2003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/lib/libpng15.a; sourceTree = "<group>"; };
 		3BD6CEFC18CC93C2003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/lib/libtiff.a; sourceTree = "<group>"; };
 		3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiffxx.a; path = ../../Vendor/libtiff/lib/libtiffxx.a; sourceTree = "<group>"; };
-		F287576F1AF9BFC900E6A1CF /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = ../Vendor/libpng/lib/libpng16.a; sourceTree = "<group>"; };
 		F28757711AF9C0BF00E6A1CF /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../Vendor/boost/lib/libboost_filesystem.a; sourceTree = "<group>"; };
 		F28757721AF9C0BF00E6A1CF /* libboost_regex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_regex.a; path = ../Vendor/boost/lib/libboost_regex.a; sourceTree = "<group>"; };
 		F28757731AF9C0BF00E6A1CF /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = ../Vendor/boost/lib/libboost_system.a; sourceTree = "<group>"; };
@@ -148,7 +146,7 @@
 		F287578B1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO_Util.a; path = ../Vendor/OpenImageIO/lib/libOpenImageIO_Util.a; sourceTree = "<group>"; };
 		F287578C1AF9C0ED00E6A1CF /* libOpenImageIO.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOpenImageIO.a; path = ../Vendor/OpenImageIO/lib/libOpenImageIO.a; sourceTree = "<group>"; };
 		F287578F1AF9C0F300E6A1CF /* liblzma.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblzma.a; path = ../Vendor/xz/lib/liblzma.a; sourceTree = "<group>"; };
-		F28757AA1AF9D99700E6A1CF /* testgen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = testgen.tiff; path = ../../../../../../Desktop/testgen.tiff; sourceTree = "<group>"; };
+		F28757AE1AF9EAC100E6A1CF /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = ../Vendor/libpng/lib/libpng16.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,10 +163,10 @@
 				F28757871AF9C0DC00E6A1CF /* libtiff.a in Frameworks */,
 				F287579D1AF9D3B600E6A1CF /* libIlmImf.a in Frameworks */,
 				F28757881AF9C0DC00E6A1CF /* libtiffxx.a in Frameworks */,
-				F28757701AF9BFC900E6A1CF /* libpng16.a in Frameworks */,
 				F287578D1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a in Frameworks */,
 				F287578E1AF9C0ED00E6A1CF /* libOpenImageIO.a in Frameworks */,
 				F287577F1AF9C0C900E6A1CF /* libIex.a in Frameworks */,
+				F28757AF1AF9EAC100E6A1CF /* libpng16.a in Frameworks */,
 				F28757901AF9C0F300E6A1CF /* liblzma.a in Frameworks */,
 				F28757801AF9C0C900E6A1CF /* libIexMath.a in Frameworks */,
 				F28757811AF9C0C900E6A1CF /* libIlmThread.a in Frameworks */,
@@ -212,6 +210,7 @@
 		3B66458918CC41600052E2DC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F28757AE1AF9EAC100E6A1CF /* libpng16.a */,
 				F287578F1AF9C0F300E6A1CF /* liblzma.a */,
 				F287578B1AF9C0ED00E6A1CF /* libOpenImageIO_Util.a */,
 				F287578C1AF9C0ED00E6A1CF /* libOpenImageIO.a */,
@@ -228,7 +227,6 @@
 				F28757721AF9C0BF00E6A1CF /* libboost_regex.a */,
 				F28757731AF9C0BF00E6A1CF /* libboost_system.a */,
 				F28757741AF9C0BF00E6A1CF /* libboost_thread-mt.a */,
-				F287576F1AF9BFC900E6A1CF /* libpng16.a */,
 				3BD6CEBC18CC6600003B40F3 /* libz.dylib */,
 				3B66458A18CC41600052E2DC /* Cocoa.framework */,
 				3B6645A918CC41600052E2DC /* XCTest.framework */,
@@ -253,7 +251,6 @@
 				3B66459C18CC41600052E2DC /* AppDelegate.h */,
 				3B66459D18CC41600052E2DC /* AppDelegate.m */,
 				3B66459F18CC41600052E2DC /* MainMenu.xib */,
-				F28757AA1AF9D99700E6A1CF /* testgen.tiff */,
 				3B1BC5CA18CD2823007B416E /* Digital_LAD_2048x1556.dpx */,
 				3B6645A218CC41600052E2DC /* Images.xcassets */,
 				3B66459118CC41600052E2DC /* Supporting Files */,
@@ -442,7 +439,6 @@
 				3B66459B18CC41600052E2DC /* Credits.rtf in Resources */,
 				3B1BC5CB18CD282F007B416E /* Digital_LAD_2048x1556.dpx in Resources */,
 				3B6645A118CC41600052E2DC /* MainMenu.xib in Resources */,
-				F28757AB1AF9D99700E6A1CF /* testgen.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -599,6 +595,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../Vendor/**",
 					"$(inherited)",
+					/usr/local/Cellar/libpng/1.6.17/lib,
+					/Users/gregcotten/Documents/Coding/VideoVillage/oiiococoa/Vendor/libpng/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;
@@ -624,6 +622,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../Vendor/**",
 					"$(inherited)",
+					/usr/local/Cellar/libpng/1.6.17/lib,
+					/Users/gregcotten/Documents/Coding/VideoVillage/oiiococoa/Vendor/libpng/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;

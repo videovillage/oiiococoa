@@ -22,7 +22,7 @@
 //
 //
 //    // Find data of image in bundle
-    NSURL *file = [[NSBundle mainBundle] URLForResource:@"testgen" withExtension:@"png"];
+    NSURL *file = [[NSBundle mainBundle] URLForResource:@"Digital_LAD_2048x1556" withExtension:@"dpx"];
 //    NSString *unexpandedFilePathToFolder = @"~/Downloads/oiio-images-master/";
 //    
 //    NSURL *folder = [NSURL fileURLWithPath:unexpandedFilePathToFolder.stringByExpandingTildeInPath isDirectory:YES];
