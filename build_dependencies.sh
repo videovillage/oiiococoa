@@ -1,24 +1,36 @@
 #/usr/bin/bash
 
 brew install cmake
+brew upgrade cmake
 brew install Boost
+brew upgrade Boost
 brew install libtiff
+brew upgrade libtiff
 brew install libpng
+brew upgrade libpng
 brew install jpeg
+brew upgrade jpeg
 brew install xz
+brew upgrade xz
 brew install ilmbase
+brew upgrade ilmbase
 
 brew install autoconf
+brew upgrade autoconf
 brew install automake
+brew upgrade automake
 brew install libtool
+brew upgrade libtool
+
+brew uninstall openexr
 git clone https://github.com/openexr/openexr.git openexr
 cd openexr/OpenEXR
 ./bootstrap 
 ./configure
 make install
 
-rm -rf Vendor/openexr/lib/*
-cp IlmImf/.libs/libIlmImf.a ../Vendor/openexr/lib
+rm -rf ../../Vendor/openexr/lib/*
+cp IlmImf/.libs/libIlmImf.a ../../Vendor/openexr/lib
 
 cd ../../
 
@@ -54,6 +66,8 @@ cp /usr/local/opt/xz/lib/liblzma.a Vendor/xz/lib
 git clone https://github.com/OpenImageIO/oiio.git oiio
 cd oiio
 make BUILDSTATIC=1 LINKSTATIC=1 OIIO_BUILD_TOOLS=0 OIIO_BUILD_TESTS=0 USE_PYTHON=0 USE_OPENJPEG=0 USE_GIF=0 USE_OPENGL=1 USE_QT=0
-cp -R dist/macosx/include ../Vendor/OpenImageIO/include
-cp -R dist/macosx/lib ../Vendor/OpenImageIO/lib
+rm -rf ../Vendor/OpenImageIO/include/*
+rm -rf ../Vendor/OpenImageIO/lib/*
+cp -R dist/macosx/include/* ../Vendor/OpenImageIO/include
+cp -R dist/macosx/lib/* ../Vendor/OpenImageIO/lib
 cd ../
