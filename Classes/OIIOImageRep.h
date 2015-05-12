@@ -32,7 +32,7 @@ void OIIOTimer(NSString *message, OIIOTimerBlockType block);
 
 @property (assign) OIIOImageEncodingType encodingType;
 
-+ (CGImageRef) cgImageWithContentsOfURL: (NSURL *)url metadata: (NSDictionary **)metadata;
++ (CGImageRef)newCGImageWithContentsOfURL:(NSURL *)url metadata:(NSDictionary **)metadata;
 
 -(BOOL)writeToURL:(NSURL *)url
      encodingType:(OIIOImageEncodingType)encodingType;
