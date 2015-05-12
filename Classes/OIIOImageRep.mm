@@ -70,8 +70,7 @@ OIIO_NAMESPACE_USING
     extra_attribs = attribs;
 }
 
-+ (CGImageRef) cgImageWithContentsOfURL: (NSURL *)url metadata: (NSDictionary **)metadata
-{
++ (CGImageRef)newCGImageWithContentsOfURL:(NSURL *)url metadata:(NSDictionary **)metadata{
 	ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
 	if (!in) {
 		return nil;
