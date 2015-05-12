@@ -9,12 +9,31 @@
 #import "OIIOImageRep.h"
 #include "imageio.h"
 
+#include <sys/time.h>
+#include <mach/mach_time.h>  // for mach_absolute_time() and friends
+
 void OIIOTimer(NSString *message, OIIOTimerBlockType block) {
     NSDate *methodStart = [NSDate date];
     block();
     NSTimeInterval executionTime = [[NSDate date] timeIntervalSinceDate:methodStart];
     NSLog(@"%@: %fs", message, executionTime);
 }
+
+//encapsulate the code to be time in the block and this will return the execution time in seconds.(or fractions thereof...)
+Float32 timerBlock (void (^block)(void))
+{
+	mach_timebase_info_data_t info;
+	if (mach_timebase_info(&info) != KERN_SUCCESS)
+		return - 1.0;
+	
+	uint64_t start = mach_absolute_time ();
+	block ();
+	uint64_t end = mach_absolute_time ();
+	uint64_t elapsed = end - start;
+	__block uint64_t nanos = elapsed * info.numer / info.denom;
+	return (Float32)nanos / NSEC_PER_SEC;
+}
+
 
 OIIO_NAMESPACE_USING
 
@@ -51,9 +70,70 @@ OIIO_NAMESPACE_USING
     extra_attribs = attribs;
 }
 
-+ (id)imageRepWithContentsOfURL:(NSURL *)url {
-    
-    
++ (CGImageRef) cgImageWithContentsOfURL: (NSURL *)url metadata: (NSDictionary **)metadata
+{
+	ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+	if (!in) {
+		return nil;
+	}
+	const ImageSpec &spec = in->spec();
+	
+	std::vector<unsigned short> pixels (spec.width * spec.height * spec.nchannels);
+	
+	in->read_image (TypeDesc::UINT16, &pixels[0]);
+	in->close ();
+	
+	NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+	for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
+		
+		const ParamValue &p (spec.extra_attribs[i]);
+		NSString *name = [NSString stringWithCString:p.name().c_str() encoding:NSUTF8StringEncoding];
+		id value = [NSNull null];
+		
+		if (p.type() == TypeDesc::TypeString){
+			value = @(*(const char **)p.data());
+		}
+		else if (p.type() == TypeDesc::TypeFloat) {
+			value = @(*(const float *)p.data());
+		}
+		else if (p.type() == TypeDesc::TypeInt) {
+			value = @(*(const int *)p.data());
+		}
+		else if (p.type() == TypeDesc::UINT){
+			value = @(*(const unsigned int *)p.data());
+		}
+		if(value != nil){
+			attributes[name] = value;
+		}
+		
+	}
+	CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, &pixels[0], 2*pixels.size(), NULL);
+	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
+	CGImageRef image = CGImageCreate(spec.width,
+									 spec.height,
+									 16,
+									 16*spec.nchannels,
+									 2*spec.nchannels*spec.width,
+									 colorspace,
+									 spec.nchannels>3 ? kCGBitmapByteOrder16Little | kCGImageAlphaLast : kCGBitmapByteOrder16Little | kCGImageAlphaNone,
+									 provider,
+									 NULL,
+									 YES,
+									 kCGRenderingIntentDefault);
+	
+	CGColorSpaceRelease(colorspace);
+
+	delete in;
+	CGDataProviderRelease(provider);
+
+	*metadata = [NSDictionary dictionaryWithDictionary: attributes];
+	
+	return image;
+}
+
++ (id) imageRepWithContentsOfURL:(NSURL *)url
+{
+	
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
         return nil;
@@ -61,10 +141,10 @@ OIIO_NAMESPACE_USING
     const ImageSpec &spec = in->spec();
 
     std::vector<unsigned short> pixels (spec.width * spec.height * spec.nchannels);
-    
+	
     in->read_image (TypeDesc::UINT16, &pixels[0]);
     in->close ();
-    
+	
     NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
     for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
         
@@ -113,7 +193,7 @@ OIIO_NAMESPACE_USING
 
 
     CGColorSpaceRelease(colorspace);
-
+	
     NSMutableData *mutableData = [NSMutableData data];
 
     CGImageDestinationRef dest = CGImageDestinationCreateWithData((CFMutableDataRef)mutableData, (CFStringRef)@"public.tiff", 1, NULL);
@@ -126,7 +206,6 @@ OIIO_NAMESPACE_USING
     CGDataProviderRelease(provider);
 
     delete in;
-
 
     OIIOImageRep *oiioImageRep = [[self.class alloc] initWithData:mutableData];
 
