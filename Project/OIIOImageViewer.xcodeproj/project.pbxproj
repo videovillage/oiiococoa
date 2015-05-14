@@ -595,8 +595,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../Vendor/**",
 					"$(inherited)",
-					/usr/local/Cellar/libpng/1.6.17/lib,
-					/Users/gregcotten/Documents/Coding/VideoVillage/oiiococoa/Vendor/libpng/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;
@@ -622,8 +620,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../Vendor/**",
 					"$(inherited)",
-					/usr/local/Cellar/libpng/1.6.17/lib,
-					/Users/gregcotten/Documents/Coding/VideoVillage/oiiococoa/Vendor/libpng/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OIIOImageViewer;
