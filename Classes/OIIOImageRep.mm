@@ -81,32 +81,37 @@ OIIO_NAMESPACE_USING
 	
 	in->read_image (TypeDesc::UINT16, &pixels[0]);
 	in->close ();
-	
-	NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
-    attributes[@"oiiococoa:ImageEncodingType"] = @([self encodingTypeFromSpec:&spec]);
-	for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
-		
-		const ParamValue &p (spec.extra_attribs[i]);
-		NSString *name = [NSString stringWithCString:p.name().c_str() encoding:NSUTF8StringEncoding];
-		id value = [NSNull null];
-		
-		if (p.type() == TypeDesc::TypeString){
-			value = @(*(const char **)p.data());
-		}
-		else if (p.type() == TypeDesc::TypeFloat) {
-			value = @(*(const float *)p.data());
-		}
-		else if (p.type() == TypeDesc::TypeInt) {
-			value = @(*(const int *)p.data());
-		}
-		else if (p.type() == TypeDesc::UINT){
-			value = @(*(const unsigned int *)p.data());
-		}
-		if(value != nil){
-			attributes[name] = value;
-		}
-		
-	}
+
+    if (metadata) {
+        NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+        attributes[@"oiiococoa:ImageEncodingType"] = @([self encodingTypeFromSpec:&spec]);
+        for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
+
+            const ParamValue &p (spec.extra_attribs[i]);
+            NSString *name = [NSString stringWithCString:p.name().c_str() encoding:NSUTF8StringEncoding];
+            id value = [NSNull null];
+
+            if (p.type() == TypeDesc::TypeString){
+                value = @(*(const char **)p.data());
+            }
+            else if (p.type() == TypeDesc::TypeFloat) {
+                value = @(*(const float *)p.data());
+            }
+            else if (p.type() == TypeDesc::TypeInt) {
+                value = @(*(const int *)p.data());
+            }
+            else if (p.type() == TypeDesc::UINT){
+                value = @(*(const unsigned int *)p.data());
+            }
+            if(value != nil){
+                attributes[name] = value;
+            }
+            
+        }
+        
+        *metadata = [NSDictionary dictionaryWithDictionary: attributes];
+    }
+
 	CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, &pixels[0], 2*pixels.size(), NULL);
 	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
 	CGImageRef image = CGImageCreate(spec.width,
@@ -125,8 +130,6 @@ OIIO_NAMESPACE_USING
 
 	delete in;
 	CGDataProviderRelease(provider);
-
-	*metadata = [NSDictionary dictionaryWithDictionary: attributes];
 	
 	return image;
 }
