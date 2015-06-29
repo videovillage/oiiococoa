@@ -9,7 +9,7 @@ Easily use some [OpenImageIO](http://openimageio.org) magic in your Cocoa apps.
 
 ## Features
 
-- Read into image files into NSImage via OpenImageIO. 
+- Read image files into NSImage via OpenImageIO. 
 - Supported file formats:
   - TIFF
   - JPEG/JFIF
