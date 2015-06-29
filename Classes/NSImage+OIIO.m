@@ -25,7 +25,7 @@
     if(url == nil || [[NSFileManager defaultManager] fileExistsAtPath:[url path]] == NO){
         return nil;
     }
-    OIIOImageRep *rep = [OIIOImageRep imageRepWithContentsOfURL:url];
+    OIIOImageRep *rep = (OIIOImageRep *)[OIIOImageRep imageRepWithContentsOfURL:url];
     if (rep) {
         return [self oiio_imageWithRepresentation:rep];
     }
