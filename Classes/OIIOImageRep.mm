@@ -76,10 +76,12 @@ OIIO_NAMESPACE_USING
 		return nil;
 	}
 	const ImageSpec &spec = in->spec();
+    
+    NSInteger pixelCount = spec.width * spec.height * spec.nchannels;
+    
+    NSMutableData *pixelData = [NSMutableData dataWithLength:pixelCount*sizeof(unsigned short)];
 	
-	std::vector<unsigned short> pixels (spec.width * spec.height * spec.nchannels);
-	
-	in->read_image (TypeDesc::UINT16, &pixels[0]);
+	in->read_image (TypeDesc::UINT16, pixelData.mutableBytes);
 	in->close ();
 
     if (metadata) {
@@ -112,7 +114,7 @@ OIIO_NAMESPACE_USING
         *metadata = [NSDictionary dictionaryWithDictionary: attributes];
     }
 
-	CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, &pixels[0], 2*pixels.size(), NULL);
+	CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, pixelData.mutableBytes, 2*pixelCount, NULL);
 	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
 	CGImageRef image = CGImageCreate(spec.width,
 									 spec.height,
