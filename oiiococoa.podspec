@@ -26,6 +26,8 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.libraries = ['z', 'stdc++']
 
+  s.private_header_files = 'Vendor/OpenImageIO/include/OpenImageIO/*.{h,hpp}'
+
   s.vendored_libraries = [
     'Vendor/libtiff/lib/libtiff.a',
     'Vendor/libtiff/lib/libtiffxx.a',
