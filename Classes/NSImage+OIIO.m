@@ -132,6 +132,7 @@
     BOOL success = [self oiio_forceWriteToURL:dpxURL encodingType:encodingType];
 
     if (!success) {
+        [[NSFileManager defaultManager] removeItemAtURL:dpxURL error:nil];
         return nil;
     }
 

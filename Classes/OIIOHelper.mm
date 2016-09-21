@@ -74,6 +74,7 @@ OIIO_NAMESPACE_USING
         NSLog(@"%@", [NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding]);
         output->close();
         delete output;
+        [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
         return nil;
     }
     
