@@ -58,7 +58,7 @@ task :release do
   sh "rake spec"
 
   puts "* Linting the podspec"
-  sh "pod lib lint"
+  sh "pod lib lint --allow-warnings"
 
   # Then release
   sh "git commit #{podspec_path} VERSION -m 'Release #{spec_version}' --allow-empty"
@@ -66,9 +66,9 @@ task :release do
   sh "git push origin master"
   sh "git push origin --tags"
   if repo == "master"
-    sh "pod trunk push #{podspec_path}"
+    sh "pod trunk push #{podspec_path} --allow-warnings"
   else
-    sh "pod repo push #{repo} #{podspec_path}"
+    sh "pod repo push #{repo} #{podspec_path} --allow-warnings"
   end
   #increment version number and add "-pre" to it and commit it
   replace_version_number(next_version(spec_version).to_s + "-pre")
