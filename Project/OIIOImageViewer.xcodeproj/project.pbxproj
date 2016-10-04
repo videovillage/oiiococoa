@@ -21,6 +21,7 @@
 		3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */; };
 		3BD6CEBD18CC6600003B40F3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BD6CEBC18CC6600003B40F3 /* libz.dylib */; };
 		3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BD6CEDB18CC9397003B40F3 /* pugixml.cpp */; };
+		F243DFB41D9F3F4900767F63 /* OIIOHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F243DFB31D9F3F4900767F63 /* OIIOHelper.mm */; };
 		F28757751AF9C0BF00E6A1CF /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757711AF9C0BF00E6A1CF /* libboost_filesystem.a */; };
 		F28757761AF9C0BF00E6A1CF /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757721AF9C0BF00E6A1CF /* libboost_regex.a */; };
 		F28757771AF9C0BF00E6A1CF /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F28757731AF9C0BF00E6A1CF /* libboost_system.a */; };
@@ -130,6 +131,8 @@
 		3BD6CEFB18CC93C2003B40F3 /* libpng15.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng15.a; path = ../../Vendor/libpng/lib/libpng15.a; sourceTree = "<group>"; };
 		3BD6CEFC18CC93C2003B40F3 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = ../../Vendor/libtiff/lib/libtiff.a; sourceTree = "<group>"; };
 		3BD6CEFD18CC93C2003B40F3 /* libtiffxx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiffxx.a; path = ../../Vendor/libtiff/lib/libtiffxx.a; sourceTree = "<group>"; };
+		F243DFB21D9F3F4900767F63 /* OIIOHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OIIOHelper.h; sourceTree = "<group>"; };
+		F243DFB31D9F3F4900767F63 /* OIIOHelper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OIIOHelper.mm; sourceTree = "<group>"; };
 		F28757711AF9C0BF00E6A1CF /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../Vendor/boost/lib/libboost_filesystem.a; sourceTree = "<group>"; };
 		F28757721AF9C0BF00E6A1CF /* libboost_regex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_regex.a; path = ../Vendor/boost/lib/libboost_regex.a; sourceTree = "<group>"; };
 		F28757731AF9C0BF00E6A1CF /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = ../Vendor/boost/lib/libboost_system.a; sourceTree = "<group>"; };
@@ -275,6 +278,8 @@
 		3B6645C318CC42150052E2DC /* oiiococoa classes */ = {
 			isa = PBXGroup;
 			children = (
+				F243DFB21D9F3F4900767F63 /* OIIOHelper.h */,
+				F243DFB31D9F3F4900767F63 /* OIIOHelper.mm */,
 				3BD6CE5618CC4E5E003B40F3 /* OIIOImageRep.h */,
 				3BD6CE5918CC4EEA003B40F3 /* OIIOImageRep.mm */,
 				3B7C8F8618CCA52300EC8F8E /* NSImage+OIIO.h */,
@@ -461,6 +466,7 @@
 				3BD6CE5A18CC4EEA003B40F3 /* OIIOImageRep.mm in Sources */,
 				3BD6CEED18CC9397003B40F3 /* pugixml.cpp in Sources */,
 				3B66459E18CC41600052E2DC /* AppDelegate.m in Sources */,
+				F243DFB41D9F3F4900767F63 /* OIIOHelper.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

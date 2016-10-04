@@ -33,9 +33,11 @@
 
 #include "export.h"
 #include "oiioversion.h"
+#include "typedesc.h"
+#include "fmath.h"
 
-OIIO_NAMESPACE_ENTER
-{
+
+OIIO_NAMESPACE_BEGIN
 
 /// The ColorProcessor encapsulates a baked color transformation, suitable for
 /// application to raw pixels, or ImageBuf(s). These are generated using
@@ -59,21 +61,24 @@ class OIIO_API ColorProcessor;
 class OIIO_API ColorConfig
 {
 public:
-    /// If OpenColorIO is enabled at build time, initialize with the current
-    /// color configuration. ($OCIO)
-    /// If OpenColorIO is not enabled, this does nothing.
+    /// Construct a ColorConfig using the named OCIO configuration file,
+    /// or if filename is empty, to the current color configuration
+    /// specified by env variable $OCIO.
     ///
-    /// Multiple calls to this are inexpensive.
-    ColorConfig();
-    
-    /// If OpenColorIO is enabled at build time, initialize with the 
-    /// specified color configuration (.ocio) file
-    /// If OpenColorIO is not enabled, this will result in an error.
-    /// 
-    /// Multiple calls to this are potentially expensive.
-    ColorConfig(string_view filename);
+    /// Multiple calls to this are potentially expensive. A ColorConfig
+    /// should usually be shared by an app for its entire runtime.
+    ColorConfig (string_view filename = "");
     
     ~ColorConfig();
+
+    /// Reset the config to the named OCIO configuration file, or if
+    /// filename is empty, to the current color configuration specified
+    /// by env variable $OCIO. Return true for success, false if there
+    /// was an error.
+    ///
+    /// Multiple calls to this are potentially expensive. A ColorConfig
+    /// should usually be shared by an app for its entire runtime.
+    bool reset (string_view filename = "");
     
     /// Has an error string occurred?
     /// (This will not affect the error state.)
@@ -93,6 +98,11 @@ public:
     /// Get the name of the color space representing the named role,
     /// or NULL if none could be identified.
     const char * getColorSpaceNameByRole (string_view role) const;
+
+    /// Get the data type that OCIO thinks this color space is. The name
+    /// may be either a color space name or a role.
+    OIIO::TypeDesc getColorSpaceDataType (string_view name, int *bits) const;
+
     
     /// Get the number of Looks defined in this configuration
     int getNumLooks() const;
@@ -186,6 +196,28 @@ public:
                                             string_view context_key="",
                                             string_view context_value="") const;
 
+    /// Construct a processor to perform color transforms determined by an
+    /// OpenColorIO FileTransform.
+    ///
+    /// It is possible that this will return NULL, if the FileTransform
+    /// doesn't exist or is not allowed.  When the user is finished with a
+    /// ColorProcess, deleteColorProcessor should be called.
+    /// ColorProcessor(s) remain valid even if the ColorConfig that created
+    /// them no longer exists.
+    ///
+    /// Multiple calls to this are potentially expensive, so you should
+    /// call once to create a ColorProcessor to use on an entire image
+    /// (or multiple images), NOT for every scanline or pixel
+    /// separately!
+    ColorProcessor* createFileTransform (string_view name,
+                                         bool inverse=false) const;
+
+    /// Given a string (like a filename), look for the longest, right-most
+    /// colorspace substring that appears. Returns "" if no such color space
+    /// is found. (This is just a wrapper around OCIO's
+    /// ColorConfig::parseColorSpaceFromString.)
+    string_view parseColorSpaceFromString (string_view str) const;
+
     /// Delete the specified ColorProcessor
     static void deleteColorProcessor(ColorProcessor * processor);
     
@@ -209,17 +241,30 @@ private:
 ///    http://en.wikipedia.org/wiki/SRGB
 inline float sRGB_to_linear (float x)
 {
-    return (x <= 0.04045f) ? (x / 12.92f)
-                           : powf ((x + 0.055f) / 1.055f, 2.4f);
+    return (x <= 0.04045f) ? (x * (1.0f/12.92f))
+                           : powf ((x + 0.055f) * (1.0f / 1.055f), 2.4f);
+}
+
+inline simd::float4 sRGB_to_linear (simd::float4 x)
+{
+    return simd::select (x <= 0.04045f, x * (1.0f/12.92f),
+                         fast_pow_pos (madd (x, (1.0f / 1.055f), 0.055f*(1.0f/1.055f)), 2.4f));
 }
 
 /// Utility -- convert linear value to sRGB
 inline float linear_to_sRGB (float x)
 {
-    if (x < 0.0f)
-        return 0.0f;
     return (x <= 0.0031308f) ? (12.92f * x)
                              : (1.055f * powf (x, 1.f/2.4f) - 0.055f);
+}
+
+
+/// Utility -- convert linear value to sRGB
+inline simd::float4 linear_to_sRGB (simd::float4 x)
+{
+    // x = simd::max (x, simd::float4::Zero());
+    return simd::select (x <= 0.0031308f, 12.92f * x,
+                         madd (1.055f, fast_pow_pos (x, 1.f/2.4f),  -0.055f));
 }
 
 
@@ -228,7 +273,7 @@ inline float linear_to_sRGB (float x)
 inline float Rec709_to_linear (float x)
 {
     if (x < 0.081f)
-        return (x < 0.0f) ? 0.0f : x * (1.0f/4.5f);
+        return x * (1.0f/4.5f);
     else
         return powf ((x + 0.099f) * (1.0f/1.099f), (1.0f/0.45f));
 }
@@ -237,13 +282,12 @@ inline float Rec709_to_linear (float x)
 inline float linear_to_Rec709 (float x)
 {
     if (x < 0.018f)
-        return (x < 0.0f)? 0.0f : x * 4.5f;
+        return x * 4.5f;
     else
         return 1.099f * powf(x, 0.45f) - 0.099f;
 }
 
 
-}
-OIIO_NAMESPACE_EXIT
+OIIO_NAMESPACE_END
 
 #endif // OPENIMAGEIO_COLOR_H

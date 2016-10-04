@@ -43,8 +43,7 @@
 
 #include <OpenEXR/ImathVec.h>       /* because we need V3f */
 
-OIIO_NAMESPACE_ENTER
-{
+OIIO_NAMESPACE_BEGIN
 
 // Forward declaration
 namespace pvt {
@@ -299,8 +298,8 @@ public:
     /// freed by passing it to TextureSystem::destroy()!
     ///
     /// If shared==true, it's intended to be shared with other like-minded
-    /// owners in the same process who also ask for a shared cache.  If
-    /// false, a private image cache will be created.
+    /// owners in the same process who also ask for a shared texture system.
+    /// If false, a private texture system and cache will be created.
     static TextureSystem *create (bool shared=true);
 
     /// Destroy a TextureSystem that was created using
@@ -314,9 +313,8 @@ public:
     TextureSystem (void) { }
     virtual ~TextureSystem () { }
 
-    /// Close everything, free resources, start from scratch.
-    ///
-    virtual void clear () = 0;
+    OIIO_DEPRECATED("clear() was never implemented. Don't bother calling it. [1.7]")
+    virtual void clear () { }
 
     /// Set an attribute controlling the texture system.  Return true
     /// if the name and type were recognized and the attrib was set.
@@ -335,7 +333,11 @@ public:
     ///     int failure_retries : how many times to retry a read failure
     ///     int deduplicate : if nonzero, detect duplicate textures (default=1)
     ///     int gray_to_rgb : make 1-channel images fill RGB lookups
+    ///     int max_tile_channels : max channels to store all chans in a tile
     ///     string latlong_up : default "up" direction for latlong ("y")
+    ///     int flip_t : flip v coord for texture lookups?
+    ///     int max_errors_per_file : Limits how many errors to issue for
+    ///                               issue for each (default: 100)
     ///
     virtual bool attribute (string_view name, TypeDesc type, const void *val) = 0;
     // Shortcuts for common types
@@ -345,22 +347,39 @@ public:
     virtual bool attribute (string_view name, string_view val) = 0;
 
     /// Get the named attribute, store it in value.
-    virtual bool getattribute (string_view name, TypeDesc type, void *val) = 0;
+    virtual bool getattribute (string_view name,
+                               TypeDesc type, void *val) const = 0;
     // Shortcuts for common types
-    virtual bool getattribute (string_view name, int &val) = 0;
-    virtual bool getattribute (string_view name, float &val) = 0;
-    virtual bool getattribute (string_view name, double &val) = 0;
-    virtual bool getattribute (string_view name, char **val) = 0;
-    virtual bool getattribute (string_view name, std::string &val) = 0;
+    virtual bool getattribute (string_view name, int &val) const = 0;
+    virtual bool getattribute (string_view name, float &val) const = 0;
+    virtual bool getattribute (string_view name, double &val) const = 0;
+    virtual bool getattribute (string_view name, char **val) const = 0;
+    virtual bool getattribute (string_view name, std::string &val) const = 0;
 
     /// Define an opaque data type that allows us to have a pointer
     /// to certain per-thread information that the TextureSystem maintains.
+    /// Any given one of these should NEVER be shared between running
+    /// threads.
     class Perthread;
 
-    /// Retrieve an opaque handle for per-thread info, to be used for
-    /// get_texture_handle and the texture routines that take handles
-    /// directly.
-    virtual Perthread * get_perthread_info () = 0;
+    /// Retrieve a Perthread, unique to the calling thread. This is a
+    /// thread-specific pointer that will always return the Perthread for a
+    /// thread, which will also be automatically destroyed when the thread
+    /// terminates.
+    ///
+    /// Applications that want to manage their own Perthread pointers (with
+    /// create_thread_info and destroy_thread_info) should still call this,
+    /// but passing in their managed pointer. If the passed-in threadinfo is
+    /// not NULL, it won't create a new one or retrieve a TSP, but it will
+    /// do other necessary housekeeping on the Perthread information.
+    virtual Perthread * get_perthread_info (Perthread *thread_info=NULL) = 0;
+
+    /// Create a new Perthread. It is the caller's responsibility to
+    /// eventually destroy it using destroy_thread_info().
+    virtual Perthread * create_thread_info () = 0;
+
+    /// Destroy a Perthread that was allocated by create_thread_info().
+    virtual void destroy_thread_info (Perthread *threadinfo) = 0;
 
     /// Define an opaque data type that allows us to have a handle to a
     /// texture (already having its name resolved) but without exposing
@@ -368,11 +387,16 @@ public:
     class TextureHandle;
 
     /// Retrieve an opaque handle for fast texture lookups.  The opaque
-    /// point thread_info is thread-specific information returned by
+    /// pointer thread_info is thread-specific information returned by
     /// get_perthread_info().  Return NULL if something has gone
     /// horribly wrong.
     virtual TextureHandle * get_texture_handle (ustring filename,
                                             Perthread *thread_info=NULL) = 0;
+
+    /// Return true if the texture handle (previously returned by
+    /// get_texture_handle()) is a valid texture that can be subsequently
+    /// read or sampled.
+    virtual bool good (TextureHandle *texture_handle) = 0;
 
     /// Filtered 2D texture lookup for a single point.
     ///
@@ -562,6 +586,13 @@ public:
     /// doesn't match the type requested. or some other failure.
     virtual bool get_texture_info (ustring filename, int subimage,
                           ustring dataname, TypeDesc datatype, void *data) = 0;
+    virtual bool get_texture_info (TextureHandle *texture_handle,
+                          Perthread *thread_info, int subimage,
+                          ustring dataname, TypeDesc datatype, void *data) = 0;
+
+    OIIO_DEPRECATED("Use get_texture_info variety that is passed a Perthread*. [1.6.2]")
+    virtual bool get_texture_info (TextureHandle *texture_handle, int subimage,
+                          ustring dataname, TypeDesc datatype, void *data) = 0;
 
     /// Get the ImageSpec associated with the named texture
     /// (specifically, the first MIP-map level).  If the file is found
@@ -570,6 +601,9 @@ public:
     /// was not found or could not be opened as an image file by any
     /// available ImageIO plugin.
     virtual bool get_imagespec (ustring filename, int subimage,
+                                ImageSpec &spec) = 0;
+    virtual bool get_imagespec (TextureHandle *texture_handle,
+                                Perthread *thread_info, int subimage,
                                 ImageSpec &spec) = 0;
 
     /// Return a pointer to an ImageSpec associated with the named
@@ -585,6 +619,9 @@ public:
     /// calls invalidate() on the file, or invalidate_all(), or destroys
     /// the TextureSystem.
     virtual const ImageSpec *imagespec (ustring filename, int subimage=0) = 0;
+    virtual const ImageSpec *imagespec (TextureHandle *texture_handle,
+                                        Perthread *thread_info = NULL,
+                                        int subimage=0) = 0;
 
     /// Retrieve the rectangle of raw unfiltered texels spanning
     /// [xbegin..xend) X [ybegin..yend) X [zbegin..zend), with
@@ -601,6 +638,12 @@ public:
     /// Return true if the file is found and could be opened by an
     /// available ImageIO plugin, otherwise return false.
     virtual bool get_texels (ustring filename, TextureOpt &options,
+                             int miplevel, int xbegin, int xend,
+                             int ybegin, int yend, int zbegin, int zend,
+                             int chbegin, int chend,
+                             TypeDesc format, void *result) = 0;
+    virtual bool get_texels (TextureHandle *texture_handle,
+                             Perthread *thread_info, TextureOpt &options,
                              int miplevel, int xbegin, int xend,
                              int ybegin, int yend, int zbegin, int zend,
                              int chbegin, int chend,
@@ -643,7 +686,6 @@ private:
 };
 
 
-}
-OIIO_NAMESPACE_EXIT
+OIIO_NAMESPACE_END
 
 #endif // OPENIMAGEIO_TEXTURE_H

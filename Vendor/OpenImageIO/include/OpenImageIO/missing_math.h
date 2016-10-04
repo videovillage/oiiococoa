@@ -104,13 +104,13 @@
 #endif
 
 
-OIIO_NAMESPACE_ENTER {
+OIIO_NAMESPACE_BEGIN
 
 #ifdef _WIN32
 // Windows doesn't define these functions from math.h
 #define hypotf _hypotf
 #define copysign(x,y) _copysign(x,y)
-#define copysignf(x,y) copysign(x,y)
+#define copysignf(x,y) float(copysign(x,y))
 
 
 
@@ -166,6 +166,11 @@ cbrtf (float val) {
 }
 
 
+inline float
+rintf (float val) {
+    return val + copysignf(0.5f, val);
+}
+
 #elif _MSC_VER >= 1800 && __cplusplus <= 201103L
 // Prior to c++11, these were implementation defined, and on msvc, were not in the
 // std namespace
@@ -184,7 +189,7 @@ using std::isfinite;
 inline float
 exp2f (float val) {
    // 2^val = e^(val*ln(2))
-   return exp( val * M_LN2 );
+   return (float) exp( val * M_LN2 );
 }
 
 
@@ -285,6 +290,6 @@ log2f (float val) {
 #endif
 
 
-} OIIO_NAMESPACE_EXIT
+OIIO_NAMESPACE_END
 
 
