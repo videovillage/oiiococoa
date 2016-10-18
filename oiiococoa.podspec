@@ -20,9 +20,7 @@ Pod::Spec.new do |s|
   s.source_files  = [
       'Classes',
       'Classes/**/*.{h,m}',
-      'Vendor/OpenImageIO/include/**/*.{h,cpp,hpp}',
-      'Vendor/OpenEXR/include/**/*.{h,cpp,hpp}',
-      'Vendor/ilmbase/include/**/*.{h,cpp,hpp}'
+      'Vendor/OpenImageIO/include/**/*.{h,cpp,hpp}'
   ]
 
   s.requires_arc = true
@@ -37,7 +35,6 @@ Pod::Spec.new do |s|
     'Vendor/OpenImageIO/lib/libOpenImageIO.a',
     'Vendor/OpenImageIO/lib/libOpenImageIO_Util.a',
     'Vendor/openexr/lib/libIlmImf.a',
-    'Vendor/openexr/lib/libIlmImfUtil.a',
     'Vendor/jpeg/lib/libjpeg.a',
     'Vendor/ilmbase/lib/libHalf.a',
     'Vendor/ilmbase/lib/libIex.a',

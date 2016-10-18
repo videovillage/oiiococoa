@@ -36,13 +36,12 @@
 #include <cstring>
 #include <stdexcept>
 #include <algorithm>
-#include <ostream>
 
 #include "oiioversion.h"
 #include "export.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_ENTER {
 
 
 /// string_view : a non-owning, non-copying, non-allocating reference to a
@@ -350,4 +349,4 @@ inline std::ostream& operator<< (std::ostream& out, const string_view& str) {
 typedef string_view string_ref;
 
 
-OIIO_NAMESPACE_END
+} OIIO_NAMESPACE_EXIT

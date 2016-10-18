@@ -58,7 +58,7 @@
 #include "strided_ptr.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_ENTER {
 
 
 /// image_view : a non-owning reference to an image-like array (indexed by
@@ -159,4 +159,4 @@ private:
 };
 
 
-OIIO_NAMESPACE_END
+} OIIO_NAMESPACE_EXIT

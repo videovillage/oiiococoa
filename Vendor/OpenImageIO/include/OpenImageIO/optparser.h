@@ -41,7 +41,8 @@
 
 #include <string>
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_ENTER
+{
 
 
 /// Parse a string of the form "name=value" and then call
@@ -123,6 +124,7 @@ optparser (C &system, const std::string &optstring)
 }
 
 
-OIIO_NAMESPACE_END
+}
+OIIO_NAMESPACE_EXIT
 
 #endif // OPENIMAGEIO_OPTPARSER_H

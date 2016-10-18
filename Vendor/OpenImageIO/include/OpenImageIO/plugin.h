@@ -47,7 +47,8 @@
 #include "oiioversion.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_ENTER
+{
 
 namespace Plugin {
 
@@ -98,6 +99,7 @@ OIIO_API std::string geterror (void);
 
 }  // namespace Plugin
 
-OIIO_NAMESPACE_END
+}
+OIIO_NAMESPACE_EXIT
 
 #endif // OPENIMAGEIO_PLUGIN_H

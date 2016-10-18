@@ -51,7 +51,6 @@
 #include "oiioversion.h"
 #include "tinyformat.h"
 #include "string_view.h"
-#include "hash.h"
 
 #ifndef OPENIMAGEIO_PRINTF_ARGS
 #   ifndef __GNUC__
@@ -73,7 +72,8 @@
 #endif
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_ENTER
+{
 /// @namespace Strutil
 ///
 /// @brief     String-related utilities.
@@ -144,11 +144,44 @@ std::string OIIO_API unescape_chars (string_view escaped);
 /// "0 1 2\n    3 4 5\n    6 7 8"
 std::string OIIO_API wordwrap (string_view src, int columns=80, int prefix=0);
 
-/// Hash a string_view.
+/// Hash a string without pre-known length.  We use the Jenkins
+/// one-at-a-time hash (http://en.wikipedia.org/wiki/Jenkins_hash_function),
+/// which seems to be a good speed/quality/requirements compromise.
+inline size_t
+strhash (const char *s)
+{
+    if (! s) return 0;
+    unsigned int h = 0;
+    while (*s) {
+        h += (unsigned char)(*s);
+        h += h << 10;
+        h ^= h >> 6;
+        ++s;
+    }
+    h += h << 3;
+    h ^= h >> 11;
+    h += h << 15;
+    return h;
+}
+
+
+/// Hash a string_view.  We use the Jenkins
+/// one-at-a-time hash (http://en.wikipedia.org/wiki/Jenkins_hash_function),
+/// which seems to be a good speed/quality/requirements compromise.
 inline size_t
 strhash (string_view s)
 {
-    return s.length() ? farmhash::Hash (s) : 0;
+    if (! s.length()) return 0;
+    unsigned int h = 0;
+    for (size_t i = 0;  i < s.length();  ++i) {
+        h += (unsigned char)(s[i]);
+        h += h << 10;
+        h ^= h >> 6;
+    }
+    h += h << 3;
+    h ^= h >> 11;
+    h += h << 15;
+    return h;
 }
 
 
@@ -206,32 +239,6 @@ std::string OIIO_API join (const std::vector<string_view> &seq,
 std::string OIIO_API join (const std::vector<std::string> &seq,
                            string_view sep = string_view());
 
-/// Repeat a string formed by concatenating str n times.
-std::string OIIO_API repeat (string_view str, int n);
-
-/// Replace a pattern inside a string and return the result. If global is
-/// true, replace all instances of the pattern, otherwise just the first.
-std::string OIIO_API replace (string_view str, string_view pattern,
-                              string_view replacement, bool global=false);
-
-// Helper template to test if a string is a generic type
-template<typename T>
-inline bool string_is (string_view /*s*/) {
-    return false; // Generic: assume there is an explicit specialization
-}
-// Special case for int
-template <> inline bool string_is<int> (string_view s) {
-    char *endptr = 0;
-    strtol (s.data(), &endptr, 10);
-    return (s.data() + s.size() == endptr);
-}
-// Special case for float
-template <> inline bool string_is<float> (string_view s) {
-    char *endptr = 0;
-    strtod (s.data(), &endptr);
-    return (s.data() + s.size() == endptr);
-}
-
 
 
 // Helper template to convert from generic type to string
@@ -241,23 +248,22 @@ inline T from_string (string_view s) {
 }
 // Special case for int
 template<> inline int from_string<int> (string_view s) {
-    return s.size() ? strtol (s.c_str(), NULL, 10) : 0;
+    return (int)strtol (s.c_str(), NULL, 10);
 }
 // Special case for float
 template<> inline float from_string<float> (string_view s) {
-    return s.size() ? (float)strtod (s.c_str(), NULL) : 0.0f;
+    return (float)strtod (s.c_str(), NULL);
 }
 
 
 
-/// Given a string containing values separated by a comma (or optionally
-/// another separator), extract the individual values, placing them into
-/// vals[] which is presumed to already contain defaults.  If only a single
-/// value was in the list, replace all elements of vals[] with the value.
-/// Otherwise, replace them in the same order.  A missing value will simply
-/// not be replaced. Return the number of values found in the list
-/// (including blank or malformed ones). If the vals vector was empty
-/// initially, grow it as necessary.
+/// Given a string containing float values separated by a comma (or
+/// optionally another separator), extract the individual values,
+/// placing them into vals[] which is presumed to already contain
+/// defaults.  If only a single value was in the list, replace all
+/// elements of vals[] with the value. Otherwise, replace them in the
+/// same order.  A missing value will simply not be replaced. Return the
+/// number of values found in the list (including blank or malformed ones).
 ///
 /// For example, if T=float, suppose initially, vals[] = {0, 1, 2}, then
 ///   "3.14"       results in vals[] = {3.14, 3.14, 3.14}
@@ -267,21 +273,17 @@ template<> inline float from_string<float> (string_view s) {
 /// an explicit constructor from a std::string.
 template<class T>
 int extract_from_list_string (std::vector<T> &vals,
-                              string_view list,
-                              string_view sep = string_view(",",1))
+                               string_view list,
+                               string_view sep = string_view(",",1))
 {
     size_t nvals = vals.size();
     std::vector<string_view> valuestrings;
     Strutil::split (list, valuestrings, sep);
     for (size_t i = 0, e = valuestrings.size(); i < e; ++i) {
-        T v = from_string<T> (valuestrings[i]);
-        if (nvals == 0)
-            vals.push_back (v);
-        else if (valuestrings[i].size())
+        if (valuestrings[i].size())
             vals[i] = from_string<T> (valuestrings[i]);
-        /* Otherwise, empty space between commas, so leave default alone */
     }
-    if (valuestrings.size() == 1 && nvals > 0) {
+    if (valuestrings.size() == 1) {
         vals.resize (1);
         vals.resize (nvals, vals[0]);
     }
@@ -296,10 +298,16 @@ int extract_from_list_string (std::vector<T> &vals,
 /// StringEqual, to build an efficient hash map for char*'s or
 /// std::string's is as follows:
 /// \code
-///    unordered_map <const char *, Key, Strutil::StringHash, Strutil::StringEqual>
+///    boost::unordered_map <const char *, Key, Strutil::StringHash, Strutil::StringEqual>
 /// \endcode
 class StringHash {
 public:
+    size_t operator() (const char *s) const {
+        return (size_t)Strutil::strhash(s);
+    }
+    size_t operator() (const std::string &s) const {
+        return (size_t)Strutil::strhash(s.c_str());
+    }
     size_t operator() (string_view s) const {
         return (size_t)Strutil::strhash(s);
     }
@@ -410,17 +418,13 @@ bool OIIO_API parse_int (string_view &str, int &val, bool eat=true);
 /// str.
 bool OIIO_API parse_float (string_view &str, float &val, bool eat=true);
 
-enum QuoteBehavior { DeleteQuotes, KeepQuotes };
 /// If str's first non-whitespace characters form a valid string (either a
-/// single word separated by whitespace or anything inside a double-quoted
+/// single word weparated by whitespace or anything inside a double-quoted
 /// string (""), return true, place the string's value (not including
 /// surrounding double quotes) in val, and additionally modify str to skip
 /// over the parsed string if eat is also true. Otherwise, if no string is
 /// found at the beginning of str, return false and don't modify val or str.
-/// If keep_quotes is true, the surrounding double quotes (if present)
-/// will be kept in val.
-bool OIIO_API parse_string (string_view &str, string_view &val, bool eat=true,
-                            QuoteBehavior keep_quotes=DeleteQuotes);
+bool OIIO_API parse_string (string_view &str, string_view &val, bool eat=true);
 
 /// Return the first "word" (set of contiguous alphabetical characters) in
 /// str, and additionally modify str to skip over the parsed word if eat is
@@ -454,36 +458,11 @@ string_view OIIO_API parse_identifier (string_view &str,
 string_view OIIO_API parse_until (string_view &str,
                                   string_view sep=" \t\r\n", bool eat=true);
 
-/// Assuming the string str starts with either '(', '[', or '{', return the
-/// head, up to and including the corresponding closing character (')', ']',
-/// or '}', respectively), recognizing nesting structures. For example,
-/// parse_nested("(a(b)c)d") should return "(a(b)c)", NOT "(a(b)". Return an
-/// empty string if str doesn't start with one of those characters, or
-/// doesn't contain a correctly matching nested pair. If eat==true, str will
-/// be modified to trim off the part of the string that is returned as the
-/// match.
-string_view OIIO_API parse_nested (string_view &str, bool eat=true);
-
-
-/// Converts utf-8 string to vector of unicode codepoints. This function
-/// will not stop on invalid sequences. It will let through some invalid
-/// utf-8 sequences like: 0xfdd0-0xfdef, 0x??fffe/0x??ffff. It does not
-/// support 5-6 bytes long utf-8 sequences. Will skip trailing character if
-/// there are not enough bytes for decoding a codepoint.
-///
-/// N.B. Following should probably return u32string instead of taking
-/// vector, but C++11 support is not yet stabilized across compilers.
-/// We will eventually add that and deprecate this one, after everybody
-/// is caught up to C++11.
-void OIIO_API utf8_to_unicode (string_view str, std::vector<uint32_t> &uvec);
-
-/// Encode the string in base64.
-/// https://en.wikipedia.org/wiki/Base64
-std::string OIIO_API base64_encode (string_view str);
 
 }  // namespace Strutil
 
-OIIO_NAMESPACE_END
+}
+OIIO_NAMESPACE_EXIT
 
 
 #endif // OPENIMAGEIO_STRUTIL_H

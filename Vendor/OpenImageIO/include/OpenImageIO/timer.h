@@ -38,20 +38,18 @@
 
 #include "oiioversion.h"
 #include "export.h"
-#include "platform.h"
 
 #ifdef _WIN32
-//# include <windows.h>  // Already done by platform.h
+# include "osdep.h"
 #elif defined(__APPLE__)
 # include <mach/mach_time.h>
 #else
 #include <sys/time.h>
 #include <cstdlib>    // Just for NULL definition
 #endif
-#include <iostream>
 
-
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_ENTER
+{
 
 /// Simple timer class.
 ///
@@ -83,39 +81,18 @@ OIIO_NAMESPACE_BEGIN
 class OIIO_API Timer {
 public:
     typedef long long ticks_t;
-    enum StartNowVal { DontStartNow, StartNow };
-    enum PrintDtrVal { DontPrintDtr, PrintDtr };
 
     /// Constructor -- reset at zero, and start timing unless optional
     /// 'startnow' argument is false.
-    Timer (StartNowVal startnow=StartNow,
-           PrintDtrVal printdtr=DontPrintDtr,
-           const char *name=NULL)
-        : m_ticking(false), m_printdtr(printdtr==PrintDtr),
-          m_starttime(0), m_elapsed_ticks(0),
-          m_name(name)
-    {
-        if (startnow == StartNow)
-            start();
-    }
-
-    /// Constructor -- reset at zero, and start timing unless optional
-    /// 'startnow' argument is false.
-    Timer (bool startnow)
-        : m_ticking(false), m_printdtr(DontPrintDtr),
-          m_starttime(0), m_elapsed_ticks(0),
-          m_name(NULL)
+    Timer (bool startnow=true)
+        : m_ticking(false), m_starttime(0), m_elapsed_ticks(0)
     {
         if (startnow)
             start();
     }
 
     /// Destructor.
-    ~Timer () {
-        if (m_printdtr == PrintDtr)
-            std::cout << "Timer " << (m_name?m_name:"") << ": "
-                      << seconds(ticks()) << "s\n";
-    }
+    ~Timer () { }
 
     /// Start (or restart) ticking, if we are not currently.
     void start () {
@@ -188,10 +165,8 @@ public:
 
 private:
     bool m_ticking;       ///< Are we currently ticking?
-    bool m_printdtr;      ///< Print upon destruction?
     ticks_t m_starttime;  ///< Time since last call to start()
     ticks_t m_elapsed_ticks; ///< Time elapsed BEFORE the current start().
-    const char *m_name;      ///< Timer name
 
     /// Platform-dependent grab of current time, expressed as ticks_t.
     ///
@@ -228,11 +203,12 @@ private:
 
 /// Helper class that starts and stops a timer when the ScopedTimer goes
 /// in and out of scope.
+template <class TIMER=Timer>
 class ScopedTimer {
 public:
     /// Given a reference to a timer, start it when this constructor
     /// occurs.
-    ScopedTimer (Timer &t) : m_timer(t) { start(); }
+    ScopedTimer (TIMER &t) : m_timer(t) { start(); }
 
     /// Stop the timer from ticking when this object is destroyed (i.e.
     /// it leaves scope).
@@ -251,68 +227,8 @@ public:
     void reset () { m_timer.reset(); }
 
 private:
-    Timer &m_timer;
+    TIMER &m_timer;
 };
-
-
-
-/// DoNotOptimize(val) is a helper function for timing benchmarks that fools
-/// the compiler into thinking the the location 'val' is used and will not
-/// optimize it away.  For benchmarks only, do not use in production code!
-/// May not work on all platforms. References:
-/// * Chandler Carruth's CppCon 2015 talk
-/// * Folly https://github.com/facebook/folly/blob/master/folly/Benchmark.h
-/// * Google Benchmark https://github.com/google/benchmark/blob/master/include/benchmark/benchmark_api.h
-
-#if __has_attribute(__optnone__)
-
-// If __optnone__ attribute is available: make a null function with no
-// optimization, that's all we need.
-template <class T>
-inline void __attribute__((__optnone__))
-DoNotOptimize (T const &val) { }
-
-#elif ((OIIO_GNUC_VERSION && NDEBUG) || OIIO_CLANG_VERSION >= 30500 || OIIO_APPLE_CLANG_VERSION >= 70000 || defined(__INTEL_COMPILER)) && (defined(__x86_64__) || defined(__i386__))
-
-// Major non-MS compilers on x86/x86_64: use asm trick to indicate that
-// the value is needed.
-template <class T>
-inline void
-DoNotOptimize (T const &val) { asm volatile("" : "+rm" (const_cast<T&>(val))); }
-
-#elif _MSC_VER
-
-// Microsoft of course has its own way of turning off optimizations.
-#pragma optimize("", off)
-template <class T> inline void DoNotOptimize (T const &val) { const_cast<T&>(val) = val; }
-#pragma optimize("", on)
-
-#else
-
-// Otherwise, it won't work, just make a stub.
-template <class T> inline void DoNotOptimize (T const &val) { }
-
-#endif
-
-
-
-/// clobber_all_memory() is a helper function for timing benchmarks that
-/// fools the compiler into thinking that potentially any part of memory
-/// has been modified, and thus serves as a barrier where the optimizer
-/// won't assume anything about the state of memory preceding it.
-#if ((OIIO_GNUC_VERSION && NDEBUG) || OIIO_CLANG_VERSION >= 30500 || OIIO_APPLE_CLANG_VERSION >= 70000 || defined(__INTEL_COMPILER)) && (defined(__x86_64__) || defined(__i386__))
-
-// Special trick for x86/x86_64 and gcc-like compilers
-inline void clobber_all_memory() {
-    asm volatile ("" : : : "memory");
-}
-
-#else
-
-// No fallback for other CPUs or compilers. Suggestions?
-inline void clobber_all_memory() { }
-
-#endif
 
 
 
@@ -322,16 +238,12 @@ inline void clobber_all_memory() { }
 /// will be stored there.
 template<class FUNC>
 double
-time_trial (FUNC func, int ntrials=1, int nrepeats = 1, double *range=NULL)
+time_trial (FUNC func, int n=1, double *range=NULL)
 {
     double mintime = 1.0e30, maxtime = 0.0;
-    while (ntrials-- > 0) {
+    while (n-- > 0) {
         Timer timer;
-        for (int i = 0; i < nrepeats; ++i) {
-            // Be sure that the repeated calls to func aren't optimzed away:
-            clobber_all_memory();
-            func ();
-        }
+        func ();
         double t = timer();
         if (t < mintime)
             mintime = t;
@@ -343,14 +255,9 @@ time_trial (FUNC func, int ntrials=1, int nrepeats = 1, double *range=NULL)
     return mintime;
 }
 
-/// Version without repeats.
-template<class FUNC>
-double time_trial (FUNC func, int ntrials, double *range) {
-    return time_trial (func, ntrials, 1, range);
+
+
 }
-
-
-
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_EXIT
 
 #endif // OPENIMAGEIO_TIMER_H

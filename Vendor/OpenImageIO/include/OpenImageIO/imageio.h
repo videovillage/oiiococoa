@@ -59,12 +59,9 @@
 #include "platform.h"
 #include "typedesc.h"   /* Needed for TypeDesc definition */
 #include "paramlist.h"
-#include "array_view.h"
 
-OIIO_NAMESPACE_BEGIN
-
-class DeepData;
-
+OIIO_NAMESPACE_ENTER
+{
 
 /// Type we use for stride lengths.  This is only used to designate
 /// pixel, scanline, tile, or image plane sizes in user-allocated memory,
@@ -76,7 +73,7 @@ typedef ptrdiff_t stride_t;
 /// Type we use to express how many pixels (or bytes) constitute an image,
 /// tile, or scanline.  Needs to be large enough to handle very big images
 /// (which we presume could be > 4GB).
-#if defined(LINUX64) || defined(_WIN64) || defined(__x86_64__) /* add others if we know for sure size_t is ok */
+#if defined(LINUX64) || defined(_WIN64) /* add others if we know for sure size_t is ok */
 typedef size_t imagesize_t;
 #else
 typedef unsigned long long imagesize_t;
@@ -321,19 +318,6 @@ public:
                                             TypeDesc searchtype=TypeDesc::UNKNOWN,
                                             bool casesensitive=false) const;
 
-    /// Search for the named attribute and return a pointer to an
-    /// ImageIOParameter record, or NULL if not found.  This variety of
-    /// find_attribute() can retrieve items such as "width", which are part
-    /// of the ImageSpec, but not in extra_attribs. The tmpparam is a
-    /// temporary storage area owned by the caller, which is used as
-    /// temporary buffer in cases where the information does not correspond
-    /// to an actual extra_attribs (in this case, the return value will be
-    /// &tmpparam).
-    const ImageIOParameter * find_attribute (string_view name,
-                         ImageIOParameter &tmpparam,
-                         TypeDesc searchtype=TypeDesc::UNKNOWN,
-                         bool casesensitive=false) const;
-
     /// Simple way to get an integer attribute, with default provided.
     /// Automatically will return an int even if the data is really
     /// unsigned, short, or byte.
@@ -349,11 +333,12 @@ public:
     string_view get_string_attribute (string_view name,
                            string_view defaultval = string_view()) const;
 
-    /// For a given parameter p, format the value nicely as a string.  If
-    /// 'human' is true, use especially human-readable explanations (units,
-    /// or decoding of values) for certain known metadata.
-    static std::string metadata_val (const ImageIOParameter &p,
-                              bool human=false);
+    /// For a given parameter (in this ImageSpec's extra_attribs),
+    /// format the value nicely as a string.  If 'human' is true, use
+    /// especially human-readable explanations (units, or decoding of
+    /// values) for certain known metadata.
+    std::string metadata_val (const ImageIOParameter &p,
+                              bool human=false) const;
 
     /// Convert ImageSpec class into XML string.
     ///
@@ -396,6 +381,42 @@ public:
 
 
 
+/// Structure to hold "deep" data -- multiple samples per pixel.
+struct OIIO_API DeepData {
+public:
+    int npixels, nchannels;
+    std::vector<TypeDesc> channeltypes;  // for each channel [c]
+    std::vector<unsigned int> nsamples;// for each pixel [z][y][x]
+    std::vector<void *> pointers;    // for each channel per pixel [z][y][x][c]
+    std::vector<char> data;          // for each sample [z][y][x][c][s]
+
+    DeepData () : npixels(0), nchannels(0) { }
+    /// Initialize size and allocate nsamples, pointers. It is important to
+    /// completely fill in nsamples after init() but before alling alloc().
+    void init (int npix, int nchan,
+               const TypeDesc *chbegin, const TypeDesc *chend);
+    /// After nsamples[] has been filled in, allocate enough scratch space
+    /// for data and set up all the pointers.
+    void alloc ();
+    /// Clear the vectors and reset size to 0.
+    void clear ();
+    /// Deallocate all space in the vectors
+    void free ();
+    /// Retrieve the pointer to the first sample of the given pixel and
+    /// channel. Return NULL if there are no samples for that pixel.
+    void *channel_ptr (int pixel, int channel) const;
+    /// Retrieve deep sample value within a pixel, cast to a float.
+    float deep_value (int pixel, int channel, int sample) const;
+    /// Retrieve deep sample value within a pixel, as an untigned int.
+    uint32_t deep_value_uint (int pixel, int channel, int sample) const;
+    /// Set deep sample value within a pixel, as a float.
+    void set_deep_value (int pixel, int channel, int sample, float value);
+    /// Set deep sample value within a pixel, as a uint32.
+    void set_deep_value_uint (int pixel, int channel, int sample, uint32_t value);
+};
+
+
+
 /// ImageInput abstracts the reading of an image file in a file
 /// format-agnostic manner.
 class OIIO_API ImageInput {
@@ -431,43 +452,28 @@ public:
     static ImageInput *create (const std::string &filename,
                                const std::string &plugin_searchpath="");
 
-    /// Destroy an ImageInput that was created using ImageInput::create() or
-    /// the static open(). For some systems (Windows, I'm looking at you),
-    /// it is not necessarily safe to allocate memory in one DLL and free it
-    /// in another, so directly calling 'delete' on an ImageInput allocated
-    /// by create() or open() may be unusafe, but passing it to destroy()
-    /// should be safe.
-    static void destroy (ImageInput *x);
-
-    ImageInput ();
-    virtual ~ImageInput ();
+    ImageInput () { }
+    virtual ~ImageInput () { }
 
     /// Return the name of the format implemented by this class.
     ///
     virtual const char *format_name (void) const = 0;
 
     /// Given the name of a 'feature', return whether this ImageInput
-    /// supports input of images with the given properties. Most queries
-    /// will simply return 0 for "doesn't support" and nonzero for "supports
-    /// it", but it is acceptable to have queries return other nonzero
-    /// integers to indicate varying degrees of support or limits (but
-    /// should be clearly documented as such).
-    ///
+    /// supports input of images with the given properties.
     /// Feature names that ImageIO plugins are expected to recognize
     /// include:
     ///    "arbitrary_metadata" Does this format allow metadata with
     ///                        arbitrary names and types?
     ///    "exif"           Can this format store Exif camera data?
     ///    "iptc"           Can this format store IPTC data?
-    ///    "procedural"     Can this format create images without reading
-    ///                        from a disk file?
     ///
     /// Note that main advantage of this approach, versus having
     /// separate individual supports_foo() methods, is that this allows
     /// future expansion of the set of possible queries without changing
     /// the API, adding new entry points, or breaking linkage
     /// compatibility.
-    virtual int supports (string_view feature) const { return false; }
+    virtual bool supports (const std::string & /*feature*/) const { return false; }
 
     /// Return true if the named file is file of the type for this
     /// ImageInput.  The implementation will try to determine this as
@@ -684,21 +690,6 @@ public:
                              ProgressCallback progress_callback=NULL,
                              void *progress_callback_data=NULL);
 
-    /// Read the entire image of spec.width x spec.height x spec.depth
-    /// pixels into data (which must already be sized large enough for
-    /// the entire image) with the given strides and in the desired
-    /// format.  Read tiles or scanlines automatically. Only channels
-    /// [chbegin,chend) will be read/copied (chbegin=0, chend=spec.nchannels
-    /// reads all channels, yielding equivalent behavior to the simpler
-    /// variant of read_image).
-    virtual bool read_image (int chbegin, int chend,
-                             TypeDesc format, void *data,
-                             stride_t xstride=AutoStride,
-                             stride_t ystride=AutoStride,
-                             stride_t zstride=AutoStride,
-                             ProgressCallback progress_callback=NULL,
-                             void *progress_callback_data=NULL);
-
     ///
     /// Simple read_image reads to contiguous float pixels.
     bool read_image (float *data) {
@@ -801,27 +792,18 @@ public:
     /// the caller, who is responsible for deleting it when done with it.
     typedef ImageInput* (*Creator)();
 
+protected:
     /// Error reporting for the plugin implementation: call this with
     /// printf-like arguments.  Note however that this is fully typesafe!
     // void error (const char *format, ...) const;
     TINYFORMAT_WRAP_FORMAT (void, error, const,
         std::ostringstream msg;, msg, append_error(msg.str());)
 
-    /// Set the current thread-spawning policy: the maximum number of
-    /// threads that may be spawned by ImageInput internals. A value of 1
-    /// means all work will be done by the calling thread; 0 means to use
-    /// the global OIIO::attribute("threads") value.
-    void threads (int n) { m_threads = n; }
-
-    /// Retrieve the current thread-spawning policy.
-    int threads () const { return m_threads; }
-
 protected:
     ImageSpec m_spec;  // format spec of the current open subimage/MIPlevel
 
 private:
     mutable std::string m_errmessage;  // private storage of error message
-    int m_threads;    // Thread policy
     void append_error (const std::string& message) const; // add to m_errmessage
     static ImageInput *create (const std::string &filename, bool do_open,
                                const std::string &plugin_searchpath);
@@ -843,15 +825,8 @@ public:
     static ImageOutput *create (const std::string &filename,
                                 const std::string &plugin_searchpath="");
 
-    /// Destroy an ImageOutput that was created using ImageOutput::create().
-    /// For some systems (Windows, I'm looking at you), it is not
-    /// necessarily safe to allocate memory in one DLL and free it in
-    /// another, so directly calling 'delete' on an ImageOutput allocated by
-    /// create() may be unusafe, but passing it to destroy() should be safe.
-    static void destroy (ImageOutput *x);
-
-    ImageOutput ();
-    virtual ~ImageOutput ();
+    ImageOutput () { }
+    virtual ~ImageOutput () { }
 
     /// Return the name of the format implemented by this class.
     ///
@@ -861,12 +836,7 @@ public:
     // to inform the client which formats are supported
 
     /// Given the name of a 'feature', return whether this ImageOutput
-    /// supports output of images with the given properties. Most queries
-    /// will simply return 0 for "doesn't support" and nonzero for "supports
-    /// it", but it is acceptable to have queries return other nonzero
-    /// integers to indicate varying degrees of support or limits (but
-    /// should be clearly documented as such).
-    ///
+    /// supports output of images with the given properties.
     /// Feature names that ImageIO plugins are expected to recognize
     /// include:
     ///    "tiles"          Is this format able to write tiled images?
@@ -913,7 +883,7 @@ public:
     /// future expansion of the set of possible queries without changing
     /// the API, adding new entry points, or breaking linkage
     /// compatibility.
-    virtual int supports (string_view feature) const { return false; }
+    virtual bool supports (const std::string &feature) const { return false; }
 
     enum OpenMode { Create, AppendSubimage, AppendMIPLevel };
 
@@ -1132,22 +1102,13 @@ public:
     /// the caller, who is responsible for deleting it when done with it.
     typedef ImageOutput* (*Creator)();
 
+protected:
     /// Error reporting for the plugin implementation: call this with
     /// printf-like arguments.  Note however that this is fully typesafe!
     /// void error (const char *format, ...)
     TINYFORMAT_WRAP_FORMAT (void, error, const,
         std::ostringstream msg;, msg, append_error(msg.str());)
 
-    /// Set the current thread-spawning policy: the maximum number of
-    /// threads that may be spawned by ImageOutput internals. A value of 1
-    /// means all work will be done by the calling thread; 0 means to use
-    /// the global OIIO::attribute("threads") value.
-    void threads (int n) { m_threads = n; }
-
-    /// Retrieve the current thread-spawning policy.
-    int threads () const { return m_threads; }
-
-protected:
     /// Helper routines used by write_* implementations: convert data (in
     /// the given format and stride) to the "native" format of the file
     /// (described by the 'spec' member variable), in contiguous order. This
@@ -1180,28 +1141,11 @@ protected:
                                      std::vector<unsigned char> &scratch,
                                      unsigned int dither=0,
                                      int xorigin=0, int yorigin=0, int zorigin=0);
-
-    /// Helper function to copy a rectangle of data into the right spot in
-    /// an image-sized buffer. In addition to copying to the right place,
-    /// this handles data format conversion and dither (if the spec's
-    /// "oiio:dither" is nonzero, and if it's converting from a float-like
-    /// type to UINT8). The buf_format describes the type of image_buffer,
-    /// if it's TypeDesc::UNKNOWN it will be assumed to be spec.format.
-    bool copy_to_image_buffer (int xbegin, int xend, int ybegin, int yend,
-                               int zbegin, int zend, TypeDesc format,
-                               const void *data, stride_t xstride,
-                               stride_t ystride, stride_t zstride,
-                               void *image_buffer,
-                               TypeDesc buf_format = TypeDesc::UNKNOWN);
-    /// Helper function to copy a tile of data into the right spot in an
-    /// image-sized buffer. This is really just a wrapper for
-    /// copy_to_image_buffer, passing all the right parameters to copy
-    /// exactly one tile.
+    /// Helper function to copy a tile of data into an image-sized buffer.
     bool copy_tile_to_image_buffer (int x, int y, int z, TypeDesc format,
                                     const void *data, stride_t xstride,
                                     stride_t ystride, stride_t zstride,
-                                    void *image_buffer,
-                                    TypeDesc buf_format = TypeDesc::UNKNOWN);
+                                    void *image_buffer);
 
 protected:
     ImageSpec m_spec;           ///< format spec of the currently open image
@@ -1209,7 +1153,6 @@ protected:
 private:
     void append_error (const std::string& message) const; // add to m_errmessage
     mutable std::string m_errmessage;   ///< private storage of error message
-    int m_threads;    // Thread policy
 };
 
 
@@ -1234,14 +1177,8 @@ OIIO_API std::string geterror ();
 /// Documented attributes:
 ///     int threads
 ///             How many threads to use for operations that can be sped
-///             by spawning threads (default=0, meaning to use the full
-///             available hardware concurrency detected).
-///     int exr_threads
-///             The size of the internal OpenEXR thread pool. The default
-///             is to use the full available hardware concurrency detected.
-///             Default is 0 meaning to use full available hardware
-///             concurrency detected, -1 means to disable usage of the OpenEXR
-///             thread pool and execute everything in the caller thread.
+///             by spawning threads (default=1; note that 0 means "as
+///             many threads as cores").
 ///     string plugin_searchpath
 ///             Colon-separated list of directories to search for 
 ///             dynamically-loaded format plugins.
@@ -1254,19 +1191,6 @@ OIIO_API std::string geterror ();
 ///             are presumed to be used for that format.  Semicolons
 ///             separate the lists for formats.  For example,
 ///                "tiff:tif;jpeg:jpg,jpeg;openexr:exr"
-///     int read_chunk
-///             The number of scanlines that will be attempted to read at
-///             once for read_image calls (default: 256).
-///     int debug
-///             When nonzero, various debug messages may be printed.
-///             The default is 0 for release builds, 1 for DEBUG builds,
-///             but also may be overridden by the OPENIMAGEIO_DEBUG env
-///             variable.
-///     int tiff:half
-///             When nonzero, allows TIFF to write 'half' pixel data.
-///             N.B. Most apps may not read these correctly, but OIIO will.
-///             That's why the default is not to support it.
-///
 OIIO_API bool attribute (string_view name, TypeDesc type, const void *val);
 // Shortcuts for common types
 inline bool attribute (string_view name, int val) {
@@ -1285,7 +1209,8 @@ inline bool attribute (string_view name, string_view val) {
 /// otherwise return false and do not modify the contents of *val.  It
 /// is up to the caller to ensure that val points to the right kind and
 /// size of storage for the given type.
-OIIO_API bool getattribute (string_view name, TypeDesc type, void *val);
+OIIO_API bool getattribute (string_view name, TypeDesc type,
+                             void *val);
 // Shortcuts for common types
 inline bool getattribute (string_view name, int &val) {
     return getattribute (name, TypeDesc::TypeInt, &val);
@@ -1302,19 +1227,6 @@ inline bool getattribute (string_view name, std::string &val) {
     if (ok)
         val = s.string();
     return ok;
-}
-inline int get_int_attribute (string_view name, int defaultval=0) {
-    int val;
-    return getattribute (name, TypeDesc::TypeInt, &val) ? val : defaultval;
-}
-inline float get_float_attribute (string_view name, float defaultval=0) {
-    float val;
-    return getattribute (name, TypeDesc::TypeFloat, &val) ? val : defaultval;
-}
-inline string_view get_string_attribute (string_view name,
-                                 string_view defaultval = string_view()) {
-    ustring val;
-    return getattribute (name, TypeDesc::TypeString, &val) ? string_view(val) : defaultval;
 }
 
 
@@ -1334,6 +1246,13 @@ OIIO_API void declare_imageio_format (const std::string &format_name,
 /// same as src_type.
 OIIO_API bool convert_types (TypeDesc src_type, const void *src,
                               TypeDesc dst_type, void *dst, int n);
+
+/// DEPRECATED(1.4) -- for some reason we had a convert_types that took
+/// alpha_channel and z_channel parameters, but never did anything
+/// with them.
+OIIO_API bool convert_types (TypeDesc src_type, const void *src,
+                             TypeDesc dst_type, void *dst, int n,
+                             int alpha_channel, int z_channel = -1);
 
 /// Helper routine for data conversion: Convert an image of nchannels x
 /// width x height x depth from src to dst.  The src and dst may have
@@ -1368,8 +1287,7 @@ OIIO_API bool parallel_convert_image (
 /// Add random [-theramplitude,ditheramplitude] dither to the color channels
 /// of the image.  Dither will not be added to the alpha or z channel.  The
 /// image origin and dither seed values allow a reproducible (or variable)
-/// dither pattern.  If the strides are set to AutoStride, they will be
-/// assumed to be contiguous floats in data of the given dimensions.
+/// dither pattern.
 OIIO_API void add_dither (int nchannels, int width, int height, int depth,
                           float *data,
                           stride_t xstride, stride_t ystride, stride_t zstride,
@@ -1466,23 +1384,10 @@ OIIO_API bool wrap_mirror (int &coord, int origin, int width);
 typedef bool (*wrap_impl) (int &coord, int origin, int width);
 
 
-namespace pvt {
-// For internal use - use debugmsg() below for a nicer interface.
-OIIO_API void debugmsg_ (string_view message);
-};
-
-/// debugmsg(format, ...) prints debugging message when attribute "debug" is
-/// nonzero, which it is by default for DEBUG compiles or when the
-/// environment variable OPENIMAGEIO_DEBUG is set. This is preferred to raw
-/// output to stderr for debugging statements.
-///   void debugmsg (const char *format, ...);
-TINYFORMAT_WRAP_FORMAT (void, debugmsg, /**/,
-                        std::ostringstream msg;, msg, pvt::debugmsg_(msg.str());)
-
-
 // to force correct linkage on some systems
 OIIO_API void _ImageIO_force_link ();
 
-OIIO_NAMESPACE_END
+}
+OIIO_NAMESPACE_EXIT
 
 #endif  // OPENIMAGEIO_IMAGEIO_H
