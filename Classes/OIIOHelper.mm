@@ -52,7 +52,7 @@ OIIO_NAMESPACE_USING
 //    
     //ImageSpec selfspec = ImageSpec(width, height, 4, TypeDesc::FLOAT);
     
-    ImageSpec outspec = ImageSpec(width, height, 4, TypeDesc::FLOAT);
+    ImageSpec outspec = ImageSpec((int)width, (int)height, 4, TypeDesc::FLOAT);
     
     
     
