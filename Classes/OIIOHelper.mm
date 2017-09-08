@@ -20,7 +20,37 @@ OIIO_NAMESPACE_USING
     //remove with [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
 }
 
-+ (NSData *)RGBAfBitmapFromURL:(NSURL *)url
++ (nullable NSData *)BGRA8UBitmapFromURL:(NSURL *)url
+                          outPixelWidth:(NSInteger *)outWidth
+                         outPixelHeight:(NSInteger *)outHeight{
+    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    if (!in) {
+        return nil;
+    }
+    const ImageSpec &spec = in->spec();
+    
+    NSMutableData *pixelData = [NSMutableData dataWithLength:4*spec.width*spec.height];
+    
+    in->read_image (TypeDesc::UINT8, pixelData.mutableBytes);
+    in->close ();
+    
+    uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+    
+    *outWidth = spec.width;
+    *outHeight = spec.height;
+    
+    uint8_t redTemp = 0;
+    for(int i = 0; i < spec.width * spec.height; i++){
+        //swap channels
+        redTemp = bitmap[i*4];
+        bitmap[i*4] = bitmap[i*4 + 2];
+        bitmap[i*4 + 2] = redTemp;
+    }
+    
+    return pixelData;
+}
+
++ (nullable NSData *)RGBAhBitmapFromURL:(NSURL *)url
                  outPixelWidth:(NSInteger *)outWidth
                 outPixelHeight:(NSInteger *)outHeight{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
@@ -29,6 +59,25 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
     
+    NSMutableData *pixelData = [NSMutableData dataWithLength:4*spec.width*spec.height*2];
+    
+    in->read_image (TypeDesc::HALF, pixelData.mutableBytes);
+    in->close ();
+    
+    *outWidth = spec.width;
+    *outHeight = spec.height;
+    
+    return pixelData;
+}
+
++ (nullable NSData *)RGBAfBitmapFromURL:(NSURL *)url
+                 outPixelWidth:(NSInteger *)outWidth
+                outPixelHeight:(NSInteger *)outHeight{
+    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    if (!in) {
+        return nil;
+    }
+    const ImageSpec &spec = in->spec();
     NSMutableData *pixelData = [NSMutableData dataWithLength:4*spec.width*spec.height*sizeof(float)];
     
     in->read_image (TypeDesc::FLOAT, pixelData.mutableBytes);
