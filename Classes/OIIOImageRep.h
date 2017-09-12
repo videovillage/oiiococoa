@@ -7,21 +7,8 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "OIIOHelper.h"
 
-typedef NS_ENUM(NSInteger, OIIOImageEncodingType) {
-    OIIOImageEncodingTypeUINT8,
-    OIIOImageEncodingTypeINT8,
-    OIIOImageEncodingTypeUINT10,
-    OIIOImageEncodingTypeUINT12,
-    OIIOImageEncodingTypeUINT16,
-    OIIOImageEncodingTypeINT16,
-    OIIOImageEncodingTypeUINT32,
-    OIIOImageEncodingTypeINT32,
-    OIIOImageEncodingTypeHALF,
-    OIIOImageEncodingTypeFLOAT,
-    OIIOImageEncodingTypeDOUBLE,
-    OIIOImageEncodingTypeNONE
-};
 
 typedef void (^OIIOTimerBlockType)();
 void OIIOTimer(NSString *message, OIIOTimerBlockType block);

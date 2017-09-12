@@ -8,8 +8,30 @@
 
 #import <Foundation/Foundation.h>
 
+typedef NS_ENUM(NSInteger, OIIOImageEncodingType) {
+    OIIOImageEncodingTypeUINT8,
+    OIIOImageEncodingTypeINT8,
+    OIIOImageEncodingTypeUINT10,
+    OIIOImageEncodingTypeUINT12,
+    OIIOImageEncodingTypeUINT16,
+    OIIOImageEncodingTypeINT16,
+    OIIOImageEncodingTypeUINT32,
+    OIIOImageEncodingTypeINT32,
+    OIIOImageEncodingTypeHALF,
+    OIIOImageEncodingTypeFLOAT,
+    OIIOImageEncodingTypeDOUBLE,
+    OIIOImageEncodingTypeNONE
+};
+
 @interface OIIOHelper : NSObject
 NS_ASSUME_NONNULL_BEGIN
++ (BOOL)imageSpecFromURL:(NSURL *)url
+                outWidth:(NSInteger *)outWidth
+               outHeight:(NSInteger *)outHeight
+             outChannels:(NSInteger *)outChannels
+          outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
+            outFramerate:(double *)outFramerate;
+
 + (nullable NSData *)RGBAfBitmapFromURL:(nonnull NSURL *)url
                  outPixelWidth:(nonnull NSInteger *)outWidth
                 outPixelHeight:(nonnull NSInteger *)outHeight;

@@ -20,54 +20,115 @@ OIIO_NAMESPACE_USING
     //remove with [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
 }
 
++ (BOOL)imageSpecFromURL:(NSURL *)url
+                outWidth:(NSInteger *)outWidth
+               outHeight:(NSInteger *)outHeight
+             outChannels:(NSInteger *)outChannels
+          outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
+            outFramerate:(double *)outFramerate{
+    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    
+    if (!in) {
+        return NO;
+    }
+    
+    const ImageSpec &spec = in->spec();
+    
+    *outWidth = spec.width;
+    *outHeight = spec.height;
+    *outChannels = spec.nchannels;
+    *outPixelFormat = [self encodingTypeFromSpec:&spec];
+    *outFramerate = 23.976;
+    
+    in->close();
+    return YES;
+}
+
 + (nullable NSData *)BGRA8UBitmapFromURL:(NSURL *)url
                           outPixelWidth:(NSInteger *)outWidth
                          outPixelHeight:(NSInteger *)outHeight{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    
     if (!in) {
         return nil;
     }
     const ImageSpec &spec = in->spec();
     
-    NSMutableData *pixelData = [NSMutableData dataWithLength:4*spec.width*spec.height];
+    NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
     
-    in->read_image (TypeDesc::UINT8, pixelData.mutableBytes);
-    in->close ();
+    in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+    in->close();
     
-    uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+    NSData *processedPixelData;
+    
+    if(spec.nchannels == 4){
+        uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+        uint8_t redTemp = 0;
+        for(int i = 0; i < spec.width * spec.height; i++){
+            //swap channels
+            redTemp = bitmap[i*4];
+            bitmap[i*4] = bitmap[i*4 + 2];
+            bitmap[i*4 + 2] = redTemp;
+        }
+        processedPixelData = pixelData;
+    }
+    else{
+        NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
+        uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+        uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
+        for(int i = 0; i < spec.width * spec.height; i++){
+            processedBitmap[i*4] = bitmap[i*3+2];
+            processedBitmap[i*4+1] = bitmap[i*3+1];
+            processedBitmap[i*4+2] = bitmap[i*3];
+            processedBitmap[i*4+3] = 0;
+        }
+        processedPixelData = newPixelData;
+    }
     
     *outWidth = spec.width;
     *outHeight = spec.height;
     
-    uint8_t redTemp = 0;
-    for(int i = 0; i < spec.width * spec.height; i++){
-        //swap channels
-        redTemp = bitmap[i*4];
-        bitmap[i*4] = bitmap[i*4 + 2];
-        bitmap[i*4 + 2] = redTemp;
-    }
-    
-    return pixelData;
+    return processedPixelData;
 }
 
 + (nullable NSData *)RGBAhBitmapFromURL:(NSURL *)url
                  outPixelWidth:(NSInteger *)outWidth
                 outPixelHeight:(NSInteger *)outHeight{
+    
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
         return nil;
     }
     const ImageSpec &spec = in->spec();
     
-    NSMutableData *pixelData = [NSMutableData dataWithLength:4*spec.width*spec.height*2];
+    NSMutableData *pixelData = [NSMutableData dataWithLength:spec.nchannels*spec.width*spec.height*2];
     
     in->read_image (TypeDesc::HALF, pixelData.mutableBytes);
     in->close ();
     
+    NSData *processedPixelData;
+    
+    if(spec.nchannels == 4){
+        processedPixelData = pixelData;
+    }
+    else{
+        NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4*2];
+        __fp16 *bitmap = (__fp16*)pixelData.mutableBytes;
+        __fp16 *processedBitmap = (__fp16*)newPixelData.mutableBytes;
+        for(int i = 0; i < spec.width * spec.height; i++){
+            processedBitmap[i*4] = bitmap[i*3];
+            processedBitmap[i*4+1] = bitmap[i*3+1];
+            processedBitmap[i*4+2] = bitmap[i*3+2];
+            processedBitmap[i*4+3] = 0;
+        }
+        processedPixelData = newPixelData;
+    }
+    
+    
     *outWidth = spec.width;
     *outHeight = spec.height;
     
-    return pixelData;
+    return processedPixelData;
 }
 
 + (nullable NSData *)RGBAfBitmapFromURL:(NSURL *)url
@@ -83,10 +144,28 @@ OIIO_NAMESPACE_USING
     in->read_image (TypeDesc::FLOAT, pixelData.mutableBytes);
     in->close ();
     
+    NSData *processedPixelData;
+    
+    if(spec.nchannels == 4){
+        processedPixelData = pixelData;
+    }
+    else{
+        NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4*4];
+        float *bitmap = (float*)pixelData.mutableBytes;
+        float *processedBitmap = (float*)newPixelData.mutableBytes;
+        for(int i = 0; i < spec.width * spec.height; i++){
+            processedBitmap[i*4] = bitmap[i*3];
+            processedBitmap[i*4+1] = bitmap[i*3+1];
+            processedBitmap[i*4+2] = bitmap[i*3+2];
+            processedBitmap[i*4+3] = 0;
+        }
+        processedPixelData = newPixelData;
+    }
+    
     *outWidth = spec.width;
     *outHeight = spec.height;
     
-    return pixelData;
+    return processedPixelData;
 }
 
 + (NSData *)EXRFromRGBAfBitmap:(NSData *)bitmap
@@ -136,6 +215,46 @@ OIIO_NAMESPACE_USING
     
     return data;
 
+}
+
++ (OIIOImageEncodingType)encodingTypeFromSpec:(const ImageSpec *)spec{
+    if(spec->format == TypeDesc::UINT8){
+        return OIIOImageEncodingTypeUINT8;
+    }
+    else if(spec->format == TypeDesc::INT8){
+        return OIIOImageEncodingTypeINT8;
+    }
+    else if(spec->format == TypeDesc::UINT16){
+        if(spec->get_int_attribute("oiio:BitsPerSample") == 10){
+            return OIIOImageEncodingTypeUINT10;
+        }
+        else if(spec->get_int_attribute("oiio:BitsPerSample") == 12){
+            return OIIOImageEncodingTypeUINT12;
+        }
+        else{
+            return OIIOImageEncodingTypeUINT16;
+        }
+    }
+    else if(spec->format == TypeDesc::INT16){
+        return OIIOImageEncodingTypeINT16;
+    }
+    else if(spec->format == TypeDesc::UINT32){
+        return OIIOImageEncodingTypeUINT32;
+    }
+    else if(spec->format == TypeDesc::INT32){
+        return OIIOImageEncodingTypeINT32;
+    }
+    else if(spec->format == TypeDesc::HALF){
+        return OIIOImageEncodingTypeHALF;
+    }
+    else if(spec->format == TypeDesc::FLOAT){
+        return OIIOImageEncodingTypeFLOAT;
+    }
+    else if(spec->format == TypeDesc::DOUBLE){
+        return OIIOImageEncodingTypeDOUBLE;
+    }
+    return OIIOImageEncodingTypeNONE;
+    
 }
 
 @end
