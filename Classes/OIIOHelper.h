@@ -32,6 +32,14 @@ NS_ASSUME_NONNULL_BEGIN
           outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
             outFramerate:(double *)outFramerate;
 
++ (nullable NSData *)RGB8UBitmapFromURL:(NSURL *)url
+                          outPixelWidth:(NSInteger *)outWidth
+                         outPixelHeight:(NSInteger *)outHeight;
+
++ (nullable NSData *)RGBA8UBitmapFromURL:(NSURL *)url
+                           outPixelWidth:(NSInteger *)outWidth
+                          outPixelHeight:(NSInteger *)outHeight;
+
 + (nullable NSData *)RGBAfBitmapFromURL:(nonnull NSURL *)url
                  outPixelWidth:(nonnull NSInteger *)outWidth
                 outPixelHeight:(nonnull NSInteger *)outHeight;
