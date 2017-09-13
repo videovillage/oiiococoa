@@ -80,30 +80,69 @@ OIIO_NAMESPACE_USING
         return nil;
     }
     const ImageSpec &spec = in->spec();
-    
-    NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
-    
-    in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
-    in->close();
-    
-    NSData *processedPixelData = pixelData;
-    
-    if(spec.nchannels == 4){
-        NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*3];
-        uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-        uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
-        for(int i = 0; i < spec.width * spec.height; i++){
-            processedBitmap[i*3] = bitmap[i*4];
-            processedBitmap[i*3+1] = bitmap[i*4+1];
-            processedBitmap[i*3+2] = bitmap[i*4+2];
+    @autoreleasepool{
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
+        
+        in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+        in->close();
+        
+        NSData *processedPixelData = pixelData;
+        
+        if(spec.nchannels == 4){
+            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*3];
+            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+            uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
+            for(int i = 0; i < spec.width * spec.height; i++){
+                processedBitmap[i*3] = bitmap[i*4];
+                processedBitmap[i*3+1] = bitmap[i*4+1];
+                processedBitmap[i*3+2] = bitmap[i*4+2];
+            }
+            processedPixelData = newPixelData;
         }
-        processedPixelData = newPixelData;
+        
+        *outWidth = spec.width;
+        *outHeight = spec.height;
+        
+        return processedPixelData;
     }
     
-    *outWidth = spec.width;
-    *outHeight = spec.height;
+}
+
++ (nullable NSData *)RGBA16UBitmapFromURL:(NSURL *)url
+                             outPixelWidth:(NSInteger *)outWidth
+                            outPixelHeight:(NSInteger *)outHeight{
+    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    return processedPixelData;
+    if (!in) {
+        return nil;
+    }
+    const ImageSpec &spec = in->spec();
+    @autoreleasepool{
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.image_bytes()];
+        
+        in->read_image(TypeDesc::UINT16, pixelData.mutableBytes);
+        in->close();
+        
+        NSData *processedPixelData = pixelData;
+        
+        if(spec.nchannels == 3){
+            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4*2];
+            uint16_t *bitmap = (uint16_t*)pixelData.mutableBytes;
+            uint16_t *processedBitmap = (uint16_t*)newPixelData.mutableBytes;
+            for(int i = 0; i < spec.width * spec.height; i++){
+                processedBitmap[i*4] = bitmap[i*3];
+                processedBitmap[i*4+1] = bitmap[i*3+1];
+                processedBitmap[i*4+2] = bitmap[i*3+2];
+                processedBitmap[i*4+3] = 0;
+            }
+            processedPixelData = newPixelData;
+        }
+        
+        *outWidth = spec.width;
+        *outHeight = spec.height;
+        
+        return processedPixelData;
+    }
 }
 
 + (nullable NSData *)RGBA8UBitmapFromURL:(NSURL *)url
@@ -115,31 +154,32 @@ OIIO_NAMESPACE_USING
         return nil;
     }
     const ImageSpec &spec = in->spec();
-    
-    NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
-    
-    in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
-    in->close();
-    
-    NSData *processedPixelData = pixelData;
-    
-    if(spec.nchannels == 3){
-        NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
-        uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-        uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
-        for(int i = 0; i < spec.width * spec.height; i++){
-            processedBitmap[i*4] = bitmap[i*3];
-            processedBitmap[i*4+1] = bitmap[i*3+1];
-            processedBitmap[i*4+2] = bitmap[i*3+2];
-            processedBitmap[i*4+3] = 0;
+    @autoreleasepool{
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
+        
+        in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+        in->close();
+        
+        NSData *processedPixelData = pixelData;
+        
+        if(spec.nchannels == 3){
+            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
+            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+            uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
+            for(int i = 0; i < spec.width * spec.height; i++){
+                processedBitmap[i*4] = bitmap[i*3];
+                processedBitmap[i*4+1] = bitmap[i*3+1];
+                processedBitmap[i*4+2] = bitmap[i*3+2];
+                processedBitmap[i*4+3] = 0;
+            }
+            processedPixelData = newPixelData;
         }
-        processedPixelData = newPixelData;
+        
+        *outWidth = spec.width;
+        *outHeight = spec.height;
+        
+        return processedPixelData;
     }
-    
-    *outWidth = spec.width;
-    *outHeight = spec.height;
-    
-    return processedPixelData;
 }
 
 + (nullable NSData *)BGRA8UBitmapFromURL:(NSURL *)url
@@ -151,42 +191,43 @@ OIIO_NAMESPACE_USING
         return nil;
     }
     const ImageSpec &spec = in->spec();
-    
-    NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
-    
-    in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
-    in->close();
-    
-    NSData *processedPixelData;
-    
-    if(spec.nchannels == 4){
-        uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-        uint8_t redTemp = 0;
-        for(int i = 0; i < spec.width * spec.height; i++){
-            //swap channels
-            redTemp = bitmap[i*4];
-            bitmap[i*4] = bitmap[i*4 + 2];
-            bitmap[i*4 + 2] = redTemp;
+    @autoreleasepool{
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
+        
+        in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+        in->close();
+        
+        NSData *processedPixelData;
+        
+        if(spec.nchannels == 4){
+            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+            uint8_t redTemp = 0;
+            for(int i = 0; i < spec.width * spec.height; i++){
+                //swap channels
+                redTemp = bitmap[i*4];
+                bitmap[i*4] = bitmap[i*4 + 2];
+                bitmap[i*4 + 2] = redTemp;
+            }
+            processedPixelData = pixelData;
         }
-        processedPixelData = pixelData;
-    }
-    else{
-        NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
-        uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-        uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
-        for(int i = 0; i < spec.width * spec.height; i++){
-            processedBitmap[i*4] = bitmap[i*3+2];
-            processedBitmap[i*4+1] = bitmap[i*3+1];
-            processedBitmap[i*4+2] = bitmap[i*3];
-            processedBitmap[i*4+3] = 0;
+        else{
+            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
+            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
+            uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
+            for(int i = 0; i < spec.width * spec.height; i++){
+                processedBitmap[i*4] = bitmap[i*3+2];
+                processedBitmap[i*4+1] = bitmap[i*3+1];
+                processedBitmap[i*4+2] = bitmap[i*3];
+                processedBitmap[i*4+3] = 0;
+            }
+            processedPixelData = newPixelData;
         }
-        processedPixelData = newPixelData;
+        
+        *outWidth = spec.width;
+        *outHeight = spec.height;
+        
+        return processedPixelData;
     }
-    
-    *outWidth = spec.width;
-    *outHeight = spec.height;
-    
-    return processedPixelData;
 }
 
 + (nullable NSData *)RGBAhBitmapFromURL:(NSURL *)url

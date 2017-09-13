@@ -49,6 +49,10 @@ NS_ASSUME_NONNULL_BEGIN
                             outPixelWidth:(NSInteger *)outWidth
                            outPixelHeight:(NSInteger *)outHeight;
 
++ (nullable NSData *)RGBA16UBitmapFromURL:(NSURL *)url
+                             outPixelWidth:(NSInteger *)outWidth
+                            outPixelHeight:(NSInteger *)outHeight;
+
 + (nullable NSData *)RGBAhBitmapFromURL:(nonnull NSURL *)url
                  outPixelWidth:(nonnull NSInteger *)outWidth
                 outPixelHeight:(nonnull NSInteger *)outHeight;
