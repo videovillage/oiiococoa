@@ -25,7 +25,8 @@ OIIO_NAMESPACE_USING
                outHeight:(NSInteger *)outHeight
              outChannels:(NSInteger *)outChannels
           outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
-            outFramerate:(double *)outFramerate{
+            outFramerate:(double *)outFramerate
+             outTimecode:(NSInteger *)outTimecode{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
@@ -33,12 +34,38 @@ OIIO_NAMESPACE_USING
     }
     
     const ImageSpec &spec = in->spec();
+    const ParamValue *tc = spec.find_attribute("smpte:TimeCode", TypeDesc::TypeTimeCode);
+    
+    if(tc) {
+        int *timecodeSplit = (int *)tc->data();
+        NSInteger timecode = 0;
+        if(timecodeSplit[0] != -1){
+            timecode += timecodeSplit[0];
+        }
+        if(timecodeSplit[1] != -1){
+            timecode += timecodeSplit[1];
+        }
+        *outTimecode = timecode;
+    }
+    else{
+        *outTimecode = -1;
+    }
     
     *outWidth = spec.width;
     *outHeight = spec.height;
     *outChannels = spec.nchannels;
     *outPixelFormat = [self encodingTypeFromSpec:&spec];
-    *outFramerate = 23.976;
+    
+    const ParamValue *fr = spec.find_attribute("dpx:FrameRate");
+    
+    if(fr) {
+        *outFramerate = (double)(*(const float *)tc->data());
+    }
+    else{
+        *outFramerate = 23.976;
+    }
+    
+    
     
     in->close();
     return YES;
