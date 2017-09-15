@@ -59,7 +59,13 @@ OIIO_NAMESPACE_USING
     const ParamValue *fr = spec.find_attribute("dpx:FrameRate");
     
     if(fr) {
-        *outFramerate = (double)(*(const float *)tc->data());
+        float framerate = (*(const float *)tc->data());
+        if(floor(framerate) != 0.0){
+            *outFramerate = (double)framerate;
+        }
+        else{
+            *outFramerate = 23.976;
+        }
     }
     else{
         *outFramerate = 23.976;
