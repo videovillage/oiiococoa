@@ -71,9 +71,10 @@ OIIO_NAMESPACE_USING
         *outFramerate = 23.976;
     }
     
-    
-    
     in->close();
+    
+    delete(in);
+    
     return YES;
 }
 
@@ -108,6 +109,7 @@ OIIO_NAMESPACE_USING
         
         *outWidth = spec.width;
         *outHeight = spec.height;
+        delete(in);
         
         return processedPixelData;
     }
@@ -146,6 +148,7 @@ OIIO_NAMESPACE_USING
         
         *outWidth = spec.width;
         *outHeight = spec.height;
+        delete(in);
         
         return processedPixelData;
     }
@@ -183,6 +186,8 @@ OIIO_NAMESPACE_USING
         
         *outWidth = spec.width;
         *outHeight = spec.height;
+        
+        delete(in);
         
         return processedPixelData;
     }
@@ -232,6 +237,8 @@ OIIO_NAMESPACE_USING
         *outWidth = spec.width;
         *outHeight = spec.height;
         
+        delete(in);
+        
         return processedPixelData;
     }
 }
@@ -270,6 +277,8 @@ OIIO_NAMESPACE_USING
         }
         *outWidth = spec.width;
         *outHeight = spec.height;
+        
+        delete(in);
         
         return processedPixelData;
     }
@@ -313,6 +322,8 @@ OIIO_NAMESPACE_USING
         
         *outWidth = spec.width;
         *outHeight = spec.height;
+        
+        delete(in);
         
         return processedPixelData;
     }
