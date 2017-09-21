@@ -141,7 +141,7 @@ OIIO_NAMESPACE_USING
                 processedBitmap[i*4] = bitmap[i*3];
                 processedBitmap[i*4+1] = bitmap[i*3+1];
                 processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 0;
+                processedBitmap[i*4+3] = 65535;
             }
             processedPixelData = newPixelData;
         }
@@ -179,7 +179,7 @@ OIIO_NAMESPACE_USING
                 processedBitmap[i*4] = bitmap[i*3];
                 processedBitmap[i*4+1] = bitmap[i*3+1];
                 processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 0;
+                processedBitmap[i*4+3] = 255;
             }
             processedPixelData = newPixelData;
         }
@@ -229,7 +229,7 @@ OIIO_NAMESPACE_USING
                 processedBitmap[i*4] = bitmap[i*3+2];
                 processedBitmap[i*4+1] = bitmap[i*3+1];
                 processedBitmap[i*4+2] = bitmap[i*3];
-                processedBitmap[i*4+3] = 0;
+                processedBitmap[i*4+3] = 255;
             }
             processedPixelData = newPixelData;
         }
@@ -271,7 +271,7 @@ OIIO_NAMESPACE_USING
                 processedBitmap[i*4] = bitmap[i*3];
                 processedBitmap[i*4+1] = bitmap[i*3+1];
                 processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 0;
+                processedBitmap[i*4+3] = 1.0;
             }
             processedPixelData = newPixelData;
         }
@@ -315,7 +315,7 @@ OIIO_NAMESPACE_USING
                 processedBitmap[i*4] = bitmap[i*3];
                 processedBitmap[i*4+1] = bitmap[i*3+1];
                 processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 0;
+                processedBitmap[i*4+3] = 1.0;
             }
             processedPixelData = newPixelData;
         }
