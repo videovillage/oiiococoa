@@ -88,30 +88,22 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*3];
         
-        in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
-        in->close();
-        
-        NSData *processedPixelData = pixelData;
-        
-        if(spec.nchannels == 4){
-            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*3];
-            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-            uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
-            for(int i = 0; i < spec.width * spec.height; i++){
-                processedBitmap[i*3] = bitmap[i*4];
-                processedBitmap[i*3+1] = bitmap[i*4+1];
-                processedBitmap[i*3+2] = bitmap[i*4+2];
-            }
-            processedPixelData = newPixelData;
+        if(spec.nchannels == 3){
+            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+        }
+        else{
+            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes, 3);
         }
         
         *outWidth = spec.width;
         *outHeight = spec.height;
+        
+        in->close();
         delete(in);
         
-        return processedPixelData;
+        return pixelData;
     }
     
 }
@@ -126,31 +118,22 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.image_bytes()];
-        
-        in->read_image(TypeDesc::UINT16, pixelData.mutableBytes);
-        in->close();
-        
-        NSData *processedPixelData = pixelData;
-        
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*2*4];
+
         if(spec.nchannels == 3){
-            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4*2];
-            uint16_t *bitmap = (uint16_t*)pixelData.mutableBytes;
-            uint16_t *processedBitmap = (uint16_t*)newPixelData.mutableBytes;
-            for(int i = 0; i < spec.width * spec.height; i++){
-                processedBitmap[i*4] = bitmap[i*3];
-                processedBitmap[i*4+1] = bitmap[i*3+1];
-                processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 65535;
-            }
-            processedPixelData = newPixelData;
+            in->read_image(TypeDesc::UINT16, pixelData.mutableBytes, 2*4);
+        }
+        else{
+            in->read_image(TypeDesc::UINT16, pixelData.mutableBytes);
         }
         
         *outWidth = spec.width;
         *outHeight = spec.height;
+        
+        in->close();
         delete(in);
         
-        return processedPixelData;
+        return pixelData;
     }
 }
 
@@ -164,32 +147,22 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
-        
-        in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
-        in->close();
-        
-        NSData *processedPixelData = pixelData;
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
         
         if(spec.nchannels == 3){
-            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
-            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-            uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
-            for(int i = 0; i < spec.width * spec.height; i++){
-                processedBitmap[i*4] = bitmap[i*3];
-                processedBitmap[i*4+1] = bitmap[i*3+1];
-                processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 255;
-            }
-            processedPixelData = newPixelData;
+            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes, 4);
+        }
+        else{
+            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
         }
         
         *outWidth = spec.width;
         *outHeight = spec.height;
         
+        in->close();
         delete(in);
         
-        return processedPixelData;
+        return pixelData;
     }
 }
 
@@ -203,43 +176,30 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*spec.nchannels];
+        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
         
-        in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
-        in->close();
-        
-        NSData *processedPixelData;
-        
-        if(spec.nchannels == 4){
-            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-            uint8_t redTemp = 0;
-            for(int i = 0; i < spec.width * spec.height; i++){
-                //swap channels
-                redTemp = bitmap[i*4];
-                bitmap[i*4] = bitmap[i*4 + 2];
-                bitmap[i*4 + 2] = redTemp;
-            }
-            processedPixelData = pixelData;
+        if(spec.nchannels == 3){
+            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes, 4);
         }
         else{
-            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
-            uint8_t *bitmap = (uint8_t*)pixelData.mutableBytes;
-            uint8_t *processedBitmap = (uint8_t*)newPixelData.mutableBytes;
-            for(int i = 0; i < spec.width * spec.height; i++){
-                processedBitmap[i*4] = bitmap[i*3+2];
-                processedBitmap[i*4+1] = bitmap[i*3+1];
-                processedBitmap[i*4+2] = bitmap[i*3];
-                processedBitmap[i*4+3] = 255;
-            }
-            processedPixelData = newPixelData;
+            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+        }
+        
+        uint8_t *pixels = (uint8_t *)pixelData.mutableBytes;
+        uint8_t temp = 0;
+        for(int i = 0; i < spec.width*spec.height; i++){
+            temp = pixels[i*4];
+            pixels[i*4] = pixels[i*4+2];
+            pixels[i*4+2] = temp;
         }
         
         *outWidth = spec.width;
         *outHeight = spec.height;
         
+        in->close();
         delete(in);
         
-        return processedPixelData;
+        return pixelData;
     }
 }
 
@@ -253,34 +213,21 @@ OIIO_NAMESPACE_USING
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.nchannels*spec.width*spec.height*2];
-        
-        in->read_image (TypeDesc::HALF, pixelData.mutableBytes);
-        in->close ();
-        
-        NSData *processedPixelData;
+        NSMutableData *pixelData = [NSMutableData dataWithLength:4*2*spec.width*spec.height];
         
         if(spec.nchannels == 4){
-            processedPixelData = pixelData;
+            in->read_image (TypeDesc::HALF, pixelData.mutableBytes);
         }
         else{
-            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4*2];
-            __fp16 *bitmap = (__fp16*)pixelData.mutableBytes;
-            __fp16 *processedBitmap = (__fp16*)newPixelData.mutableBytes;
-            for(int i = 0; i < spec.width * spec.height; i++){
-                processedBitmap[i*4] = bitmap[i*3];
-                processedBitmap[i*4+1] = bitmap[i*3+1];
-                processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 1.0;
-            }
-            processedPixelData = newPixelData;
+            in->read_image (TypeDesc::HALF, pixelData.mutableBytes, 4*2);
         }
         *outWidth = spec.width;
         *outHeight = spec.height;
         
+        in->close ();
         delete(in);
         
-        return processedPixelData;
+        return pixelData;
     }
     
     
@@ -297,35 +244,21 @@ OIIO_NAMESPACE_USING
     const ImageSpec &spec = in->spec();
     
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:4*spec.width*spec.height*sizeof(float)];
-        
-        in->read_image (TypeDesc::FLOAT, pixelData.mutableBytes);
-        in->close ();
-        
-        NSData *processedPixelData;
+        NSMutableData *pixelData = [NSMutableData dataWithLength:4*4*spec.width*spec.height];
         
         if(spec.nchannels == 4){
-            processedPixelData = pixelData;
+            in->read_image (TypeDesc::FLOAT, pixelData.mutableBytes);
         }
         else{
-            NSMutableData *newPixelData = [NSMutableData dataWithLength:spec.width*spec.height*4*4];
-            float *bitmap = (float*)pixelData.mutableBytes;
-            float *processedBitmap = (float*)newPixelData.mutableBytes;
-            for(int i = 0; i < spec.width * spec.height; i++){
-                processedBitmap[i*4] = bitmap[i*3];
-                processedBitmap[i*4+1] = bitmap[i*3+1];
-                processedBitmap[i*4+2] = bitmap[i*3+2];
-                processedBitmap[i*4+3] = 1.0;
-            }
-            processedPixelData = newPixelData;
+            in->read_image (TypeDesc::FLOAT, pixelData.mutableBytes, 4*4);
         }
-        
         *outWidth = spec.width;
         *outHeight = spec.height;
         
+        in->close ();
         delete(in);
         
-        return processedPixelData;
+        return pixelData;
     }
 }
 
