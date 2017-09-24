@@ -8,6 +8,7 @@
 
 #import "OIIOHelper.h"
 #include "imageio.h"
+#include "DPX.h"
 
 OIIO_NAMESPACE_USING
 
@@ -201,6 +202,40 @@ OIIO_NAMESPACE_USING
         
         return pixelData;
     }
+}
+
++ (nullable NSData *)RGB10A2UBitmapFromURL:(NSURL *)url
+                           outPixelWidth:(NSInteger *)outWidth
+                          outPixelHeight:(NSInteger *)outHeight{
+    InStream *inStream = new InStream();
+    if (! inStream->Open([[url path] cStringUsingEncoding:NSUTF8StringEncoding])) {
+        delete inStream;
+        inStream = NULL;
+        return nil;
+    }
+    dpx::Reader dpxReader;
+    dpxReader.SetInStream(inStream);
+    if (! dpxReader.ReadHeader()) {
+        inStream->Close();
+        delete inStream;
+        inStream = NULL;
+        return nil;
+    }
+    inStream -> Close();
+    delete inStream;
+    inStream = NULL;
+    
+    NSInteger bitdepth = dpxReader.header.BitDepth(0);
+    NSInteger byteOffset = dpxReader.header.DataOffset(0);
+    dpx::Descriptor imageDescriptor = dpxReader.header.ImageDescriptor(0);
+    
+    NSInteger width = dpxReader.header.Width();
+    NSInteger height = dpxReader.header.Height();
+    
+    if (imageDescriptor != dpx::kRGB || bitdepth != 10){
+        return nil;
+    }
+    
 }
 
 + (nullable NSData *)RGBAhBitmapFromURL:(NSURL *)url

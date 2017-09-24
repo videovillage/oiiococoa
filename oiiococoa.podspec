@@ -13,20 +13,21 @@ Pod::Spec.new do |s|
   s.social_media_url = "http://twitter.com/wilgieseler"
 
   s.platform     = :osx
-  s.osx.deployment_target = '10.7'
+  s.osx.deployment_target = '10.11'
 
   s.source       = { :git => "https://github.com/videovillage/oiiococoa.git", :tag => s.version.to_s }
 
   s.source_files  = [
       'Classes',
       'Classes/**/*.{h,m}',
-      'Vendor/OpenImageIO/include/**/*.{h,cpp,hpp}'
+      'Vendor/OpenImageIO/include/**/*.{h,cpp,hpp}',
+      'Vendor/libdpx/*.{h,cpp,hpp}'
   ]
 
   s.requires_arc = true
   s.libraries = ['z', 'stdc++']
 
-  s.private_header_files = 'Vendor/OpenImageIO/include/OpenImageIO/*.{h,hpp}'
+  s.private_header_files = ['Vendor/OpenImageIO/include/OpenImageIO/*.{h,hpp}', 'Vendor/libdpx/*.{h,hpp}']
 
   s.vendored_libraries = [
     'Vendor/libtiff/lib/libtiff.a',
