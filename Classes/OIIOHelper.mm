@@ -244,6 +244,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     NSInteger bitdepth = dpxReader.header.BitDepth(0);
     NSInteger byteOffset = dpxReader.header.DataOffset(0);
     dpx::Packing packing = dpxReader.header.ImagePacking(0);
+    bool requiresByteSwap = dpxReader.header.RequiresByteSwap();
     
     NSInteger width = dpxReader.header.Width();
     NSInteger height = dpxReader.header.Height();
@@ -277,24 +278,44 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         uint32_t greenChannelMask = 0b00000000000011111111110000000000;
         uint32_t blueChannelMask = 0b00000000000000000000001111111111;
         
-        
-        
         if(packing == dpx::kFilledMethodA){
-            for(NSInteger i = 0; i < pixelCount; i++){
-                pixel = rotr32(pixels[i], 2);
-                redOnly = pixel & redChannelMask;
-                greenOnly = pixel & greenChannelMask;
-                blueOnly = pixel & blueChannelMask;
-                pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+            if(requiresByteSwap){
+                for(NSInteger i = 0; i < pixelCount; i++){
+                    pixel = rotr32(CFSwapInt32(pixels[i]), 2);
+                    redOnly = pixel & redChannelMask;
+                    greenOnly = pixel & greenChannelMask;
+                    blueOnly = pixel & blueChannelMask;
+                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                }
+            }
+            else{
+                for(NSInteger i = 0; i < pixelCount; i++){
+                    pixel = rotr32(pixels[i], 2);
+                    redOnly = pixel & redChannelMask;
+                    greenOnly = pixel & greenChannelMask;
+                    blueOnly = pixel & blueChannelMask;
+                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                }
             }
         }
         else if(packing == dpx::kFilledMethodB){
-            for(NSInteger i = 0; i < pixelCount; i++){
-                pixel = pixels[i];
-                redOnly = pixel & redChannelMask;
-                greenOnly = pixel & greenChannelMask;
-                blueOnly = pixel & blueChannelMask;
-                pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+            if(requiresByteSwap){
+                for(NSInteger i = 0; i < pixelCount; i++){
+                    pixel = CFSwapInt32(pixels[i]);
+                    redOnly = pixel & redChannelMask;
+                    greenOnly = pixel & greenChannelMask;
+                    blueOnly = pixel & blueChannelMask;
+                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                }
+            }
+            else{
+                for(NSInteger i = 0; i < pixelCount; i++){
+                    pixel = pixels[i];
+                    redOnly = pixel & redChannelMask;
+                    greenOnly = pixel & greenChannelMask;
+                    blueOnly = pixel & blueChannelMask;
+                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                }
             }
         }
         else{
