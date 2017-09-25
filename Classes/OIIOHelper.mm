@@ -253,6 +253,9 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     *outHeight = height;
     
     if (dpxReader.header.ImageDescriptor(0) != dpx::kRGB || bitdepth != 10){
+        inStream -> Close();
+        delete inStream;
+        inStream = NULL;
         return nil;
     }
     
