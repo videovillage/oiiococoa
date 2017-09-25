@@ -12,6 +12,24 @@
 
 OIIO_NAMESPACE_USING
 
+static inline uint32_t rotl32 (uint32_t n, unsigned int c)
+{
+    const unsigned int mask = (CHAR_BIT*sizeof(n) - 1);  // assumes width is a power of 2.
+    
+    // assert ( (c<=mask) &&"rotate by type width or more");
+    c &= mask;
+    return (n<<c) | (n>>( (-c)&mask ));
+}
+
+static inline uint32_t rotr32 (uint32_t n, unsigned int c)
+{
+    const unsigned int mask = (CHAR_BIT*sizeof(n) - 1);
+    
+    // assert ( (c<=mask) &&"rotate by type width or more");
+    c &= mask;
+    return (n>>c) | (n<<( (-c)&mask ));
+}
+
 @implementation OIIOHelper
 
 + (NSURL *)uniqueTempFileURLWithFileExtension:(NSString *)fileExtension{
@@ -231,11 +249,37 @@ OIIO_NAMESPACE_USING
     
     NSInteger width = dpxReader.header.Width();
     NSInteger height = dpxReader.header.Height();
+    NSInteger pixelCount = width*height;
+    
+    *outWidth = width;
+    *outHeight = height;
     
     if (imageDescriptor != dpx::kRGB || bitdepth != 10){
         return nil;
     }
     
+    NSData *dpxData = [NSData dataWithContentsOfURL:url];
+    NSMutableData *pixelData = [NSMutableData dataWithData:[dpxData subdataWithRange:NSMakeRange(byteOffset, pixelCount*4)]];
+    
+    uint32_t *pixels = (uint32_t *)pixelData.mutableBytes;
+    uint32_t pixel = 0;
+    uint32_t redOnly = 0;
+    uint32_t greenOnly = 0;
+    uint32_t blueOnly = 0;
+    
+    uint32_t redChannelMask = 0b11111111110000000000000000000000;
+    uint32_t greenChannelMask = 0b00000000001111111111000000000000;
+    uint32_t blueChannelMask = 0b00000000000000000000111111111100;
+    
+    for(NSInteger i = 0; i < pixelCount; i++){
+        pixel = rotr32(pixels[i], 2);
+        redOnly = pixel & redChannelMask;
+        greenOnly = pixel & greenChannelMask;
+        blueOnly = pixel & blueChannelMask;
+        pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+    }
+    
+    return pixelData;
 }
 
 + (nullable NSData *)RGBAhBitmapFromURL:(NSURL *)url
