@@ -239,13 +239,11 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         inStream = NULL;
         return nil;
     }
-    inStream -> Close();
-    delete inStream;
-    inStream = NULL;
+    
     
     NSInteger bitdepth = dpxReader.header.BitDepth(0);
     NSInteger byteOffset = dpxReader.header.DataOffset(0);
-    dpx::Descriptor imageDescriptor = dpxReader.header.ImageDescriptor(0);
+    dpx::Packing packing = dpxReader.header.ImagePacking(0);
     
     NSInteger width = dpxReader.header.Width();
     NSInteger height = dpxReader.header.Height();
@@ -254,32 +252,56 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     *outWidth = width;
     *outHeight = height;
     
-    if (imageDescriptor != dpx::kRGB || bitdepth != 10){
+    if (dpxReader.header.ImageDescriptor(0) != dpx::kRGB || bitdepth != 10){
         return nil;
     }
     
-    NSData *dpxData = [NSData dataWithContentsOfURL:url];
-    NSMutableData *pixelData = [NSMutableData dataWithData:[dpxData subdataWithRange:NSMakeRange(byteOffset, pixelCount*4)]];
-    
-    uint32_t *pixels = (uint32_t *)pixelData.mutableBytes;
-    uint32_t pixel = 0;
-    uint32_t redOnly = 0;
-    uint32_t greenOnly = 0;
-    uint32_t blueOnly = 0;
-    
-    uint32_t redChannelMask = 0b11111111110000000000000000000000;
-    uint32_t greenChannelMask = 0b00000000001111111111000000000000;
-    uint32_t blueChannelMask = 0b00000000000000000000111111111100;
-    
-    for(NSInteger i = 0; i < pixelCount; i++){
-        pixel = rotr32(pixels[i], 2);
-        redOnly = pixel & redChannelMask;
-        greenOnly = pixel & greenChannelMask;
-        blueOnly = pixel & blueChannelMask;
-        pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+    inStream -> Close();
+    delete inStream;
+    inStream = NULL;
+    @autoreleasepool{
+        NSData *dpxData = [NSData dataWithContentsOfURL:url];
+        
+        NSMutableData *pixelData = [NSMutableData dataWithData:[dpxData subdataWithRange:NSMakeRange(byteOffset, pixelCount*4)]];
+        
+        uint32_t *pixels = (uint32_t *)pixelData.mutableBytes;
+        uint32_t pixel = 0;
+        uint32_t redOnly = 0;
+        uint32_t greenOnly = 0;
+        uint32_t blueOnly = 0;
+        
+        uint32_t redChannelMask = 0b00111111111100000000000000000000;
+        uint32_t greenChannelMask = 0b00000000000011111111110000000000;
+        uint32_t blueChannelMask = 0b00000000000000000000001111111111;
+        
+        
+        
+        if(packing == dpx::kFilledMethodA){
+            for(NSInteger i = 0; i < pixelCount; i++){
+                pixel = rotr32(pixels[i], 2);
+                redOnly = pixel & redChannelMask;
+                greenOnly = pixel & greenChannelMask;
+                blueOnly = pixel & blueChannelMask;
+                pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+            }
+        }
+        else if(packing == dpx::kFilledMethodB){
+            for(NSInteger i = 0; i < pixelCount; i++){
+                pixel = pixels[i];
+                redOnly = pixel & redChannelMask;
+                greenOnly = pixel & greenChannelMask;
+                blueOnly = pixel & blueChannelMask;
+                pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+            }
+        }
+        else{
+            return nil;
+        }
+        
+        
+        return pixelData;
     }
     
-    return pixelData;
 }
 
 + (nullable NSData *)RGBAhBitmapFromURL:(NSURL *)url
