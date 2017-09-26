@@ -74,8 +74,11 @@
 #ifndef ___SHA1_HDR___
 #define ___SHA1_HDR___
 
+#include <climits>
+
 #include "export.h"
 #include "oiioversion.h"
+#include "platform.h"
 
 #if !defined(SHA1_UTILITY_FUNCTIONS) && !defined(SHA1_NO_UTILITY_FUNCTIONS)
 #define SHA1_UTILITY_FUNCTIONS
@@ -152,47 +155,16 @@
 ///////////////////////////////////////////////////////////////////////////
 // Define variable types
 
-#ifndef UINT_8
-#ifdef _MSC_VER // Compiling with Microsoft compiler
-#define UINT_8  unsigned __int8
-#else // !_MSC_VER
-#define UINT_8 unsigned char
-#endif // _MSC_VER
-#endif
+#define UINT_8  uint8_t
+#define UINT_32 uint32_t
+#define UINT_64 uint64_t
+#define INT_64  int64_t
 
-#ifndef UINT_32
-#ifdef _MSC_VER // Compiling with Microsoft compiler
-#define UINT_32 unsigned __int32
-#else // !_MSC_VER
-#if (ULONG_MAX == 0xFFFFFFFF)
-#define UINT_32 unsigned long
-#else
-#define UINT_32 unsigned int
-#endif
-#endif // _MSC_VER
-#endif // UINT_32
-
-#ifndef INT_64
-#ifdef _MSC_VER // Compiling with Microsoft compiler
-#define INT_64 __int64
-#else // !_MSC_VER
-#define INT_64 long long
-#endif // _MSC_VER
-#endif // INT_64
-
-#ifndef UINT_64
-#ifdef _MSC_VER // Compiling with Microsoft compiler
-#define UINT_64 unsigned __int64
-#else // !_MSC_VER
-#define UINT_64 unsigned long long
-#endif // _MSC_VER
-#endif // UINT_64
 
 ///////////////////////////////////////////////////////////////////////////
 // Declare SHA-1 workspace
 
-OIIO_NAMESPACE_ENTER
-{
+OIIO_NAMESPACE_BEGIN
 
 typedef union
 {
@@ -257,7 +229,6 @@ private:
 	SHA1_WORKSPACE_BLOCK* m_block; // SHA1 pointer to the byte array above
 };
 
-}
-OIIO_NAMESPACE_EXIT
+OIIO_NAMESPACE_END
 
 #endif // ___SHA1_HDR___

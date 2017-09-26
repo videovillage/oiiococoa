@@ -34,13 +34,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef OPENIMAGEIO_UNORDERED_MAP_CONCURRENT_H
 #define OPENIMAGEIO_UNORDERED_MAP_CONCURRENT_H
 
-#include <boost/unordered_map.hpp>
-#include "thread.h"    // from OIIO
-#include "hash.h"      // from OIIO
-#include "dassert.h"   // from OIIO
+#include <OpenImageIO/thread.h>
+#include <OpenImageIO/hash.h>
+#include <OpenImageIO/dassert.h>
 
-OIIO_NAMESPACE_ENTER
-{
+OIIO_NAMESPACE_BEGIN
 
 
 /// unordered_map_concurrent provides an unordered_map replacement that
@@ -77,7 +75,7 @@ OIIO_NAMESPACE_ENTER
 
 template<class KEY, class VALUE, class HASH=boost::hash<KEY>,
          class PRED=std::equal_to<KEY>, size_t BINS=16,
-         class BINMAP=boost::unordered_map<KEY,VALUE,HASH,PRED> >
+         class BINMAP=unordered_map<KEY,VALUE,HASH,PRED> >
 class unordered_map_concurrent {
 public:
     typedef BINMAP BinMap_t;
@@ -355,6 +353,9 @@ public:
     /// Return true if the entire map is empty.
     bool empty() { return m_size == 0; }
 
+    /// Return the total number of entries in the map.
+    size_t size () { return size_t(m_size); }
+
     /// Expliticly lock the bin that will contain the key (regardless of
     /// whether there is such an entry in the map), and return its bin
     /// number.
@@ -419,7 +420,6 @@ private:
 };
 
 
-}
-OIIO_NAMESPACE_EXIT
+OIIO_NAMESPACE_END
 
 #endif // OPENIMAGEIO_UNORDERED_MAP_CONCURRENT_H

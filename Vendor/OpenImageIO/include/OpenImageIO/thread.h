@@ -39,76 +39,35 @@
 #ifndef OPENIMAGEIO_THREAD_H
 #define OPENIMAGEIO_THREAD_H
 
+#include <vector>
+
 #include "oiioversion.h"
 #include "platform.h"
+#include "atomic.h"
 
 
-// defining NOMINMAX to prevent problems with std::min/std::max
-// and std::numeric_limits<type>::min()/std::numeric_limits<type>::max()
-// when boost include windows.h
-#ifdef _MSC_VER
-# define WIN32_LEAN_AND_MEAN
-# define VC_EXTRALEAN
-# ifndef NOMINMAX
-#   define NOMINMAX
+
+#if OIIO_CPLUSPLUS_VERSION >= 11
+# include <thread>
+# include <mutex>
+# include <atomic>
+# define not_yet_OIIO_USE_STDATOMIC 1
+#else   /* prior to C++11... */
+  // Use Boost mutexes & guards when C++11 is not available
+# include <boost/version.hpp>
+# if defined(__GNUC__) && (BOOST_VERSION == 104500)
+   // gcc reports errors inside some of the boost headers with boost 1.45
+   // See: https://svn.boost.org/trac/boost/ticket/4818
+#  pragma GCC diagnostic ignored "-Wunused-variable"
+# endif
+# include <boost/thread.hpp>
+# if defined(__GNUC__) && (BOOST_VERSION == 104500)
+   // can't restore via push/pop in all versions of gcc (warning push/pop implemented for 4.6+ only)
+#  pragma GCC diagnostic error "-Wunused-variable"
 # endif
 #endif
- 
-#include <boost/version.hpp>
-#if defined(__GNUC__) && (BOOST_VERSION == 104500)
-// gcc reports errors inside some of the boost headers with boost 1.45
-// See: https://svn.boost.org/trac/boost/ticket/4818
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 
-#include <boost/thread.hpp>
-#include <boost/thread/tss.hpp>
-#include <boost/version.hpp>
 
-#if defined(__GNUC__) && (BOOST_VERSION == 104500)
-// can't restore via push/pop in all versions of gcc (warning push/pop implemented for 4.6+ only)
-#pragma GCC diagnostic error "-Wunused-variable"
-#endif
-
-#if defined(_MSC_VER)
-#  include <windows.h>
-#  include <winbase.h>
-#  pragma intrinsic (_InterlockedExchangeAdd)
-#  pragma intrinsic (_InterlockedCompareExchange)
-#  pragma intrinsic (_InterlockedCompareExchange64)
-#  if defined(_WIN64)
-#    pragma intrinsic(_InterlockedExchangeAdd64)
-#  endif
-// InterlockedExchangeAdd64 & InterlockedExchange64 are not available for XP
-#  if defined(_WIN32_WINNT) && _WIN32_WINNT <= 0x0501
-inline long long
-InterlockedExchangeAdd64 (volatile long long *Addend, long long Value)
-{
-    long long Old;
-    do {
-        Old = *Addend;
-    } while (_InterlockedCompareExchange64(Addend, Old + Value, Old) != Old);
-    return Old;
-}
-
-inline long long
-InterlockedExchange64 (volatile long long *Target, long long Value)
-{
-    long long Old;
-    do {
-        Old = *Target;
-    } while (_InterlockedCompareExchange64(Target, Value, Old) != Old);
-    return Old;
-}
-#  endif
-#endif
-
-#if defined(__GNUC__) && (defined(_GLIBCXX_ATOMIC_BUILTINS) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 401))
-#define USE_GCC_ATOMICS
-#  if !defined(__clang__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 408)
-#    define OIIO_USE_GCC_NEW_ATOMICS
-#  endif
-#endif
 
 
 // OIIO_THREAD_ALLOW_DCLP, if set to 0, prevents us from using a dodgy
@@ -122,8 +81,19 @@ InterlockedExchange64 (volatile long long *Target, long long Value)
 #endif
 
 
-OIIO_NAMESPACE_ENTER
-{
+
+// Some helpful links:
+//
+// Descriptions of the "new" gcc atomic intrinsics:
+//    https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html
+// Old gcc atomic intrinsics:
+//    https://gcc.gnu.org/onlinedocs/gcc-4.4.2/gcc/Atomic-Builtins.html
+// C++11 and beyond std::atomic:
+//    http://en.cppreference.com/w/cpp/atomic
+
+
+
+OIIO_NAMESPACE_BEGIN
 
 /// Null mutex that can be substituted for a real one to test how much
 /// overhead is associated with a particular mutex.
@@ -147,66 +117,24 @@ public:
 };
 
 
-// Null thread-specific ptr that just wraps a single ordinary pointer
-//
-template<typename T>
-class null_thread_specific_ptr {
-public:
-    typedef void (*destructor_t)(T *);
-    null_thread_specific_ptr (destructor_t dest=NULL)
-        : m_ptr(NULL), m_dest(dest) { }
-    ~null_thread_specific_ptr () { reset (NULL); }
-    T * get () { return m_ptr; }
-    void reset (T *newptr=NULL) {
-        if (m_ptr) {
-            if (m_dest)
-                (*m_dest) (m_ptr);
-            else
-                delete m_ptr;
-        }
-        m_ptr = newptr;
-    }
-private:
-    T *m_ptr;
-    destructor_t m_dest;
-};
-
 
 #ifdef NOTHREADS
 
 // Definitions that we use for debugging to turn off all mutexes, locks,
 // and atomics in order to test the performance hit of our thread safety.
 
-// Null thread-specific ptr that just wraps a single ordinary pointer
-//
-template<typename T>
-class thread_specific_ptr {
-public:
-    typedef void (*destructor_t)(T *);
-    thread_specific_ptr (destructor_t dest=NULL)
-        : m_ptr(NULL), m_dest(dest) { }
-    ~thread_specific_ptr () { reset (NULL); }
-    T * get () { return m_ptr; }
-    void reset (T *newptr=NULL) {
-        if (m_ptr) {
-            if (m_dest)
-                (*m_dest) (m_ptr);
-            else
-                delete m_ptr;
-        }
-        m_ptr = newptr;
-    }
-private:
-    T *m_ptr;
-    destructor_t m_dest;
-};
-
-
 typedef null_mutex mutex;
 typedef null_mutex recursive_mutex;
 typedef null_lock<mutex> lock_guard;
 typedef null_lock<recursive_mutex> recursive_lock_guard;
 
+#elif OIIO_CPLUSPLUS_VERSION >= 11
+
+typedef std::mutex mutex;
+typedef std::recursive_mutex recursive_mutex;
+typedef std::lock_guard< mutex > lock_guard;
+typedef std::lock_guard< recursive_mutex > recursive_lock_guard;
+typedef std::thread thread;
 
 #else
 
@@ -214,163 +142,11 @@ typedef null_lock<recursive_mutex> recursive_lock_guard;
 
 typedef boost::mutex mutex;
 typedef boost::recursive_mutex recursive_mutex;
-typedef boost::lock_guard< boost::mutex > lock_guard;
-typedef boost::lock_guard< boost::recursive_mutex > recursive_lock_guard;
-using boost::thread_specific_ptr;
+typedef boost::lock_guard< mutex > lock_guard;
+typedef boost::lock_guard< recursive_mutex > recursive_lock_guard;
+typedef boost::thread thread;
 
 #endif
-
-
-
-/// Atomic version of:  r = *at, *at += x, return r
-/// For each of several architectures.
-inline int
-atomic_exchange_and_add (volatile int *at, int x)
-{
-#ifdef NOTHREADS
-    int r = *at;  *at += x;  return r;
-#elif defined(OIIO_USE_GCC_NEW_ATOMICS)
-    return __atomic_fetch_add (at, x, __ATOMIC_SEQ_CST);
-#elif defined(USE_GCC_ATOMICS)
-    return __sync_fetch_and_add ((int *)at, x);
-#elif defined(_MSC_VER)
-    // Windows
-    return _InterlockedExchangeAdd ((volatile LONG *)at, x);
-#else
-#   error No atomics on this platform.
-#endif
-}
-
-
-
-inline long long
-atomic_exchange_and_add (volatile long long *at, long long x)
-{
-#ifdef NOTHREADS
-    long long r = *at;  *at += x;  return r;
-#elif defined(OIIO_USE_GCC_NEW_ATOMICS)
-    return __atomic_fetch_add (at, x, __ATOMIC_SEQ_CST);
-#elif defined(USE_GCC_ATOMICS)
-    return __sync_fetch_and_add (at, x);
-#elif defined(_MSC_VER)
-    // Windows
-#  if defined(_WIN64)
-    return _InterlockedExchangeAdd64 ((volatile LONGLONG *)at, x);
-#  else
-    return InterlockedExchangeAdd64 ((volatile LONGLONG *)at, x);
-#  endif
-#else
-#   error No atomics on this platform.
-#endif
-}
-
-
-
-/// Atomic version of:
-///    if (*at == compareval) {
-///        *at = newval;  return true;
-///    } else {
-///        return false;
-///    }
-inline bool
-atomic_compare_and_exchange (volatile int *at, int compareval, int newval)
-{
-#ifdef NOTHREADS
-    if (*at == compareval) {
-        *at = newval;  return true;
-    } else {
-        return false;
-    }
-#elif defined(OIIO_USE_GCC_NEW_ATOMICS)
-    return __atomic_compare_exchange_n (at, &compareval, newval, false,
-                                        __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-#elif defined(USE_GCC_ATOMICS)
-    return __sync_bool_compare_and_swap (at, compareval, newval);
-#elif defined(_MSC_VER)
-    return (_InterlockedCompareExchange ((volatile LONG *)at, newval, compareval) == compareval);
-#else
-#   error No atomics on this platform.
-#endif
-}
-
-
-
-inline bool
-atomic_compare_and_exchange (volatile long long *at, long long compareval, long long newval)
-{
-#ifdef NOTHREADS
-    if (*at == compareval) {
-        *at = newval;  return true;
-    } else {
-        return false;
-    }
-#elif defined(OIIO_USE_GCC_NEW_ATOMICS)
-    return __atomic_compare_exchange_n (at, &compareval, newval, false,
-                                        __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-#elif defined(USE_GCC_ATOMICS)
-    return __sync_bool_compare_and_swap (at, compareval, newval);
-#elif defined(_MSC_VER)
-    return (_InterlockedCompareExchange64 ((volatile LONGLONG *)at, newval, compareval) == compareval);
-#else
-#   error No atomics on this platform.
-#endif
-}
-
-
-
-/// Atomic version of:  r = *at, *at = x, return r
-/// For each of several architectures.
-inline int
-atomic_exchange (volatile int *at, int x)
-{
-#ifdef NOTHREADS
-    int r = *at;  *at = x;  return r;
-#elif defined(OIIO_USE_GCC_NEW_ATOMICS)
-    return __atomic_exchange_n (at, x, __ATOMIC_SEQ_CST);
-#elif defined(USE_GCC_ATOMICS)
-    // No __sync version of atomic exchange! Do it the hard way:
-    while (1) {
-        int old = *at;
-        if (atomic_compare_and_exchange (at, old, x))
-            return old;
-    }
-    return 0; // can never happen
-#elif defined(_MSC_VER)
-    // Windows
-    return _InterlockedExchange ((volatile LONG *)at, x);
-#else
-#   error No atomics on this platform.
-#endif
-}
-
-
-
-inline long long
-atomic_exchange (volatile long long *at, long long x)
-{
-#ifdef NOTHREADS
-    long long r = *at;  *at = x;  return r;
-#elif defined(OIIO_USE_GCC_NEW_ATOMICS)
-    return __atomic_exchange_n (at, x, __ATOMIC_SEQ_CST);
-#elif defined(USE_GCC_ATOMICS)
-    // No __sync version of atomic exchange! Do it the hard way:
-    while (1) {
-        long long old = *at;
-        if (atomic_compare_and_exchange (at, old, x))
-            return old;
-    }
-    return 0; // can never happen
-#elif defined(_MSC_VER)
-    // Windows
-#  if defined(_WIN64)
-    return _InterlockedExchange64 ((volatile LONGLONG *)at, x);
-#  else
-    return InterlockedExchange64 ((volatile LONGLONG *)at, x);
-#  endif
-#else
-#   error No atomics on this platform.
-#endif
-}
 
 
 
@@ -441,98 +217,6 @@ private:
 
 
 
-/// Atomic integer.  Increment, decrement, add, and subtract in a
-/// totally thread-safe manner.
-template<class T>
-class atomic {
-public:
-    /// Construct with initial value.
-    ///
-    atomic (T val=0) : m_val(val) { }
-
-    ~atomic () { }
-
-    /// Retrieve value
-    ///
-    T operator() () const { return atomic_exchange_and_add (&m_val, 0); }
-
-    /// Retrieve value
-    ///
-    operator T() const { return atomic_exchange_and_add (&m_val, 0); }
-
-    /// Fast retrieval of value, no interchange, don't care about memory
-    /// fences.
-    T fast_value () const { return m_val; }
-
-    /// Assign new value.
-    ///
-    T operator= (T x) {
-        //incorrect? return (m_val = x);
-        while (1) {
-            T result = m_val;
-            if (atomic_compare_and_exchange (&m_val, result, x))
-                break;
-        }
-        return x;
-    }
-
-    /// Pre-increment:  ++foo
-    ///
-    T operator++ () { return atomic_exchange_and_add (&m_val, 1) + 1; }
-
-    /// Post-increment:  foo++
-    ///
-    T operator++ (int) {  return atomic_exchange_and_add (&m_val, 1); }
-
-    /// Pre-decrement:  --foo
-    ///
-    T operator-- () {  return atomic_exchange_and_add (&m_val, -1) - 1; }
-
-    /// Post-decrement:  foo--
-    ///
-    T operator-- (int) {  return atomic_exchange_and_add (&m_val, -1); }
-
-    /// Add to the value, return the new result
-    ///
-    T operator+= (T x) { return atomic_exchange_and_add (&m_val, x) + x; }
-
-    /// Subtract from the value, return the new result
-    ///
-    T operator-= (T x) { return atomic_exchange_and_add (&m_val, -x) - x; }
-
-    bool bool_compare_and_swap (T compareval, T newval) {
-        return atomic_compare_and_exchange (&m_val, compareval, newval);
-    }
-
-    T operator= (const atomic &x) {
-        T r = x();
-        *this = r;
-        return r;
-    }
-
-private:
-#ifdef __arm__
-    OIIO_ALIGN(8)
-#endif 
-    volatile mutable T m_val;
-
-    // Disallow copy construction by making private and unimplemented.
-    atomic (atomic const &);
-};
-
-
-
-#ifdef NOTHREADS
-
-typedef int atomic_int;
-typedef long long atomic_ll;
-
-#else
-
-typedef atomic<int> atomic_int;
-typedef atomic<long long> atomic_ll;
-
-#endif
 
 
 
@@ -796,7 +480,80 @@ typedef spin_rw_mutex::read_lock_guard spin_rw_read_lock;
 typedef spin_rw_mutex::write_lock_guard spin_rw_write_lock;
 
 
-}
-OIIO_NAMESPACE_EXIT
+
+/// Mutex pool. Sometimes, we have lots of objects that need to be
+/// individually locked for thread safety, but two separate objects don't
+/// need to lock against each other. If there are many more objects than
+/// threads, it's wasteful for each object to contain its own mutex. So a
+/// solution is to make a mutex_pool -- a collection of several mutexes.
+/// Each object uses a hash to choose a consistent mutex for itself, but
+/// which will be unlikely to be locked simultaneously by different object.
+/// Semantically, it looks rather like an associative array of mutexes. We
+/// also ensure that the mutexes are all on different cache lines, to ensure
+/// that they don't exhibit false sharing. Try to choose Bins larger than
+/// the expected number of threads that will be simultaneously locking
+/// mutexes.
+template<class Mutex, class Key, class Hash, size_t Bins=16>
+class mutex_pool
+{
+public:
+    mutex_pool () { }
+    Mutex& operator[] (const Key &key) {
+        return m_mutex[m_hash(key) % Bins].m;
+    }
+private:
+    // Helper type -- force cache line alignment. This should make an array
+    // of these also have padding so that each individual mutex is aligned
+    // to its own cache line, thus eliminating any "false sharing."
+    struct AlignedMutex {
+        OIIO_CACHE_ALIGN Mutex m;
+    };
+
+    AlignedMutex m_mutex[Bins];
+    Hash m_hash;
+};
+
+
+
+/// Simple thread group class. This is just as good as boost::thread_group,
+/// for the limited functionality that we use.
+class thread_group {
+public:
+    thread_group () {}
+    ~thread_group () {
+        for (size_t i = 0, e = m_threads.size(); i < e; ++i)
+            delete m_threads[i];
+    }
+    void add_thread (thread *t) {
+        if (t) {
+            lock_guard lock (m_mutex);
+            m_threads.push_back (t);
+        }
+    }
+    template<typename FUNC>
+    thread *create_thread (FUNC func) {
+        lock_guard lock (m_mutex);
+        thread *t = new thread (func);
+        m_threads.push_back (t);
+        return t;
+    }
+    void join_all () {
+        lock_guard lock (m_mutex);
+        for (size_t i = 0, e = m_threads.size(); i < e; ++i) {
+            if (m_threads[i]->joinable())
+                m_threads[i]->join();
+        }
+    }
+    size_t size () {
+        lock_guard lock (m_mutex);
+        return m_threads.size();
+    }
+private:
+    mutex m_mutex;
+    std::vector<thread *> m_threads;
+};
+
+
+OIIO_NAMESPACE_END
 
 #endif // OPENIMAGEIO_THREAD_H
