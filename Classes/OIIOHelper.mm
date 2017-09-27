@@ -222,9 +222,9 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
 }
 
-+ (nullable NSData *)RGB10A2UBitmapFromURL:(NSURL *)url
-                           outPixelWidth:(NSInteger *)outWidth
-                          outPixelHeight:(NSInteger *)outHeight{
++ (nullable NSData *)A2BGR10BitmapFromURL:(NSURL *)url
+                            outPixelWidth:(NSInteger *)outWidth
+                           outPixelHeight:(NSInteger *)outHeight{
     InStream *inStream = new InStream();
     if (! inStream->Open([[url path] cStringUsingEncoding:NSUTF8StringEncoding])) {
         delete inStream;
@@ -322,6 +322,79 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             return nil;
         }
         
+        
+        return pixelData;
+    }
+    
+}
+
++ (nullable NSData *)RGB10A2UBigEndianBitmapFromURL:(NSURL *)url
+                                      outPixelWidth:(NSInteger *)outWidth
+                                     outPixelHeight:(NSInteger *)outHeight{
+    InStream *inStream = new InStream();
+    if (! inStream->Open([[url path] cStringUsingEncoding:NSUTF8StringEncoding])) {
+        delete inStream;
+        inStream = NULL;
+        return nil;
+    }
+    dpx::Reader dpxReader;
+    dpxReader.SetInStream(inStream);
+    if (! dpxReader.ReadHeader()) {
+        inStream->Close();
+        delete inStream;
+        inStream = NULL;
+        return nil;
+    }
+    
+    
+    NSInteger bitdepth = dpxReader.header.BitDepth(0);
+    NSInteger byteOffset = dpxReader.header.DataOffset(0);
+    dpx::Packing packing = dpxReader.header.ImagePacking(0);
+    bool requiresByteSwap = dpxReader.header.RequiresByteSwap();
+    
+    NSInteger width = dpxReader.header.Width();
+    NSInteger height = dpxReader.header.Height();
+    NSInteger pixelCount = width*height;
+    
+    *outWidth = width;
+    *outHeight = height;
+    
+    if (dpxReader.header.ImageDescriptor(0) != dpx::kRGB || bitdepth != 10){
+        inStream -> Close();
+        delete inStream;
+        inStream = NULL;
+        return nil;
+    }
+    
+    inStream -> Close();
+    delete inStream;
+    inStream = NULL;
+    @autoreleasepool{
+        NSData *dpxData = [NSData dataWithContentsOfURL:url];
+        
+        NSMutableData *pixelData = [NSMutableData dataWithData:[dpxData subdataWithRange:NSMakeRange(byteOffset, pixelCount*4)]];
+        
+        uint32_t *pixels = (uint32_t *)pixelData.mutableBytes;
+        
+        if(packing == dpx::kFilledMethodA){
+            if(!requiresByteSwap){
+                for(NSInteger i = 0; i < pixelCount; i++){
+                    pixels[i] = CFSwapInt32(pixels[i]);
+                }
+            }
+        }
+        else if(packing == dpx::kFilledMethodB){
+            if(!requiresByteSwap){
+                for(NSInteger i = 0; i < pixelCount; i++){
+                    pixels[i] = CFSwapInt32(rotr32(pixels[i], 2));
+                }
+            }
+            else{
+                for(NSInteger i = 0; i < pixelCount; i++){
+                    pixels[i] = CFSwapInt32(rotr32(CFSwapInt32(pixels[i]), 2));
+                }
+            }
+        }
         
         return pixelData;
     }

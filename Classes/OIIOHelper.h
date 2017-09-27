@@ -53,9 +53,13 @@ NS_ASSUME_NONNULL_BEGIN
                              outPixelWidth:(NSInteger *)outWidth
                             outPixelHeight:(NSInteger *)outHeight;
 
-+ (nullable NSData *)RGB10A2UBitmapFromURL:(NSURL *)url
-                             outPixelWidth:(NSInteger *)outWidth
-                            outPixelHeight:(NSInteger *)outHeight;
++ (nullable NSData *)A2BGR10BitmapFromURL:(NSURL *)url
+                            outPixelWidth:(NSInteger *)outWidth
+                           outPixelHeight:(NSInteger *)outHeight;
+
++ (nullable NSData *)RGB10A2UBigEndianBitmapFromURL:(NSURL *)url
+                                      outPixelWidth:(NSInteger *)outWidth
+                                     outPixelHeight:(NSInteger *)outHeight;
 
 + (nullable NSData *)RGBAhBitmapFromURL:(nonnull NSURL *)url
                  outPixelWidth:(nonnull NSInteger *)outWidth
