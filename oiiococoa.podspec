@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.social_media_url = "http://twitter.com/wilgieseler"
 
   s.platform     = :osx
-  s.osx.deployment_target = '10.11'
+  s.osx.deployment_target = '10.9'
 
   s.source       = { :git => "https://github.com/videovillage/oiiococoa.git", :tag => s.version.to_s }
 
