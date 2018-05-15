@@ -39,34 +39,22 @@
 #ifndef OPENIMAGEIO_THREAD_H
 #define OPENIMAGEIO_THREAD_H
 
+#include <algorithm>
+#include <atomic>
+#include <future>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include <vector>
+#include <chrono>
+#include <iostream>
 
-#include "oiioversion.h"
-#include "platform.h"
-#include "atomic.h"
-
-
-
-#if OIIO_CPLUSPLUS_VERSION >= 11
-# include <thread>
-# include <mutex>
-# include <atomic>
-# define not_yet_OIIO_USE_STDATOMIC 1
-#else   /* prior to C++11... */
-  // Use Boost mutexes & guards when C++11 is not available
-# include <boost/version.hpp>
-# if defined(__GNUC__) && (BOOST_VERSION == 104500)
-   // gcc reports errors inside some of the boost headers with boost 1.45
-   // See: https://svn.boost.org/trac/boost/ticket/4818
-#  pragma GCC diagnostic ignored "-Wunused-variable"
-# endif
-# include <boost/thread.hpp>
-# if defined(__GNUC__) && (BOOST_VERSION == 104500)
-   // can't restore via push/pop in all versions of gcc (warning push/pop implemented for 4.6+ only)
-#  pragma GCC diagnostic error "-Wunused-variable"
-# endif
-#endif
-
+#include <oiioversion.h>
+#include <export.h>
+#include <platform.h>
+#include <atomic.h>
+#include <dassert.h>
 
 
 
@@ -118,35 +106,11 @@ public:
 
 
 
-#ifdef NOTHREADS
-
-// Definitions that we use for debugging to turn off all mutexes, locks,
-// and atomics in order to test the performance hit of our thread safety.
-
-typedef null_mutex mutex;
-typedef null_mutex recursive_mutex;
-typedef null_lock<mutex> lock_guard;
-typedef null_lock<recursive_mutex> recursive_lock_guard;
-
-#elif OIIO_CPLUSPLUS_VERSION >= 11
-
-typedef std::mutex mutex;
-typedef std::recursive_mutex recursive_mutex;
+using std::mutex;
+using std::thread;
+using std::recursive_mutex;
 typedef std::lock_guard< mutex > lock_guard;
 typedef std::lock_guard< recursive_mutex > recursive_lock_guard;
-typedef std::thread thread;
-
-#else
-
-// Fairly modern Boost has all the mutex and lock types we need.
-
-typedef boost::mutex mutex;
-typedef boost::recursive_mutex recursive_mutex;
-typedef boost::lock_guard< mutex > lock_guard;
-typedef boost::lock_guard< recursive_mutex > recursive_lock_guard;
-typedef boost::thread thread;
-
-#endif
 
 
 
@@ -218,21 +182,9 @@ private:
 
 
 
-
-
-#ifdef NOTHREADS
-
-typedef null_mutex spin_mutex;
-typedef null_lock<spin_mutex> spin_lock;
-
-#else
-
-// Define our own spin locks.
-
-
 /// A spin_mutex is semantically equivalent to a regular mutex, except
 /// for the following:
-///  - A spin_mutex is just 4 bytes, whereas a regular mutex is quite
+///  - A spin_mutex is just 1 byte, whereas a regular mutex is quite
 ///    large (44 bytes for pthread).
 ///  - A spin_mutex is extremely fast to lock and unlock, whereas a regular
 ///    mutex is surprisingly expensive just to acquire a lock.
@@ -245,22 +197,19 @@ typedef null_lock<spin_mutex> spin_lock;
 /// lock for a very short period of time, you may save runtime by using
 /// a spin_mutex, even though it's non-blocking.
 ///
-/// N.B. A spin_mutex is only the size of an int.  To avoid "false
+/// N.B. A spin_mutex is only the size of a bool.  To avoid "false
 /// sharing", be careful not to put two spin_mutex objects on the same
 /// cache line (within 128 bytes of each other), or the two mutexes may
 /// effectively (and wastefully) lock against each other.
 ///
 class spin_mutex {
 public:
-    /// Default constructor -- initialize to unlocked.
-    ///
-    spin_mutex (void) { m_locked = 0; }
-
+    spin_mutex (void) { }
     ~spin_mutex (void) { }
 
     /// Copy constructor -- initialize to unlocked.
     ///
-    spin_mutex (const spin_mutex &) { m_locked = 0; }
+    spin_mutex (const spin_mutex &) { }
 
     /// Assignment does not do anything, since lockedness should not
     /// transfer.
@@ -275,11 +224,11 @@ public:
         atomic_backoff backoff;
 
         // Try to get ownership of the lock. Though experimentation, we
-        // found that OIIO_UNLIKELY makes this just a bit faster on 
-        // gcc x86/x86_64 systems.
+        // found that OIIO_UNLIKELY makes this just a bit faster on gcc
+        // x86/x86_64 systems.
         while (! OIIO_UNLIKELY(try_lock())) {
 #if OIIO_THREAD_ALLOW_DCLP
-            // The full try_lock() involves a compare_and_swap, which
+            // The full try_lock() involves a test_and_set, which
             // writes memory, and that will lock the bus.  But a normal
             // read of m_locked will let us spin until the value
             // changes, without locking the bus. So it's faster to
@@ -293,7 +242,7 @@ public:
             // give a way to use tsan for other checks.
             do {
                 backoff();
-            } while (m_locked);
+            } while (*(volatile bool *)&m_locked);
 #else
             backoff();
 #endif
@@ -303,37 +252,14 @@ public:
     /// Release the lock that we hold.
     ///
     void unlock () {
-        // Fastest way to do it is with a store with "release" semantics
-#if defined(OIIO_USE_GCC_NEW_ATOMICS)
-        __atomic_clear (&m_locked, __ATOMIC_RELEASE);
-#elif defined(USE_GCC_ATOMICS)
-        __sync_lock_release (&m_locked);
-        //   Equivalent, x86 specific code:
-        //   __asm__ __volatile__("": : :"memory");
-        //   m_locked = 0;
-#elif defined(_MSC_VER)
-        MemoryBarrier ();
-        m_locked = 0;
-#else
-        // Otherwise, just assign zero to the atomic (but that's a full 
-        // memory barrier).
-        *(atomic_int *)&m_locked = 0;
-#endif
+        // Fastest way to do it is with a clear with "release" semantics
+        m_locked.clear (std::memory_order_release);
     }
 
     /// Try to acquire the lock.  Return true if we have it, false if
     /// somebody else is holding the lock.
     bool try_lock () {
-#if defined(OIIO_USE_GCC_NEW_ATOMICS)
-        return __atomic_test_and_set (&m_locked, __ATOMIC_ACQUIRE) == 0;
-#elif defined(USE_GCC_ATOMICS)
-        // GCC gives us an intrinsic that is even better -- an atomic
-        // exchange with "acquire" barrier semantics.
-        return __sync_lock_test_and_set (&m_locked, 1) == 0;
-#else
-        // Our compare_and_swap returns true if it swapped
-        return atomic_compare_and_exchange (&m_locked, 0, 1);
-#endif
+        return ! m_locked.test_and_set (std::memory_order_acquire);
     }
 
     /// Helper class: scoped lock for a spin_mutex -- grabs the lock upon
@@ -343,26 +269,19 @@ public:
         lock_guard (spin_mutex &fm) : m_fm(fm) { m_fm.lock(); }
         ~lock_guard () { m_fm.unlock(); }
     private:
-        lock_guard(); // Do not implement
-        lock_guard(const lock_guard& other); // Do not implement
-        lock_guard& operator = (const lock_guard& other); // Do not implement
+        lock_guard() = delete;
+        lock_guard(const lock_guard& other) = delete;
+        lock_guard& operator= (const lock_guard& other) = delete;
         spin_mutex & m_fm;
     };
 
 private:
-#if defined(OIIO_USE_GCC_NEW_ATOMICS)
-    // Using the gcc >= 4.8 new atomics, we can easily do a single byte flag
-    volatile char m_locked; ///< Atomic counter is zero if nobody holds the lock
-#else
-    // Otherwise, fall back on it being an int
-    volatile int m_locked;  ///< Atomic counter is zero if nobody holds the lock
-#endif
+    std::atomic_flag m_locked = ATOMIC_FLAG_INIT; // initialize to unlocked
 };
 
 
 typedef spin_mutex::lock_guard spin_lock;
 
-#endif
 
 
 
@@ -515,42 +434,254 @@ private:
 
 
 
-/// Simple thread group class. This is just as good as boost::thread_group,
-/// for the limited functionality that we use.
+/// Simple thread group class: lets you spawn a group of new threads,
+/// then wait for them to all complete.
 class thread_group {
 public:
     thread_group () {}
-    ~thread_group () {
-        for (size_t i = 0, e = m_threads.size(); i < e; ++i)
-            delete m_threads[i];
-    }
+    ~thread_group () { join_all(); }
+
     void add_thread (thread *t) {
         if (t) {
             lock_guard lock (m_mutex);
-            m_threads.push_back (t);
+            m_threads.emplace_back (t);
         }
     }
-    template<typename FUNC>
-    thread *create_thread (FUNC func) {
-        lock_guard lock (m_mutex);
-        thread *t = new thread (func);
-        m_threads.push_back (t);
+
+    template<typename FUNC, typename... Args>
+    thread *create_thread (FUNC func, Args&&... args) {
+        thread *t = new thread (func, std::forward<Args>(args)...);
+        add_thread (t);
         return t;
     }
+
     void join_all () {
         lock_guard lock (m_mutex);
-        for (size_t i = 0, e = m_threads.size(); i < e; ++i) {
-            if (m_threads[i]->joinable())
-                m_threads[i]->join();
-        }
+        for (auto &t : m_threads)
+            if (t->joinable())
+                t->join();
     }
-    size_t size () {
+
+    size_t size () const {
         lock_guard lock (m_mutex);
         return m_threads.size();
     }
 private:
-    mutex m_mutex;
-    std::vector<thread *> m_threads;
+    mutable mutex m_mutex;
+    std::vector<std::unique_ptr<thread>> m_threads;
+};
+
+
+
+/// thread_pool is a persistent set of threads watching a queue to which
+/// tasks can be submitted.
+///
+/// Call default_thread_pool() to retrieve a pointer to a single shared
+/// thread_pool that will be initialized the first time it's needed, running
+/// a number of threads corresponding to the number of cores on the machine.
+///
+/// It's possible to create other pools, but it's not something that's
+/// recommended unless you really know what you're doing and are careful
+/// that the sum of threads across all pools doesn't cause you to be highly
+/// over-threaded. An example of when this might be useful is if you want
+/// one pool of 4 threads to handle I/O without interference from a separate
+/// pool of 4 (other) threads handling computation.
+///
+/// Submitting an asynchronous task to the queue follows the following
+/// pattern:
+///    /* func that takes a thread ID followed possibly by more args */
+///    result_t my_func (int thread_id, Arg1 arg1, ...) { }
+///    pool->push (my_func, arg1, ...);
+///
+/// If you just want to "fire and forget", then:
+///    pool->push (func, ...args...);
+/// But if you need a result, or simply need to know when the task has
+/// completed, note that the push() method will return a future<result_t>
+/// that you can check, like this:
+///     std::future<result_t> f = pool->push (my_task);
+/// And then you can
+///     find out if it's done:              if (f.valid()) ...
+///     wait for it to get done:            f.wait();
+///     get result (waiting if necessary):  result_t r = f.get();
+///
+/// A common idiom is to fire a bunch of sub-tasks at the queue, and then
+/// wait for them to all complete. We provide a helper class, task_set,
+/// to make this easy:
+///     task_set<decltype(myfunc())> tasks (pool);
+///     for (int i = 0; i < n_subtasks; ++i)
+///         tasks.push (pool->push (myfunc));
+///     tasks.wait ();
+/// Note that the tasks.wait() is optional -- it will be called
+/// automatically when the task_set exits its scope.
+///
+/// The task function's first argument, the thread_id, is the thread number
+/// for the pool, or -1 if it's being executed by a non-pool thread (this
+/// can happen in cases where the whole pool is occupied and the calling
+/// thread contributes to running the work load).
+///
+/// Thread pool. Have fun, be safe.
+///
+class OIIO_API thread_pool {
+public:
+    /// Initialize the pool.  This implicitly calls resize() to set the
+    /// number of worker threads, defaulting to a number of workers that is
+    /// one less than the number of hardware cores.
+    thread_pool (int nthreads = -1);
+    ~thread_pool ();
+
+    /// How many threads are in the pool?
+    int size () const;
+
+    /// Sets the number of worker threads in the pool. If the pool size is
+    /// 0, any tasks added to the pool will be executed immediately by the
+    /// calling thread. Requesting nthreads < 0 will cause it to resize to
+    /// the number of hardware cores minus one (one less, to account for the
+    /// fact that the calling thread will also contribute). BEWARE! Resizing
+    /// the queue should not be done while jobs are running.
+    void resize (int nthreads = -1);
+
+    /// Return the number of currently idle threads in the queue. Zero
+    /// means the queue is fully engaged.
+    int idle () const;
+
+    /// Run the user's function that accepts argument int - id of the
+    /// running thread. The returned value is templatized std::future, where
+    /// the user can get the result and rethrow any exceptions. If the queue
+    /// has no worker threads, the task will be run immediately by the
+    /// calling thread.
+    template<typename F>
+    auto push (F && f) ->std::future<decltype(f(0))> {
+        auto pck = std::make_shared<std::packaged_task<decltype(f(0))(int)>>(std::forward<F>(f));
+        if (size() < 1) {
+            (*pck)(-1); // No worker threads, run it with the calling thread
+        } else {
+            auto _f = new std::function<void(int id)>([pck](int id) {
+                (*pck)(id);
+            });
+            push_queue_and_notify (_f);
+        }
+        return pck->get_future();
+    }
+
+    /// Run the user's function that accepts an arbitrary set of arguments
+    /// (also passed). The returned value is templatized std::future, where
+    /// the user can get the result and rethrow any exceptions. If the queue
+    /// has no worker threads, the task will be run immediately by the
+    /// calling thread.
+    template<typename F, typename... Rest>
+    auto push (F && f, Rest&&... rest) ->std::future<decltype(f(0, rest...))> {
+        auto pck = std::make_shared<std::packaged_task<decltype(f(0, rest...))(int)>>(
+            std::bind(std::forward<F>(f), std::placeholders::_1, std::forward<Rest>(rest)...)
+        );
+        if (size() < 1) {
+            (*pck)(-1); // No worker threads, run it with the calling thread
+        } else {
+            auto _f = new std::function<void(int id)>([pck](int id) {
+                (*pck)(id);
+            });
+            push_queue_and_notify (_f);
+        }
+        return pck->get_future();
+    }
+
+    /// If there are any tasks on the queue, pull one off and run it (on
+    /// this calling thread) and return true. Otherwise (there are no
+    /// pending jobs), return false immediately. This utility is what makes
+    /// it possible for non-pool threads to also run tasks from the queue
+    /// when they would ordinarily be idle.
+    bool run_one_task ();
+
+    /// Return true if the calling thread is part of the thread pool. This
+    /// can be used to limit a pool thread from inadvisedly adding its own
+    /// subtasks to clog up the pool.
+    bool this_thread_is_in_pool () const;
+
+private:
+    // Disallow copy construction and assignment
+    thread_pool (const thread_pool&) = delete;
+    thread_pool (thread_pool &&) = delete;
+    thread_pool& operator= (const thread_pool &) = delete;
+    thread_pool& operator= (thread_pool &&) = delete;
+
+    // PIMPL pattern hides all the guts far away from the public API
+    class Impl;
+    std::unique_ptr<Impl> m_impl;
+
+    // Utility function that helps us hide the implementation
+    void push_queue_and_notify (std::function<void(int id)> *f);
+};
+
+
+
+/// Return a reference to the "default" shared thread pool. In almost all
+/// ordinary circumstances, you should use this exclusively to get a
+/// single shared thread pool, since creating multiple thread pools
+/// could result in hilariously over-threading your application.
+OIIO_API thread_pool* default_thread_pool ();
+
+
+
+/// task_set<T> is a group of future<T>'s from a thread_queue that you can
+/// add to, and when you either call wait() or just leave the task_set's
+/// scope, it will wait for all the tasks in the set to be done before
+/// proceeding.
+///
+/// A typical idiom for using this is:
+///
+///    void myfunc (int id) { ... do something ... }
+///
+///    thread_pool* pool (default_thread_pool());
+///    {
+///        task_set<decltype(myfunc())> tasks (pool);
+///        // Launch a bunch of tasks into the thread pool
+///        for (int i = 0; i < ntasks; ++i)
+///            tasks.push (pool->push (myfunc));
+///        // The following brace, by ending the scope of 'tasks', will
+///        // wait for all those queue tasks to finish.
+///    }
+///
+template<typename T=void>
+class task_set {
+public:
+    task_set (thread_pool *pool) { m_pool = pool; }
+    ~task_set () { wait(); }
+    void push (std::future<T> &&f) { m_futures.emplace_back (std::move(f)); }
+    void wait (bool block = false) {
+        const std::chrono::milliseconds wait_time (0);
+        if (block == false) {
+            int tries = 0;
+            while (1) {
+                bool all_finished = true;
+                for (auto&& f : m_futures) {
+                    // Asking future.wait_for for 0 time just checks the status.
+                    auto status = f.wait_for (wait_time);
+                    if (status != std::future_status::ready)
+                        all_finished = false;
+                }
+                if (all_finished)   // All futures are ready? We're done.
+                    break;
+                // We're still waiting on some tasks to complete. What next?
+                if (++tries < 4)    // First few times,
+                    continue;       //   just busy-wait, check status again
+                // Since we're waiting, try to run a task ourselves to help
+                // with the load. If none is available, just yield schedule.
+                if (! m_pool->run_one_task())
+                    yield();
+            }
+        } else {
+            // If block is true, just block on completion of all the tasks
+            // and don't try to do any of the work with the calling thread.
+            for (auto&& f : m_futures)
+                f.wait ();
+        }
+#ifndef NDEBUG
+        for (auto&& f : m_futures)
+            ASSERT (f.wait_for(wait_time) == std::future_status::ready);
+#endif
+    }
+private:
+    thread_pool *m_pool;
+    std::vector<std::future<T>> m_futures;
 };
 
 

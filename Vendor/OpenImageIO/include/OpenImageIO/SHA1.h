@@ -76,9 +76,9 @@
 
 #include <climits>
 
-#include "export.h"
-#include "oiioversion.h"
-#include "platform.h"
+#include <export.h>
+#include <oiioversion.h>
+#include <platform.h>
 
 #if !defined(SHA1_UTILITY_FUNCTIONS) && !defined(SHA1_NO_UTILITY_FUNCTIONS)
 #define SHA1_UTILITY_FUNCTIONS
@@ -94,8 +94,8 @@
 #include <memory.h>
 
 #ifdef SHA1_UTILITY_FUNCTIONS
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #endif
 
 #ifdef SHA1_STL_FUNCTIONS

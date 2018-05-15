@@ -39,50 +39,31 @@
 #define OPENIMAGEIO_HASH_H
 
 #include <vector>
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>   // for memcpy and memset
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <utility>
+#include <unordered_map>
 
-#include "export.h"
-#include "oiioversion.h"
-#include "platform.h"
-#include "fmath.h"   /* for endian */
-#include "string_view.h"
-#include "array_view.h"
+#include <export.h>
+#include <oiioversion.h>
+#include <fmath.h>
+#include <string_view.h>
+#include <array_view.h>
 
-#if OIIO_CPLUSPLUS_VERSION >= 11 || OIIO_MSVS_AT_LEAST_2013
-#  include <unordered_map>
-#else /* FIXME(C++11): remove this after making C++11 the baseline */
-#  include <boost/unordered_map.hpp>
-#endif
 
 
 OIIO_NAMESPACE_BEGIN
 
-// Define OIIO::unordered_map and OIIO::hash as either std or boost.
-#if OIIO_CPLUSPLUS_VERSION >= 11 || OIIO_MSVS_AT_LEAST_2013
 using std::unordered_map;
 using std::hash;
-#else /* FIXME(C++11): remove this after making C++11 the baseline */
-using boost::unordered_map;
-using boost::hash;
-#endif
 
 
 namespace xxhash {
 
 // xxhash:  http://code.google.com/p/xxhash/
 // It's BSD licensed.
-
-OIIO_DEPRECATED("Use XXH32(). (Deprecated since 1.6.")
-unsigned int OIIO_API XXH_fast32 (const void* input, int len,
-                                  unsigned int seed=1771);
-
-OIIO_DEPRECATED("Use XXH32(). (Deprecated since 1.6.")
-unsigned int OIIO_API XXH_strong32 (const void* input, int len,
-                                    unsigned int seed=1771);
 
 unsigned int       OIIO_API XXH32 (const void* input, size_t length,
                                    unsigned seed=1771);
@@ -111,7 +92,7 @@ namespace bjhash {
 // It's in the public domain.
 
 // Mix up the bits of a, b, and c (changing their values in place).
-inline void bjmix (uint32_t &a, uint32_t &b, uint32_t &c)
+inline OIIO_HOSTDEVICE void bjmix (uint32_t &a, uint32_t &b, uint32_t &c)
 {
     a -= c;  a ^= rotl32(c, 4);  c += b;
     b -= a;  b ^= rotl32(a, 6);  a += c;
@@ -123,7 +104,7 @@ inline void bjmix (uint32_t &a, uint32_t &b, uint32_t &c)
 
 // Mix up and combine the bits of a, b, and c (doesn't change them, but
 // returns a hash of those three original values).  21 ops
-inline uint32_t bjfinal (uint32_t a, uint32_t b, uint32_t c=0xdeadbeef)
+inline OIIO_HOSTDEVICE uint32_t bjfinal (uint32_t a, uint32_t b, uint32_t c=0xdeadbeef)
 {
     c ^= b; c -= rotl32(b,14);
     a ^= c; a -= rotl32(c,11);
@@ -298,7 +279,7 @@ uint64_t OIIO_API Hash64WithSeed(const char* s, size_t len, uint64_t seed);
 // May change from time to time, may differ on different platforms, may differ
 // depending on NDEBUG.
 uint64_t OIIO_API Hash64WithSeeds(const char* s, size_t len,
-                       uint64_t seed0, uint64_t seed1);
+                                  uint64_t seed0, uint64_t seed1);
 
 // Hash function for a byte array.
 // May change from time to time, may differ on different platforms, may differ

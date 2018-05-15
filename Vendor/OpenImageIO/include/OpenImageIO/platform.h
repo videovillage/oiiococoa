@@ -56,7 +56,7 @@
 #  ifndef __STDC_LIMIT_MACROS
 #    define __STDC_LIMIT_MACROS  /* needed for some defs in stdint.h */
 #  endif
-#  include <stdint.h>
+#  include <cstdint>
 #endif
 
 #if defined(__FreeBSD__)
@@ -84,17 +84,14 @@
 #include <intrin.h>
 #endif
 
-#include "oiioversion.h"
+#include <oiioversion.h>
 
 // Detect which C++ standard we're using, and handy macros.
 //
 // OIIO_CPLUSPLUS_VERSION : which C++ standard is compiling (3, 11, 14, ...)
 // OIIO_USING_CPP11 : (deprecated) defined and 1 if using C++11 or newer.
-// OIIO_CONSTEXPR : constexpr for C++ >= 11, otherwise nothing
-// OIIO_CONSTEXPR_OR_CONST : constexpr for C++ >= 11, otherwise const
 // OIIO_CONSTEXPR14 : constexpr for C++ >= 14, otherwise nothing (this is
 //                      useful for things that can only be constexpr for 14)
-// OIIO_NOEXCEPT : noexcept for C++ >= 11, otherwise nothing
 //
 // Note: oiioversion.h defines OIIO_BUILD_CPP11 or OIIO_BUILD_CPP14 to be 1
 // if OIIO itself was built using C++11 or C++14, respectively. In contrast,
@@ -104,28 +101,25 @@
 // packages is compiling against OIIO and using these headers (OIIO may be
 // C++11 but the client package may be older, or vice versa -- use these two
 // symbols to differentiate these cases, when important).
-#if (__cplusplus >= 201402L)
-#  define OIIO_USING_CPP11 1
-#  define OIIO_CPLUSPLUS_VERSION  14
-#  define OIIO_CONSTEXPR          constexpr
-#  define OIIO_CONSTEXPR_OR_CONST constexpr
+#if (__cplusplus >= 201700L)
+#  define OIIO_CPLUSPLUS_VERSION  17
 #  define OIIO_CONSTEXPR14        constexpr
-#  define OIIO_NOEXCEPT           noexcept
+#elif (__cplusplus >= 201402L)
+#  define OIIO_CPLUSPLUS_VERSION  14
+#  define OIIO_CONSTEXPR14        constexpr
 #elif (__cplusplus >= 201103L) || _MSC_VER >= 1900
-#  define OIIO_USING_CPP11        1 /* deprecated */
 #  define OIIO_CPLUSPLUS_VERSION  11
-#  define OIIO_CONSTEXPR          constexpr
-#  define OIIO_CONSTEXPR_OR_CONST constexpr
 #  define OIIO_CONSTEXPR14        /* not constexpr before C++14 */
-#  define OIIO_NOEXCEPT           noexcept
 #else
-#  define OIIO_CPLUSPLUS_VERSION  3 /* presume C++03 */
-#  define OIIO_CONSTEXPR          /* not constexpr before C++11 */
-#  define OIIO_CONSTEXPR_OR_CONST const /* not constexpr before C++11 */
-#  define OIIO_CONSTEXPR14        /* not constexpr before C++14 */
-#  define OIIO_NOEXCEPT           /* no noexcept before C++11 */
+#  error "This version of OIIO is meant to work only with C++11 and above"
 #endif
 
+// DEPRECATED(1.8): use C++11 constexpr
+#define OIIO_CONSTEXPR          constexpr
+#define OIIO_CONSTEXPR_OR_CONST constexpr
+
+// DEPRECATED(1.8): use C++11 noexcept
+#define OIIO_NOEXCEPT noexcept
 
 
 // Fallback definitions for feature testing. Some newer compilers define
@@ -147,6 +141,8 @@
 #endif
 
 
+
+// Detect which compiler and version we're using
 
 // Define OIIO_GNUC_VERSION to hold an encoded gcc version (e.g. 40802 for
 // 4.8.2), or 0 if not a GCC release. N.B.: This will be 0 for clang.
@@ -175,18 +171,24 @@
 #endif
 
 // Tests for MSVS versions, always 0 if not MSVS at all.
-#define OIIO_MSVS_AT_LEAST_2013 (defined(_MSC_VER) && _MSC_VER >= 1800)
-#define OIIO_MSVS_BEFORE_2013   (defined(_MSC_VER) && _MSC_VER <  1800)
-#define OIIO_MSVS_AT_LEAST_2015 (defined(_MSC_VER) && _MSC_VER >= 1900)
-#define OIIO_MSVS_BEFORE_2015   (defined(_MSC_VER) && _MSC_VER <  1900)
-
+#if defined(_MSC_VER)
+#  define OIIO_MSVS_AT_LEAST_2013 (_MSC_VER >= 1800)
+#  define OIIO_MSVS_BEFORE_2013   (_MSC_VER <  1800)
+#  define OIIO_MSVS_AT_LEAST_2015 (_MSC_VER >= 1900)
+#  define OIIO_MSVS_BEFORE_2015   (_MSC_VER <  1900)
+#else
+#  define OIIO_MSVS_AT_LEAST_2013 0
+#  define OIIO_MSVS_BEFORE_2013   0
+#  define OIIO_MSVS_AT_LEAST_2015 0
+#  define OIIO_MSVS_BEFORE_2015   0
+#endif
 
 
 /// allocates memory, equivalent of C99 type var_name[size]
-#define OIIO_ALLOCA(type, size) ((type*)alloca((size) * sizeof (type)))
+#define OIIO_ALLOCA(type, size) ((size) != 0 ? ((type*)alloca((size) * sizeof (type))) : nullptr)
 
 /// Deprecated (for namespace pollution reasons)
-#define ALLOCA(type, size) ((type*)alloca((size) * sizeof (type)))
+#define ALLOCA(type, size) ((size) != 0 ? ((type*)alloca((size) * sizeof (type))) : nullptr)
 
 
 // Define a macro that can be used for memory alignment.
@@ -234,7 +236,9 @@
 // always inline. On many compilers regular 'inline' is only advisory. Put
 // this attribute before the function return type, just like you would use
 // 'inline'.
-#if defined(__GNUC__) || defined(__clang__) || __has_attribute(always_inline)
+#if defined(__CUDACC__)
+#  define OIIO_FORCEINLINE __inline__
+#elif defined(__GNUC__) || defined(__clang__) || __has_attribute(always_inline)
 #  define OIIO_FORCEINLINE inline __attribute__((always_inline))
 #elif defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #  define OIIO_FORCEINLINE __forceinline
@@ -270,18 +274,6 @@
 #  define OIIO_CONST_FUNC
 #endif
 
-// OIIO_NOTHROW is a function attribute that assures the compiler that
-// neither the function nor any other function it calls will throw an
-// exception. This declaration goes after the
-// function declaration:  int blah (int arg) OIIO_NOTHROW;
-#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER) || __has_attribute(nothrow)
-#  define OIIO_NOTHROW __attribute__((nothrow))
-#elif defined(_MSC_VER)
-#  define OIIO_NOTHROW __declspec(nothrow)
-#else
-#  define OIIO_NOTHROW
-#endif
-
 // OIIO_UNUSED_OK is a function or variable attribute that assures tells the
 // compiler that it's fine for the item to appear to be unused.
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER) || __has_attribute(unused)
@@ -313,12 +305,33 @@
 #endif
 
 
+// OIIO_NO_SANITIZE_ADDRESS can be used to mark a function that you don't
+// want address sanitizer to catch. Only use this if you know there are
+// false positives that you can't easily get rid of.
+// This should work for any clang >= 3.3 and gcc >= 4.8, which are
+// guaranteed by our minimum requirements.
+#if defined(__clang__) || defined (__GNUC__)
+#  define OIIO_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#else
+#  define OIIO_NO_SANITIZE_ADDRESS
+#endif
+
+
 // Try to deduce endianness
 #if (defined(_WIN32) || defined(__i386__) || defined(__x86_64__))
 #  ifndef __LITTLE_ENDIAN__
 #    define __LITTLE_ENDIAN__ 1
 #    undef __BIG_ENDIAN__
 #  endif
+#endif
+
+
+// OIIO_HOSTDEVICE is used to supply the function decorators needed when
+// compiling for CUDA devices.
+#ifdef __CUDACC__
+#  define OIIO_HOSTDEVICE __host__ __device__
+#else
+#  define OIIO_HOSTDEVICE
 #endif
 
 
@@ -384,6 +397,15 @@ inline bool cpu_has_popcnt() {int i[4]; cpuid(i,1,0); return (i[2] & (1<<23)) !=
 inline bool cpu_has_avx   () {int i[4]; cpuid(i,1,0); return (i[2] & (1<<28)) != 0; }
 inline bool cpu_has_f16c  () {int i[4]; cpuid(i,1,0); return (i[2] & (1<<29)) != 0; }
 inline bool cpu_has_rdrand() {int i[4]; cpuid(i,1,0); return (i[2] & (1<<30)) != 0; }
+inline bool cpu_has_avx2  () {int i[4]; cpuid(i,7,0); return (i[1] & (1<<5)) != 0; }
+inline bool cpu_has_avx512f() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<16)) != 0; }
+inline bool cpu_has_avx512dq() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<17)) != 0; }
+inline bool cpu_has_avx512ifma() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<21)) != 0; }
+inline bool cpu_has_avx512pf() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<26)) != 0; }
+inline bool cpu_has_avx512er() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<27)) != 0; }
+inline bool cpu_has_avx512cd() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<28)) != 0; }
+inline bool cpu_has_avx512bw() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<30)) != 0; }
+inline bool cpu_has_avx512vl() {int i[4]; cpuid(i,7,0); return (i[1] & (0x80000000 /*1<<31*/)) != 0; }
 
 
 OIIO_NAMESPACE_END

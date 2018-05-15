@@ -34,9 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef OPENIMAGEIO_UNORDERED_MAP_CONCURRENT_H
 #define OPENIMAGEIO_UNORDERED_MAP_CONCURRENT_H
 
-#include <OpenImageIO/thread.h>
-#include <OpenImageIO/hash.h>
-#include <OpenImageIO/dassert.h>
+#include <thread.h>
+#include <hash.h>
+#include <dassert.h>
 
 OIIO_NAMESPACE_BEGIN
 
@@ -73,7 +73,7 @@ OIIO_NAMESPACE_BEGIN
 /// lock and obtain a lock on the next bin.
 ///
 
-template<class KEY, class VALUE, class HASH=boost::hash<KEY>,
+template<class KEY, class VALUE, class HASH=std::hash<KEY>,
          class PRED=std::equal_to<KEY>, size_t BINS=16,
          class BINMAP=unordered_map<KEY,VALUE,HASH,PRED> >
 class unordered_map_concurrent {

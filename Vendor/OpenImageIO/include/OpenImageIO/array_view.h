@@ -31,43 +31,25 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include <stdexcept>
 #include <iostream>
+#include <cstddef>
+#include <initializer_list>
+#include <type_traits>
 
-#if OIIO_CPLUSPLUS_VERSION >= 11
-# include <initializer_list>
-# include <type_traits>
-#else /* FIXME(C++11): this case can go away when C++11 is our minimum */
-# include <boost/type_traits.hpp>
-#endif
-
-#include "oiioversion.h"
-#include "platform.h"
-#include "dassert.h"
-#include "coordinate.h"
+#include <oiioversion.h>
+#include <platform.h>
+#include <dassert.h>
 
 OIIO_NAMESPACE_BEGIN
 
-#if OIIO_CPLUSPLUS_VERSION >= 11
-using std::remove_const;
-using std::is_array;
-#else /* FIXME(C++11): this case can go away when C++11 is our minimum */
-using boost::remove_const;
-using boost::is_array;
-#endif
 
 
-template <typename T, size_t Rank> class array_view;
-template <typename T, size_t Rank> class array_view_strided;
-
-
-
-
-/// array_view<T,Rank> : a non-owning reference to a contiguous array with
-/// known length. If Rank > 1, it's multi-dimensional. An array_view<T> is
-/// mutable (the values in the array may be modified), whereas an
-/// array_view<const T> is not mutable.
+/// array_view<T> : a non-owning reference to a contiguous array with known
+/// length.  An array_view<T> is mutable (the values in the array may be
+/// modified), whereas an array_view<const T> is not mutable.
 ///
 /// Background: Functions whose input requires a set of contiguous values
 /// (an array) are faced with a dilemma. If the caller passes just a
@@ -83,244 +65,185 @@ template <typename T, size_t Rank> class array_view_strided;
 /// is transparently and automatically computed without additional user
 /// code).
 
-template <typename T, size_t Rank=1>
+template <typename T>
 class array_view {
-    OIIO_STATIC_ASSERT (Rank >= 1);
-    OIIO_STATIC_ASSERT (is_array<T>::value == false);
+    static_assert (std::is_array<T>::value == false, "can't have array_view of an array");
 public:
-#if OIIO_CPLUSPLUS_VERSION >= 11
-    // using iterator        = bounds_iterator<Rank>;
-    // using const_iterator  = bounds_iterator<Rank>;
-    static OIIO_CONSTEXPR_OR_CONST size_t rank = Rank;
-    using offset_type     = offset<Rank>;
-    using bounds_type     = OIIO::bounds<Rank>;
-    using stride_type     = offset<Rank>;
     using size_type       = size_t;
     using value_type      = T;
     using pointer         = T*;
     using const_pointer   = const T*;
     using reference       = T&;
-#else
-    static const size_t rank = Rank;
-    typedef offset<Rank> offset_type;
-    typedef OIIO::bounds<Rank> bounds_type;
-    typedef offset<Rank> stride_type;
-    typedef size_t size_type;
-    typedef T value_type;
-    typedef T* pointer;
-    typedef const T* const_pointer;
-    typedef T& reference;
-#endif
+    using iterator        = T*;
+    using const_iterator  = const T*;
+    using nonconst_value_type = typename std::remove_const<value_type>::type;
 
     /// Default ctr -- points to nothing
-    array_view () : m_data(NULL) { }
+    constexpr array_view () { }
 
     /// Copy constructor
-    array_view (const array_view &copy)
-        : m_data(copy.data()), m_bounds(copy.bounds()) {}
+    constexpr array_view (const array_view &copy) noexcept
+        : m_data(copy.data()), m_size(copy.size()) { }
 
     /// Construct from T* and length.
-    array_view (pointer data, bounds_type bounds)
-        : m_data(data), m_bounds(bounds) { }
+    constexpr array_view (pointer data, size_t size) noexcept
+        : m_data(data), m_size(size) { }
+
+    /// Construct from begin and end pointers
+    constexpr array_view (pointer b, pointer e) noexcept
+        : m_data(b), m_size(e-b) { }
 
     /// Construct from a single T&.
-    array_view (T &data) : m_data(&data), m_bounds(1) { }
+    constexpr array_view (T &data) : m_data(&data), m_size(1) { }
 
     /// Construct from a fixed-length C array.  Template magic automatically
     /// finds the length from the declared type of the array.
     template<size_t N>
-    array_view (T (&data)[N]) : m_data(data), m_bounds(N) {
-        DASSERT (Rank == 1);
-    }
+    constexpr array_view (T (&data)[N]) : m_data(data), m_size(N) { }
 
     /// Construct from std::vector<T>.
-    array_view (std::vector<T> &v)
-        : m_data(v.size() ? &v[0] : NULL), m_bounds(v.size()) {
-        DASSERT (Rank == 1);
+    constexpr array_view (std::vector<T> &v)
+        : m_data(v.size() ? &v[0] : nullptr), m_size(v.size()) {
     }
 
     /// Construct from const std::vector<T>.
     /// This turns const std::vector<T> into an array_view<const T> (the
     /// array_view isn't const, but the data it points to will be).
-    array_view (const std::vector<typename remove_const<T>::type> &v)
-        : m_data(v.size() ? &v[0] : NULL), m_bounds(v.size()) {
-        DASSERT (Rank == 1);
-    }
+    array_view (const std::vector<typename std::remove_const<T>::type> &v)
+        : m_data(v.size() ? &v[0] : nullptr), m_size(v.size()) { }
 
-#if OIIO_CPLUSPLUS_VERSION >= 11
+    /// Construct from mutable element std::array
+    template <size_t N>
+    constexpr array_view (std::array<nonconst_value_type, N> &arr)
+        : m_data(arr.data()), m_size(N) {}
+
+    /// Construct from read-only element std::array
+    template <size_t N>
+    constexpr array_view (const std::array<nonconst_value_type, N>& arr)
+        : m_data(arr.data()), m_size(N) {}
+
     /// Construct an array_view from an initializer_list.
     constexpr array_view (std::initializer_list<T> il)
-        : array_view (il.begin(), il.size())
-    { }
-#endif
+        : array_view (il.begin(), il.size()) { }
 
     // assignments
     array_view& operator= (const array_view &copy) {
         m_data = copy.data();
-        m_bounds = copy.bounds();
+        m_size = copy.size();
         return *this;
     }
 
-    OIIO_CONSTEXPR bounds_type bounds() const OIIO_NOEXCEPT {
-        return m_bounds;
-    }
-    OIIO_CONSTEXPR14 size_type size() const OIIO_NOEXCEPT {
-        return m_bounds.size();
-    }
-    OIIO_CONSTEXPR14 offset_type stride() const OIIO_NOEXCEPT {
-        if (Rank == 1) {
-            return offset_type(1);
-        } else {
-            offset_type offset;
-            offset[Rank-1] = 1;
-            for (int i = int(Rank)-2; i >= 0; --i)
-                offset[i] = offset[i+1] * m_bounds[i+1];
-            return offset;
-        }
-    }
-    OIIO_CONSTEXPR pointer data() const OIIO_NOEXCEPT { return m_data; }
+    constexpr size_t size() const noexcept { return m_size; }
 
-    OIIO_CONSTEXPR T& operator[] (offset_type idx) const {
-        return VIEW_ACCESS(data(), idx, stride(), Rank);
+    constexpr pointer data() const noexcept { return m_data; }
+
+    constexpr T& operator[] (size_t idx) const noexcept {
+        return m_data[idx];
     }
-    T& at (offset_type idx) const {  // FIXME -- should be offset_type
-        if (! bounds().contains(idx))
+    T& at (size_t idx) const {
+        if (idx >= size())
             throw (std::out_of_range ("OpenImageIO::array_view::at"));
-        return VIEW_ACCESS(data(), idx, stride(), Rank);
+        return m_data[idx];
     }
-    // T& front() const { return m_data[0]; }   // FIXME - delete?
-    // T& back() const { return m_data[size()-1]; }   // FIXME - delete?
 
-    // FIXME -- slicing and sectioning
+    constexpr T& front() const noexcept { return m_data[0]; }
+    constexpr T& back() const noexcept { return m_data[size()-1]; }
+
+    constexpr pointer begin() const noexcept { return m_data; }
+    constexpr pointer end() const noexcept { return m_data + m_size; }
+
+    constexpr const_pointer cbegin() const noexcept { return m_data; }
+    constexpr const_pointer cend() const noexcept { return m_data + m_size; }
 
 private:
-    T * m_data;
-    bounds_type m_bounds;
-
-    reference VIEW_ACCESS (T* data, const offset_type &idx,
-                           const stride_type &stride, size_t rank=Rank) const {
-        ptrdiff_t offset = 0;
-        for (size_t i = 0; i < rank; ++i)
-            offset += idx[i] * stride[i];
-        return data[offset];
-    }
+    T*     m_data = nullptr;
+    size_t m_size = 0;
 };
 
 
 
 
-/// array_view_strided : a non-owning, mutable reference to a contiguous
+/// array_view_strided<T> : a non-owning, mutable reference to a contiguous
 /// array with known length and optionally non-default strides through the
-/// data.   An array_view_strided<T> is mutable (the values in the array may
+/// data.  An array_view_strided<T> is mutable (the values in the array may
 /// be modified), whereas an array_view_strided<const T> is not mutable.
-template <typename T, size_t Rank=1>
+template <typename T>
 class array_view_strided {
-    OIIO_STATIC_ASSERT (Rank >= 1);
-    OIIO_STATIC_ASSERT (is_array<T>::value == false);
+    static_assert (std::is_array<T>::value == false,
+                   "can't have array_view_strided of an array");
 public:
-#if OIIO_CPLUSPLUS_VERSION >= 11
-    static OIIO_CONSTEXPR_OR_CONST size_t rank = Rank;
-    using offset_type     = offset<Rank>;
-    using bounds_type     = OIIO::bounds<Rank>;
-    using stride_type     = offset<Rank>;
     using size_type       = size_t;
+    using stride_type     = ptrdiff_t;
     using value_type      = T;
     using pointer         = T*;
     using const_pointer   = const T*;
     using reference       = T&;
-#else
-    static const size_t rank = Rank;
-    typedef offset<Rank> offset_type;
-    typedef OIIO::bounds<Rank> bounds_type;
-    typedef offset<Rank> stride_type;
-    typedef size_t size_type;
-    typedef T value_type;
-    typedef T* pointer;
-    typedef const T* const_pointer;
-    typedef T& reference;
-#endif
 
     /// Default ctr -- points to nothing
-    array_view_strided () : m_data(NULL), m_stride(0) { }
+    constexpr array_view_strided () {}
 
     /// Copy constructor
-    array_view_strided (const array_view_strided &copy)
-        : m_data(copy.data()), m_bounds(copy.bounds()), m_stride(copy.stride()) {}
+    constexpr array_view_strided (const array_view_strided &copy)
+        : m_data(copy.data()), m_size(copy.size()), m_stride(copy.stride()) {}
 
-    /// Construct from T* and bounds.
-    array_view_strided (T *data, bounds_type bounds)
-        : m_data(data), m_bounds(bounds), m_stride(1) { }
-
-    /// Construct from T*, bounds, and stride.
-    array_view_strided (T *data, bounds_type bounds, stride_type stride)
-        : m_data(data), m_bounds(bounds), m_stride(stride) { }
+    /// Construct from T* and size, and optionally stride.
+    constexpr array_view_strided (T *data, size_t size, stride_type stride=1)
+        : m_data(data), m_size(size), m_stride(stride) { }
 
     /// Construct from a single T&.
-    array_view_strided (T &data) : m_data(&data), m_bounds(1), m_stride(1) { }
+    constexpr array_view_strided (T &data) : array_view_strided(&data,1,1) { }
 
     /// Construct from a fixed-length C array.  Template magic automatically
     /// finds the length from the declared type of the array.
     template<size_t N>
-    array_view_strided (T (&data)[N]) : m_data(data), m_bounds(N), m_stride(1) {
-        DASSERT (Rank == 1);
-    }
+    constexpr array_view_strided (T (&data)[N]) : array_view_strided(data,N,1) {}
+
     /// Construct from std::vector<T>.
-    array_view_strided (std::vector<T> &v)
-        : m_data(v.size() ? &v[0] : NULL), m_bounds(v.size()), m_stride(1) {
-        DASSERT (Rank == 1);
-    }
+    OIIO_CONSTEXPR14 array_view_strided (std::vector<T> &v)
+        : array_view_strided(v.size() ? &v[0] : nullptr, v.size(), 1) {}
 
-    /// Construct from const std::vector<T>.
-    /// This turns const std::vector<T> into an array_view<const T> (the
-    /// array_view isn't const, but the data it points to will be).
-    array_view_strided (const std::vector<typename remove_const<T>::type> &v)
-        : m_data(v.size() ? &v[0] : NULL), m_bounds(v.size()), m_stride(1) {
-        DASSERT (Rank == 1);
-    }
+    /// Construct from const std::vector<T>. This turns const std::vector<T>
+    /// into an array_view_strided<const T> (the array_view_strided isn't
+    /// const, but the data it points to will be).
+    constexpr array_view_strided (const std::vector<typename std::remove_const<T>::type> &v)
+        : array_view_strided(v.size() ? &v[0] : nullptr, v.size(), 1) {}
 
-#if OIIO_CPLUSPLUS_VERSION >= 11
     /// Construct an array_view from an initializer_list.
     constexpr array_view_strided (std::initializer_list<T> il)
         : array_view_strided (il.begin(), il.size())
     { }
-#endif
+
+    /// Initialize from an array_view (stride will be 1).
+    constexpr array_view_strided (array_view<T> av)
+        : array_view_strided(av.data(), av.size(), 1) { }
 
     // assignments
     array_view_strided& operator= (const array_view_strided &copy) {
-        m_data = copy.data();
-        m_bounds = copy.bounds();
+        m_data   = copy.data();
+        m_size   = copy.size();
         m_stride = copy.stride();
         return *this;
     }
 
-    size_type size() const { return m_bounds.size(); }
-    stride_type stride() const { return m_stride; }
+    constexpr size_type size() const noexcept { return m_size; }
+    constexpr stride_type stride() const noexcept { return m_stride; }
 
-    OIIO_CONSTEXPR T& operator[] (size_type idx) const {
-        return VIEW_ACCESS(data(), idx, stride(), Rank);
+    constexpr T& operator[] (size_type idx) const {
+        return m_data[m_stride*idx];
     }
     const T& at (size_t idx) const {
-        if (! bounds().contains(idx))
+        if (idx >= size())
             throw (std::out_of_range ("OpenImageIO::array_view_strided::at"));
-        return VIEW_ACCESS(data(), idx, stride(), Rank);
+        return m_data[m_stride*idx];
     }
-    T& front() const { return m_data[0]; }
-    T& back() const { return get(size()-1); }
-    pointer data() const { return m_data; }
-    bounds_type bounds () const { return m_bounds; }
+    constexpr T& front() const noexcept { return m_data[0]; }
+    constexpr T& back() const noexcept { return (*this)[size()-1]; }
+    constexpr pointer data() const noexcept { return m_data; }
 
 private:
-    T * m_data;
-    bounds_type m_bounds;
-    stride_type m_stride;
-
-    reference VIEW_ACCESS (T* data, const offset_type &idx,
-                           const stride_type &stride, size_t rank=Rank) const {
-        ptrdiff_t offset = 0;
-        for (size_t i = 0; i < rank; ++i)
-            offset += idx[i] * stride[i];
-        return data[offset];
-    }
+    T *         m_data   = nullptr;
+    size_t      m_size   = 0;
+    stride_type m_stride = 1;
 };
 
 

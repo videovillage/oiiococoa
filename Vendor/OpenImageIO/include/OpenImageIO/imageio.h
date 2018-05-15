@@ -54,16 +54,18 @@
 #include <limits>
 #include <cmath>
 
-#include "export.h"
-#include "oiioversion.h"
-#include "platform.h"
-#include "typedesc.h"   /* Needed for TypeDesc definition */
-#include "paramlist.h"
-#include "array_view.h"
+#include <export.h>
+#include <oiioversion.h>
+#include <platform.h>
+#include <typedesc.h>
+#include <paramlist.h>
+#include <strutil.h>
+#include <array_view.h>
 
 OIIO_NAMESPACE_BEGIN
 
 class DeepData;
+struct ROI;
 
 
 /// Type we use for stride lengths.  This is only used to designate
@@ -99,6 +101,7 @@ typedef bool (*ProgressCallback)(void *opaque_data, float portion_done);
 
 
 
+// Deprecated typedefs. Just use ParamValue and ParamValueList directly.
 typedef ParamValue ImageIOParameter;
 typedef ParamValueList ImageIOParameterList;
 
@@ -140,7 +143,7 @@ public:
     /// these data.  Note, however, that the names and semantics of such
     /// extra attributes are plugin-dependent and are not enforced by
     /// the imageio library itself.
-    ImageIOParameterList extra_attribs;  ///< Additional attributes
+    ParamValueList extra_attribs;  ///< Additional attributes
 
     /// Constructor: given just the data format, set all other fields to
     /// something reasonable.
@@ -149,6 +152,10 @@ public:
     /// Constructor for simple 2D scanline image with nothing special.
     /// If fmt is not supplied, default to unsigned 8-bit data.
     ImageSpec (int xres, int yres, int nchans, TypeDesc fmt = TypeDesc::UINT8);
+
+    /// Constructor from an ROI that gives x, y, z, and channel range, and
+    /// a data format.
+    explicit ImageSpec (const ROI &roi, TypeDesc fmt = TypeDesc::UINT8);
 
     /// Set the data format.
     void set_format (TypeDesc fmt);
@@ -314,23 +321,23 @@ public:
     /// matches to only those of the given type. If casesensitive is true,
     /// the name search will be case-sensitive, otherwise the name search
     /// will be performed without regard to case (this is the default).
-    ImageIOParameter * find_attribute (string_view name,
-                                       TypeDesc searchtype=TypeDesc::UNKNOWN,
-                                       bool casesensitive=false);
-    const ImageIOParameter *find_attribute (string_view name,
-                                            TypeDesc searchtype=TypeDesc::UNKNOWN,
-                                            bool casesensitive=false) const;
+    ParamValue * find_attribute (string_view name,
+                                 TypeDesc searchtype=TypeDesc::UNKNOWN,
+                                 bool casesensitive=false);
+    const ParamValue *find_attribute (string_view name,
+                                      TypeDesc searchtype=TypeDesc::UNKNOWN,
+                                      bool casesensitive=false) const;
 
     /// Search for the named attribute and return a pointer to an
-    /// ImageIOParameter record, or NULL if not found.  This variety of
+    /// ParamValue record, or NULL if not found.  This variety of
     /// find_attribute() can retrieve items such as "width", which are part
     /// of the ImageSpec, but not in extra_attribs. The tmpparam is a
     /// temporary storage area owned by the caller, which is used as
     /// temporary buffer in cases where the information does not correspond
     /// to an actual extra_attribs (in this case, the return value will be
     /// &tmpparam).
-    const ImageIOParameter * find_attribute (string_view name,
-                         ImageIOParameter &tmpparam,
+    const ParamValue * find_attribute (string_view name,
+                         ParamValue &tmpparam,
                          TypeDesc searchtype=TypeDesc::UNKNOWN,
                          bool casesensitive=false) const;
 
@@ -352,8 +359,15 @@ public:
     /// For a given parameter p, format the value nicely as a string.  If
     /// 'human' is true, use especially human-readable explanations (units,
     /// or decoding of values) for certain known metadata.
-    static std::string metadata_val (const ImageIOParameter &p,
+    static std::string metadata_val (const ParamValue &p,
                               bool human=false);
+
+    enum SerialFormat  { SerialText, SerialXML };
+    enum SerialVerbose { SerialBrief, SerialDetailed, SerialDetailedHuman };
+
+    /// Convert ImageSpec class into a serialized string.
+    std::string serialize (SerialFormat format,
+                           SerialVerbose verbose = SerialDetailed) const;
 
     /// Convert ImageSpec class into XML string.
     ///
@@ -377,10 +391,18 @@ public:
                 (((zend-z) % tile_depth)  == 0 || (zend-z) == depth));
     }
 
-    /// Return teh channelformat of the given channel.
+    /// Return the channelformat of the given channel. This is safe even
+    /// if channelformats is not filled out.
     TypeDesc channelformat (int chan) const {
         return chan >= 0 && chan < (int)channelformats.size()
             ? channelformats[chan] : format;
+    }
+
+    /// Return the channel name of the given channel. This is safe even if
+    /// channelnames is not filled out.
+    string_view channel_name (int chan) const {
+        return chan >= 0 && chan < (int)channelnames.size()
+            ? string_view(channelnames[chan]) : "";
     }
 
     /// Fill in an array of channel formats describing all channels in
@@ -392,6 +414,9 @@ public:
         if ((int)formats.size() < nchannels)
             formats.resize (nchannels, format);
     }
+
+    /// Return the index of the named channel, or -1 if not found.
+    int channelindex (string_view name) const;
 };
 
 
@@ -803,9 +828,10 @@ public:
 
     /// Error reporting for the plugin implementation: call this with
     /// printf-like arguments.  Note however that this is fully typesafe!
-    // void error (const char *format, ...) const;
-    TINYFORMAT_WRAP_FORMAT (void, error, const,
-        std::ostringstream msg;, msg, append_error(msg.str());)
+    template<typename... Args>
+    void error (string_view fmt, const Args&... args) const {
+        append_error(Strutil::format (fmt, args...));
+    }
 
     /// Set the current thread-spawning policy: the maximum number of
     /// threads that may be spawned by ImageInput internals. A value of 1
@@ -1134,9 +1160,10 @@ public:
 
     /// Error reporting for the plugin implementation: call this with
     /// printf-like arguments.  Note however that this is fully typesafe!
-    /// void error (const char *format, ...)
-    TINYFORMAT_WRAP_FORMAT (void, error, const,
-        std::ostringstream msg;, msg, append_error(msg.str());)
+    template<typename... Args>
+    void error (string_view fmt, const Args&... args) const {
+        append_error(Strutil::format (fmt, args...));
+    }
 
     /// Set the current thread-spawning policy: the maximum number of
     /// threads that may be spawned by ImageOutput internals. A value of 1
@@ -1245,15 +1272,6 @@ OIIO_API std::string geterror ();
 ///     string plugin_searchpath
 ///             Colon-separated list of directories to search for 
 ///             dynamically-loaded format plugins.
-///     string format_list     (for 'getattribute' only, cannot set)
-///             Comma-separated list of all format names supported
-///             or for which plugins could be found.
-///     string extension_list   (for 'getattribute' only, cannot set)
-///             For each format, the format name followed by a colon,
-///             followed by comma-separated list of all extensions that
-///             are presumed to be used for that format.  Semicolons
-///             separate the lists for formats.  For example,
-///                "tiff:tif;jpeg:jpg,jpeg;openexr:exr"
 ///     int read_chunk
 ///             The number of scanlines that will be attempted to read at
 ///             once for read_image calls (default: 256).
@@ -1270,14 +1288,14 @@ OIIO_API std::string geterror ();
 OIIO_API bool attribute (string_view name, TypeDesc type, const void *val);
 // Shortcuts for common types
 inline bool attribute (string_view name, int val) {
-    return attribute (name, TypeDesc::TypeInt, &val);
+    return attribute (name, TypeInt, &val);
 }
 inline bool attribute (string_view name, float val) {
-    return attribute (name, TypeDesc::TypeFloat, &val);
+    return attribute (name, TypeFloat, &val);
 }
 inline bool attribute (string_view name, string_view val) {
     const char *s = val.c_str();
-    return attribute (name, TypeDesc::TypeString, &s);
+    return attribute (name, TypeString, &s);
 }
 
 /// Get the named global attribute of OpenImageIO, store it in *val.
@@ -1285,36 +1303,69 @@ inline bool attribute (string_view name, string_view val) {
 /// otherwise return false and do not modify the contents of *val.  It
 /// is up to the caller to ensure that val points to the right kind and
 /// size of storage for the given type.
+///
+/// In addition to being able to retrieve all the attributes that are
+/// documented as settable by the attribute() call, getattribute() can
+/// also retrieve the following read-only attributes:
+///     string "format_list"
+///             Comma-separated list of all format names supported
+///             or for which plugins could be found.
+///     string "input_format_list"
+///             Comma-separated list of all format names supported
+///             or for which plugins could be found that can read images.
+///     string "output_format_list"
+///             Comma-separated list of all format names supported
+///             or for which plugins could be found that can write images.
+///     string "extension_list"
+///             For each format, the format name followed by a colon,
+///             followed by comma-separated list of all extensions that
+///             are presumed to be used for that format.  Semicolons
+///             separate the lists for formats.  For example,
+///                "tiff:tif;jpeg:jpg,jpeg;openexr:exr"
+///     string "library_list"
+///             For each format that uses an external expendent library, the
+///             format name followed by a colon, followed by the name of
+///             the library. Semicolons separate the lists for formats. For
+///             example,
+///              "jpeg:jpeg-turbo 1.5.1;png:libpng 1.6.29;gif:gif_lib 5.1.4"
+///     string "oiio:simd"
+///             Comma-separated list of the SIMD-related capabilities
+///             enabled when the OIIO library was built. For example,
+///                 "sse2,sse3,ssse3,sse41,sse42,avx"
+///     string "hw:simd"
+///             Comma-separated list of the SIMD-related capabilities
+///             detected at runtime at the time of the query (which may not
+///             match the support compiled into the library).
 OIIO_API bool getattribute (string_view name, TypeDesc type, void *val);
 // Shortcuts for common types
 inline bool getattribute (string_view name, int &val) {
-    return getattribute (name, TypeDesc::TypeInt, &val);
+    return getattribute (name, TypeInt, &val);
 }
 inline bool getattribute (string_view name, float &val) {
-    return getattribute (name, TypeDesc::TypeFloat, &val);
+    return getattribute (name, TypeFloat, &val);
 }
 inline bool getattribute (string_view name, char **val) {
-    return getattribute (name, TypeDesc::TypeString, val);
+    return getattribute (name, TypeString, val);
 }
 inline bool getattribute (string_view name, std::string &val) {
     ustring s;
-    bool ok = getattribute (name, TypeDesc::TypeString, &s);
+    bool ok = getattribute (name, TypeString, &s);
     if (ok)
         val = s.string();
     return ok;
 }
 inline int get_int_attribute (string_view name, int defaultval=0) {
     int val;
-    return getattribute (name, TypeDesc::TypeInt, &val) ? val : defaultval;
+    return getattribute (name, TypeInt, &val) ? val : defaultval;
 }
 inline float get_float_attribute (string_view name, float defaultval=0) {
     float val;
-    return getattribute (name, TypeDesc::TypeFloat, &val) ? val : defaultval;
+    return getattribute (name, TypeFloat, &val) ? val : defaultval;
 }
 inline string_view get_string_attribute (string_view name,
                                  string_view defaultval = string_view()) {
     ustring val;
-    return getattribute (name, TypeDesc::TypeString, &val) ? string_view(val) : defaultval;
+    return getattribute (name, TypeString, &val) ? string_view(val) : defaultval;
 }
 
 
@@ -1468,18 +1519,17 @@ OIIO_API bool wrap_mirror (int &coord, int origin, int width);
 typedef bool (*wrap_impl) (int &coord, int origin, int width);
 
 
-namespace pvt {
-// For internal use - use debugmsg() below for a nicer interface.
-OIIO_API void debugmsg_ (string_view message);
-};
-
-/// debugmsg(format, ...) prints debugging message when attribute "debug" is
+/// debug(format, ...) prints debugging message when attribute "debug" is
 /// nonzero, which it is by default for DEBUG compiles or when the
 /// environment variable OPENIMAGEIO_DEBUG is set. This is preferred to raw
 /// output to stderr for debugging statements.
-///   void debugmsg (const char *format, ...);
-TINYFORMAT_WRAP_FORMAT (void, debugmsg, /**/,
-                        std::ostringstream msg;, msg, pvt::debugmsg_(msg.str());)
+OIIO_API void debug (string_view str);
+
+template<typename T1, typename... Args>
+void debug (string_view fmt, const T1& v1, const Args&... args)
+{
+    debug (Strutil::format(fmt.c_str(), v1, args...));
+}
 
 
 // to force correct linkage on some systems

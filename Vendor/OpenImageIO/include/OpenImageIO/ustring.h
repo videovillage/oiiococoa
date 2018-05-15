@@ -133,11 +133,11 @@
 #include <string>
 #include <iostream>
 #include <cstring>
-#include "export.h"
-#include "strutil.h"
-#include "string_view.h"
-#include "dassert.h"
-#include "oiioversion.h"
+#include <export.h>
+#include <strutil.h>
+#include <string_view.h>
+#include <dassert.h>
+#include <oiioversion.h>
 
 #ifndef NULL
 #define NULL 0
@@ -625,13 +625,14 @@ public:
     /// Construct a ustring in a printf-like fashion.  In other words,
     /// something like:
     ///    ustring s = ustring::format ("blah %d %g", (int)foo, (float)bar);
-    ///
-    /// The printf argument list is fully typesafe via tinyformat; format
-    /// conceptually has the signature
-    ///
-    /// static ustring format (const char *fmt, ...);
-    TINYFORMAT_WRAP_FORMAT (static ustring, format, /**/,
-        std::ostringstream msg;, msg, return ustring(msg.str());)
+    /// The argument list is fully typesafe.
+    /// The formatting of the string will always use the classic "C" locale
+    /// conventions (in particular, '.' as decimal separator for float values).
+    template<typename... Args>
+    static ustring format (string_view fmt, const Args&... args)
+    {
+        return ustring (Strutil::format (fmt, args...));
+    }
 
     /// Generic stream output of a ustring.
     ///
@@ -751,6 +752,13 @@ inline bool iequals (const std::string &a, ustring b) {
     return Strutil::iequals(a, b.string());
 }
 
+
+
+// ustring variant stof from OpenImageIO/strutil.h
+namespace Strutil {
+inline int stof (ustring s) { return Strutil::stof (s.string()); }
+template<> inline std::string to_string (const ustring& value) { return value.string(); }
+} // end namespace Strutil
 
 OIIO_NAMESPACE_END
 

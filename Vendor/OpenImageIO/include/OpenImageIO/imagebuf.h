@@ -43,10 +43,10 @@
 #  pragma warning (disable : 4251)
 #endif
 
-#include "imageio.h"
-#include "fmath.h"
-#include "imagecache.h"
-#include "dassert.h"
+#include <imageio.h>
+#include <fmath.h>
+#include <imagecache.h>
+#include <dassert.h>
 
 #include <limits>
 
@@ -267,6 +267,19 @@ public:
                ProgressCallback progress_callback=NULL,
                void *progress_callback_data=NULL);
 
+    /// Read the file from disk, if possible only allocating and reading a
+    /// subset of channels, [chbegin..chend-1] from disk. This can be a
+    /// performance and memory improvement if you know that any use of the
+    /// ImageBuf will only access a subset of channels from a many-channel
+    /// file. If chbegin==0 and chend is either negative or greater than the
+    /// number of channels in the file, all channels will be read. Please
+    /// note that it is "advisory" and not guaranteed to be honored by the
+    /// underlying implementation.
+    bool read (int subimage, int miplevel, int chbegin, int chend,
+               bool force, TypeDesc convert,
+               ProgressCallback progress_callback=NULL,
+               void *progress_callback_data=NULL);
+
     /// Initialize this ImageBuf with the named image file, and read its
     /// header to fill out the spec correctly.  Return true if this
     /// succeeded, false if the file could not be read.  But don't
@@ -345,9 +358,10 @@ public:
 
     /// Error reporting for ImageBuf: call this with printf-like
     /// arguments.  Note however that this is fully typesafe!
-    /// void error (const char *format, ...)
-    TINYFORMAT_WRAP_FORMAT (void, error, const,
-        std::ostringstream msg;, msg, append_error(msg.str());)
+    template<typename... Args>
+    void error (string_view fmt, const Args&... args) const {
+        append_error(Strutil::format (fmt, args...));
+    }
 
     /// Return true if the IB has had an error and has an error message
     /// to retrieve via geterror().
@@ -408,6 +422,9 @@ public:
     /// a value outside the usual data range of an image.
     enum WrapMode { WrapDefault, WrapBlack, WrapClamp, WrapPeriodic,
                     WrapMirror, _WrapLast };
+
+    /// Named wrap mode to enum WrapMode.
+    static WrapMode WrapMode_from_string (string_view name);
 
     /// Retrieve a single channel of one pixel.
     ///
@@ -716,7 +733,7 @@ public:
     class IteratorBase {
     public:
         IteratorBase (const ImageBuf &ib, WrapMode wrap)
-            : m_ib(&ib), m_tile(NULL), m_proxydata(NULL)
+            : m_ib(&ib)
         {
             init_ib (wrap);
             range_is_image ();
@@ -724,7 +741,7 @@ public:
 
         /// Construct valid iteration region from ImageBuf and ROI.
         IteratorBase (const ImageBuf &ib, const ROI &roi, WrapMode wrap)
-            : m_ib(&ib), m_tile(NULL), m_proxydata(NULL)
+            : m_ib(&ib)
         {
             init_ib (wrap);
             if (roi.defined()) {
@@ -744,7 +761,7 @@ public:
         IteratorBase (const ImageBuf &ib, int xbegin, int xend,
                       int ybegin, int yend, int zbegin, int zend,
                       WrapMode wrap)
-            : m_ib(&ib), m_tile(NULL), m_proxydata(NULL)
+            : m_ib(&ib)
         {
             init_ib (wrap);
             m_rng_xbegin = xbegin;
@@ -760,7 +777,7 @@ public:
               m_rng_xbegin(i.m_rng_xbegin), m_rng_xend(i.m_rng_xend), 
               m_rng_ybegin(i.m_rng_ybegin), m_rng_yend(i.m_rng_yend),
               m_rng_zbegin(i.m_rng_zbegin), m_rng_zend(i.m_rng_zend),
-              m_tile(NULL), m_proxydata(i.m_proxydata)
+              m_proxydata(i.m_proxydata)
         {
             init_ib (i.m_wrap);
         }
@@ -939,10 +956,10 @@ public:
     protected:
         friend class ImageBuf;
         friend class ImageBufImpl;
-        const ImageBuf *m_ib;
-        bool m_valid, m_exists;
-        bool m_deep;
-        bool m_localpixels;
+        const ImageBuf *m_ib = nullptr;
+        bool m_valid = false, m_exists = false;
+        bool m_deep = false;
+        bool m_localpixels = false;
         // Image boundaries
         int m_img_xbegin, m_img_xend, m_img_ybegin, m_img_yend,
             m_img_zbegin, m_img_zend;
@@ -950,13 +967,13 @@ public:
         int m_rng_xbegin, m_rng_xend, m_rng_ybegin, m_rng_yend,
             m_rng_zbegin, m_rng_zend;
         int m_x, m_y, m_z;
-        ImageCache::Tile *m_tile;
+        ImageCache::Tile *m_tile = nullptr;
         int m_tilexbegin, m_tileybegin, m_tilezbegin;
         int m_tilexend;
         int m_nchannels;
         size_t m_pixel_bytes;
-        char *m_proxydata;
-        WrapMode m_wrap;
+        char *m_proxydata = nullptr;
+        WrapMode m_wrap = WrapBlack;
 
         // Helper called by ctrs -- set up some locally cached values
         // that are copied or derived from the ImageBuf.

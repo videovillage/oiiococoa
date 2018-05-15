@@ -38,12 +38,13 @@
 #  pragma warning (disable : 4251)
 #endif
 
-#include "imageio.h"
-#include "imagebuf.h"
-#include "fmath.h"
-#include "color.h"
+#include <imageio.h>
+#include <imagebuf.h>
+#include <fmath.h>
+#include <color.h>
+#include <array_view.h>
 
-#include <OpenEXR/ImathMatrix.h>       /* because we need M33f */
+#include <ImathMatrix.h>       /* because we need M33f */
 
 #include <limits>
 
@@ -971,16 +972,13 @@ bool OIIO_API colorconvert (ImageBuf &dst, const ImageBuf &src,
                             string_view context_value="",
                             ColorConfig *colorconfig=NULL,
                             ROI roi=ROI::All(), int nthreads=0);
-// DEPRECATED: [1.7]
+
+OIIO_DEPRECATED("Use the other version. [1.7]")
 bool OIIO_API colorconvert (ImageBuf &dst, const ImageBuf &src,
                             string_view from, string_view to,
-                            bool unpremult=false,
-                            ColorConfig *colorconfig=NULL,
+                            bool unpremult,
+                            ColorConfig *colorconfig,
                             ROI roi=ROI::All(), int nthreads=0);
-OIIO_DEPRECATED("Use the version that takes a ColorConfig*. [1.6]")
-bool OIIO_API colorconvert (ImageBuf &dst, const ImageBuf &src,
-                            string_view from, string_view to,
-                            bool unpremult, ROI roi, int nthreads=0);
 
 /// Copy pixels within the ROI from src to dst, applying a color transform.
 /// In-place operations (dst == src) are supported.
@@ -1031,12 +1029,6 @@ bool OIIO_API ociolook (ImageBuf &dst, const ImageBuf &src,
                         string_view key="", string_view value="",
                         ColorConfig *colorconfig=NULL,
                         ROI roi=ROI::All(), int nthreads=0);
-OIIO_DEPRECATED("Use the version that takes a ColorConfig*. [1.6]")
-bool OIIO_API ociolook (ImageBuf &dst, const ImageBuf &src,
-                        string_view looks, string_view from, string_view to,
-                        bool unpremult, bool inverse,
-                        string_view key, string_view value,
-                        ROI roi, int nthreads=0);
 
 /// Copy pixels within the ROI from src to dst, applying an OpenColorIO
 /// "display" transform.  If from or looks are NULL, it will not
@@ -1062,12 +1054,6 @@ bool OIIO_API ociodisplay (ImageBuf &dst, const ImageBuf &src,
                         string_view key="", string_view value="",
                         ColorConfig *colorconfig=NULL,
                         ROI roi=ROI::All(), int nthreads=0);
-OIIO_DEPRECATED("Use the version that takes a ColorConfig*. [1.6]")
-bool OIIO_API ociodisplay (ImageBuf &dst, const ImageBuf &src,
-                        string_view display, string_view view,
-                        string_view from, string_view looks,
-                        bool unpremult, string_view key, string_view value,
-                        ROI roi, int nthreads=0);
 
 /// Copy pixels within the ROI from src to dst, applying an OpenColorIO
 /// "file" transform.  If inverse is true, it will reverse the color
@@ -1118,6 +1104,41 @@ bool OIIO_API unpremult (ImageBuf &dst, const ImageBuf &src,
 /// message set in dst).
 bool OIIO_API premult (ImageBuf &dst, const ImageBuf &src,
                        ROI roi = ROI::All(), int nthreads = 0);
+
+
+/// Set pixels of dst with values determined by looking up a color map using
+/// values of the source image, using either the channel specified by
+/// srcchannel, or the luminance of src's RGB if srcchannel is -1. This
+/// happens for all pixels within the  ROI (which defaults to all of src),
+/// and if dst is not already initialized, it will be initialized to the ROI
+/// and with color channels equal to channels.
+///
+/// The knots of the interpolated map are given by knots[nknots*channels].
+/// An input value of 0.0 corresponds to knots[0..channels-1], an input
+/// value of 1.0 corresponds ot knots[(nknots-1)*channels..knots.size()-1].
+///
+/// Return true on successs, false on error (with an appropriate error
+/// message set in dst).
+bool OIIO_API color_map (ImageBuf &dst, const ImageBuf &src,
+                         int srcchannel, int nknots, int channels,
+                         array_view<const float> knots,
+                         ROI roi = ROI::All(), int nthreads = 0);
+
+/// Set pixels of dst with values determined by looking up a color map using
+/// values of the source image, using either the channel specified by
+/// srcchannel, or the luminance of src's RGB if srcchannel is -1. This
+/// happens for all pixels within the  ROI (which defaults to all of src),
+/// and if dst is not already initialized, it will be initialized to the ROI
+/// and with 3 color channels.
+///
+/// The mapname may be one of: "blue-red", "spectrum", "heat".
+///
+/// Return true on successs, false on error (with an appropriate error
+/// message set in dst).
+bool OIIO_API color_map (ImageBuf &dst, const ImageBuf &src,
+                         int srcchannel, string_view mapname,
+                         ROI roi = ROI::All(), int nthreads = 0);
+
 
 
 
@@ -1857,6 +1878,17 @@ bool OIIO_API zover (ImageBuf &dst, const ImageBuf &A, const ImageBuf &B,
                      ROI roi = ROI::All(), int nthreads = 0);
 
 
+/// Set dst to the samples of deep image src that are closer than the opaque
+/// frontier of deep image holdout, returning true upon success and false
+/// for any failures. Samples of src that are farther than the first opaque
+/// sample of holdout (for the corresponding pixel)will not be copied to
+/// dst. Image holdout is only used as the depth threshold; no sample values
+/// from holdout are themselves copied to dst.
+bool OIIO_API deep_holdout (ImageBuf &dst, const ImageBuf &src,
+                            const ImageBuf &holdout,
+                            ROI roi = ROI::All(), int nthreads = 0);
+
+
 
 /// Render a single point at (x,y) of the given color "over" the existing
 /// image dst. If there is no alpha channel, the color will be written
@@ -1887,19 +1919,55 @@ bool OIIO_API render_box (ImageBuf &dst, int x1, int y1, int x2, int y2,
                           array_view<const float> color, bool fill = false,
                           ROI roi = ROI::All(), int nthreads = 0);
 
-/// Render a text string (encoded as UTF-8) into image dst, essentially
-/// doing an "over" of the character into the existing pixel data.  The
-/// baseline of the first character will start at position (x,y).  The font
-/// is given by fontname as a full pathname to the font file (defaulting to
-/// some reasonable system font if not supplied at all), and with a nominal
-/// height of fontsize (in pixels).  The characters will be drawn in opaque
-/// white (1.0,1.0,...) in all channels, unless textcolor is supplied (and
-/// is expected to point to a float array of length at least equal to
-/// R.spec().nchannels).
-bool OIIO_API render_text (ImageBuf &dst, int x, int y,
-                           string_view text,
+
+enum class TextAlignX { Left, Right, Center };
+enum class TextAlignY { Baseline, Top, Bottom, Center };
+
+/// Render a text string (encoded as UTF-8) into image dst. If the dst image
+/// is not yet initiailzed, it will be initialized to be a black background
+/// exactly large enought to contain the rasterized text.  If dst is already
+/// initialized, the text will be rendered into the existing image by
+/// essentially doing an "over" of the character into the existing pixel
+/// data.
+///
+/// The font is given by fontname (if not a full pathname to a font file, it
+/// will search for a matching font, defaulting to some reasonable system
+/// font if not supplied at all), and with a nominal height of fontsize (in
+/// pixels).
+///
+/// The position is given by coordinates (x,y), with the default behavior
+/// to align the left edge of the character baseline to (x,y). Optionally,
+/// alignx and aligny can override the alignment behavior, with horizontal
+/// alignment choices of TextAlignX::Left, Right, and Center, and vertical
+/// alignment choices of TextAlginY::Baseline, Top, Bottom, or Center.
+///
+/// The characters will be drawn in opaque white (1.0,1.0,...) in all
+/// channels, unless textcolor is supplied (and is expected to point to a
+/// float array of length at least equal to R.spec().nchannels, or defaults
+/// will be chosen for you). If shadow is nonzero, a "drop shadow" of that
+/// radius will be used to make the text look more clear by dilating the
+/// alpha channel of the composite (makes a black halo around the
+/// characters).
+bool OIIO_API render_text (ImageBuf &dst, int x, int y, string_view text,
                            int fontsize=16, string_view fontname="",
-                           const float *textcolor = NULL);
+                           array_view<const float> textcolor = array_view<const float>(),
+                           TextAlignX alignx = TextAlignX::Left,
+                           TextAlignY aligny = TextAlignY::Baseline,
+                           int shadow = 0,
+                           ROI roi = ROI::All(), int nthreads = 0);
+
+// Old style (pre-1.8) -- will eventually be deprecated.
+bool OIIO_API render_text (ImageBuf &dst, int x, int y, string_view text,
+                           int fontsize, string_view fontname,
+                           const float *textcolor);
+
+/// Helper function: how big is the text that would be drawn by render_text?
+/// Returns the extent as an ROI (relative to the left edge of the baseline
+/// of the first character). The size is an ROI, but only the x and y
+/// dimensions are used. Failures can be detected by testing the ROI's
+/// defined() property.
+ROI OIIO_API text_size (string_view text, int fontsize=16,
+                        string_view fontname="");
 
 
 
@@ -2008,6 +2076,9 @@ enum OIIO_API MakeTextureMode {
 ///    maketx:outcolorspace (string) 
 ///                           These two together will apply a color conversion
 ///                               (with OpenColorIO, if compiled). Default: ""
+///    maketx:colorconfig (string)
+///                           Specifies a custom OpenColorIO color config
+///                           file. Default: ""
 ///    maketx:checknan (int)  If nonzero, will consider it an error if the
 ///                               input image has any NaN pixels. (0)
 ///    maketx:fixnan (string) If set to "black" or "box3", will attempt

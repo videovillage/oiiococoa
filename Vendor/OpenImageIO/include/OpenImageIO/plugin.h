@@ -43,8 +43,8 @@
 
 #include <string>
 
-#include "export.h"
-#include "oiioversion.h"
+#include <export.h>
+#include <oiioversion.h>
 
 
 OIIO_NAMESPACE_BEGIN

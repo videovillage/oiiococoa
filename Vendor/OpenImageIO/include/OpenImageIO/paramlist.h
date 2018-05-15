@@ -39,17 +39,11 @@
 #ifndef OPENIMAGEIO_PARAMLIST_H
 #define OPENIMAGEIO_PARAMLIST_H
 
-#if defined(_MSC_VER)
-// Ignore warnings about DLL exported classes with member variables that are template classes.
-// This happens with the Rep m_vals member variable of ParamValueList below, which is a std::vector<T>.
-#  pragma warning (disable : 4251)
-#endif
-
 #include <vector>
 
-#include "export.h"
-#include "typedesc.h"
-#include "ustring.h"
+#include <export.h>
+#include <typedesc.h>
+#include <ustring.h>
 
 
 OIIO_NAMESPACE_BEGIN
@@ -93,10 +87,43 @@ public:
                 Interp _interp, const void *_value, bool _copy=true) {
         init_noclear (ustring(_name), _type, _nvalues, _interp, _value, _copy);
     }
-    ParamValue (const ParamValue &p, bool _copy=true) {
+    ParamValue (string_view _name, int value) {
+        init_noclear (ustring(_name), TypeDesc::INT, 1, &value);
+    }
+    ParamValue (string_view _name, float value) {
+        init_noclear (ustring(_name), TypeDesc::FLOAT, 1, &value);
+    }
+    ParamValue (string_view _name, ustring value) {
+        init_noclear (ustring(_name), TypeDesc::STRING, 1, &value);
+    }
+    ParamValue (string_view _name, string_view value) {
+        ustring u (value);
+        init_noclear (ustring(_name), TypeDesc::STRING, 1, &u);
+    }
+
+    // Set from string -- parse
+    ParamValue (string_view _name, TypeDesc type, string_view value);
+
+    // Copy constructor
+    ParamValue (const ParamValue &p) {
+        init_noclear (p.name(), p.type(), p.nvalues(), p.interp(), p.data(), true);
+    }
+    ParamValue (const ParamValue &p, bool _copy) {
         init_noclear (p.name(), p.type(), p.nvalues(), p.interp(), p.data(), _copy);
     }
+
+    // Rvalue ref -- "move constructor"
+    ParamValue (ParamValue&& p)
+        : m_name(p.m_name), m_nvalues(p.m_nvalues), m_interp(p.m_interp),
+          m_copy(p.m_copy), m_nonlocal(p.m_nonlocal)
+    {
+        m_type = p.m_type;
+        m_data.ptr = p.m_data.ptr;
+        p.m_data.ptr = nullptr;
+    }
+
     ~ParamValue () { clear_value(); }
+
     void init (ustring _name, TypeDesc _type, int _nvalues,
                Interp _interp, const void *_value, bool _copy=true) {
         clear_value ();
@@ -141,6 +168,38 @@ public:
         std::swap (a.m_nonlocal, b.m_nonlocal);
     }
 
+    // Use with extreme caution! This is just doing a cast. You'd better
+    // be really sure you are asking for the right type. Note that for
+    // "string" data, you can get<ustring> or get<char*>, but it's not
+    // a std::string.
+    template<typename T>
+    const T& get (int i=0) const { return (reinterpret_cast<const T*>(data()))[i]; }
+
+    /// Retrive an integer, with converstions from a wide variety of type
+    /// cases, including unsigned, short, byte. Not float. It will retrive
+    /// from a string, but only if the string is entirely a valid int
+    /// format. Unconvertable types return the default value.
+    int get_int (int defaultval=0) const;
+    int get_int_indexed (int index, int defaultval=0) const;
+
+    /// Retrive a float, with converstions from a wide variety of type
+    /// cases, including integers. It will retrive from a string, but only
+    /// if the string is entirely a valid float format. Unconvertable types
+    /// return the default value.
+    float get_float (float defaultval=0) const;
+    float get_float_indexed (int index, float defaultval=0) const;
+
+    /// Convert any type to a string value. An optional maximum number of
+    /// elements is also passed. In the case of a single string, just the
+    /// string directly is returned. But for an array of strings, the array
+    /// is returned as one string that's a comma-separated list of double-
+    /// quoted, escaped strings.
+    std::string get_string (int maxsize = 64) const;
+    /// Convert any type to a ustring value. An optional maximum number of
+    /// elements is also passed. Same behavior as get_string, but returning
+    /// a ustring.
+    ustring get_ustring (int maxsize = 64) const;
+
 private:
     ustring m_name;           ///< data name
     TypeDesc m_type;          ///< data type, which may itself be an array
@@ -163,39 +222,11 @@ private:
 
 
 /// A list of ParamValue entries, that can be iterated over or searched.
-///
-class OIIO_API ParamValueList {
-    typedef std::vector<ParamValue> Rep;
+/// It's really just a std::vector<ParamValue>, but with a few more handy
+/// methods.
+class OIIO_API ParamValueList : public std::vector<ParamValue> {
 public:
     ParamValueList () { }
-
-    typedef Rep::iterator        iterator;
-    typedef Rep::const_iterator  const_iterator;
-    typedef ParamValue           value_type;
-    typedef value_type &         reference;
-    typedef const value_type &   const_reference;
-    typedef value_type *         pointer;
-    typedef const value_type *   const_pointer;
-
-    iterator begin () { return m_vals.begin(); }
-    iterator end () { return m_vals.end(); }
-    const_iterator begin () const { return m_vals.begin(); }
-    const_iterator end () const { return m_vals.end(); }
-    const_iterator cbegin () const { return m_vals.begin(); }
-    const_iterator cend () const { return m_vals.end(); }
-
-    reference front () { return m_vals.front(); }
-    reference back () { return m_vals.back(); }
-    const_reference front () const { return m_vals.front(); }
-    const_reference back () const { return m_vals.back(); }
-
-    reference operator[] (int i) { return m_vals[i]; }
-    const_reference operator[] (int i) const { return m_vals[i]; }
-    reference operator[] (size_t i) { return m_vals[i]; }
-    const_reference operator[] (size_t i) const { return m_vals[i]; }
-
-    void resize (size_t newsize) { m_vals.resize (newsize); }
-    size_t size () const { return m_vals.size(); }
 
     /// Add space for one more ParamValue to the list, and return a
     /// reference to its slot.
@@ -204,10 +235,6 @@ public:
         return back ();
     }
 
-    /// Add a ParamValue to the end of the list.
-    ///
-    void push_back (const ParamValue &p) { m_vals.push_back (p); }
-    
     /// Find the first entry with matching name, and if type != UNKNOWN,
     /// then also with matching type. The name search is case sensitive if
     /// casesensitive == true.
@@ -220,24 +247,32 @@ public:
     const_iterator find (ustring name, TypeDesc type = TypeDesc::UNKNOWN,
                          bool casesensitive = true) const;
 
-    /// Removes from the ParamValueList container a single element.
-    /// 
-    iterator erase (iterator position) { return m_vals.erase (position); }
-    
-    /// Removes from the ParamValueList container a range of elements ([first,last)).
-    /// 
-    iterator erase (iterator first, iterator last) { return m_vals.erase (first, last); }
-    
-    /// Remove all the values in the list.
-    ///
-    void clear () { m_vals.clear(); }
+    /// Case insensitive search for an integer, with default if not found.
+    /// Automatically will return an int even if the data is really
+    /// unsigned, short, or byte, but not float. It will retrive from a
+    /// string, but only if the string is entirely a valid int format.
+    int get_int (string_view name, int defaultval=0,
+                 bool casesensitive=false, bool convert=true) const;
+
+    /// Case insensitive search for a float, with default if not found.
+    /// Automatically will return a float even if the data is really double
+    /// or half. It will retrive from a string, but only if the string is
+    /// entirely a valid float format.
+    float get_float (string_view name, float defaultval=0,
+                     bool casesensitive=false, bool convert=true) const;
+
+    /// Simple way to get a string attribute, with default provided.
+    /// If the value is another type, it will be turned into a string.
+    string_view get_string (string_view name,
+                            string_view defaultval = string_view(),
+                            bool casesensitive=false, bool convert=true) const;
+    ustring get_ustring (string_view name,
+                         string_view defaultval = string_view(),
+                         bool casesensitive=false, bool convert=true) const;
 
     /// Even more radical than clear, free ALL memory associated with the
     /// list itself.
-    void free () { Rep tmp; std::swap (m_vals, tmp); }
-
-private:
-    Rep m_vals;
+    void free () { clear(); shrink_to_fit(); }
 };
 
 

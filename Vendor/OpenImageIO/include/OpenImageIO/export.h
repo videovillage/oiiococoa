@@ -29,8 +29,8 @@
 */
 
 
-#ifndef OPENIMAGEIO_EXPORT_H
-#define OPENIMAGEIO_EXPORT_H
+#pragma once
+
 
 /// \file
 /// Macros necessary for proper symbol export from dynamic libraries.
@@ -80,15 +80,9 @@
   #endif
   #define OIIO_LOCAL
 #else
-  #if (10000*__GNUC__ + 100*__GNUC_MINOR__ + __GNUC_PATCHLEVEL__) > 40102
-    #define OIIO_IMPORT __attribute__ ((visibility ("default")))
-    #define OIIO_EXPORT __attribute__ ((visibility ("default")))
-    #define OIIO_LOCAL  __attribute__ ((visibility ("hidden")))
-  #else
-    #define OIIO_IMPORT
-    #define OIIO_EXPORT
-    #define OIIO_LOCAL
-  #endif
+  #define OIIO_IMPORT __attribute__ ((visibility ("default")))
+  #define OIIO_EXPORT __attribute__ ((visibility ("default")))
+  #define OIIO_LOCAL  __attribute__ ((visibility ("hidden")))
 #endif
 
 #if defined(OpenImageIO_EXPORTS) || defined(OpenImageIO_Util_EXPORTS)
@@ -96,10 +90,3 @@
 #else
 #  define OIIO_API OIIO_IMPORT
 #endif
-
-
-// Back compatibility macros (DEPRECATED)
-#define DLLPUBLIC OIIO_API
-#define DLLEXPORT OIIO_EXPORT
-
-#endif // OPENIMAGEIO_EXPORT_H

@@ -34,13 +34,10 @@
 
 
 // Versioning of the OpenImageIO software
-
-#define OIIO_NAMESPACE OpenImageIO
 #define OIIO_VERSION_MAJOR 1
-#define OIIO_VERSION_MINOR 7
-#define OIIO_VERSION_PATCH 17
+#define OIIO_VERSION_MINOR 8
+#define OIIO_VERSION_PATCH 11
 #define OIIO_VERSION_RELEASE_TYPE 
-#define OIIO_VERSION_NS v1_7
 
 #define OIIO_VERSION (10000 * OIIO_VERSION_MAJOR + \
                         100 * OIIO_VERSION_MINOR + \
@@ -58,27 +55,16 @@
 #define OIIO_INTRO_STRING "OpenImageIO " OIIO_VERSION_STRING " http://www.openimageio.org"
 
 
-#ifndef NAMESPACE_BEGIN
-#  define NAMESPACE_BEGIN(name) namespace name {
-#endif
-#ifndef NAMESPACE_END
-#  define NAMESPACE_END(name) }
-#endif
+// Establish the name spaces
+namespace OpenImageIO_v1_8 { }
+namespace OIIO = OpenImageIO_v1_8;
 
 // Macros to use in each file to enter and exit the right name spaces.
-#define OIIO_NAMESPACE_BEGIN \
-            NAMESPACE_BEGIN(OIIO_NAMESPACE) \
-            NAMESPACE_BEGIN(OIIO_VERSION_NS)
-#define OIIO_NAMESPACE_END \
-            NAMESPACE_END(OIIO_VERSION_NS) \
-            using namespace OIIO_VERSION_NS;\
-            NAMESPACE_END(OIIO_NAMESPACE)
-#define OIIO_NAMESPACE_USING using namespace OIIO_NAMESPACE;
-
-// Establish the name spaces and make an alias 'OIIO' that gives us what
-// everybody really wants.
-namespace OIIO_NAMESPACE { namespace OIIO_VERSION_NS { } }
-namespace OIIO = OIIO_NAMESPACE::OIIO_VERSION_NS;
+#define OIIO_NAMESPACE OpenImageIO_v1_8
+#define OIIO_NAMESPACE_STRING "OpenImageIO_v1_8"
+#define OIIO_NAMESPACE_BEGIN namespace OpenImageIO_v1_8 {
+#define OIIO_NAMESPACE_END }
+#define OIIO_NAMESPACE_USING using namespace OIIO;
 
 
 /// Each imageio DSO/DLL should include this statement:
@@ -122,10 +108,11 @@ namespace OIIO = OIIO_NAMESPACE::OIIO_VERSION_NS;
 #define OIIO_PLUGIN_EXPORTS_END }
 #endif
 
-// OIIO_BUILD_CPP11 will be 1 if this OIIO was built using C++11
-#define OIIO_BUILD_CPP11 1
+#define OIIO_BUILD_CPP11 1 /* Always build for C++ >= 11 */
 // OIIO_BUILD_CPP14 will be 1 if this OIIO was built using C++14
 #define OIIO_BUILD_CPP14 0
+// OIIO_BUILD_CPP17 will be 1 if this OIIO was built using C++17
+#define OIIO_BUILD_CPP17 0
 
 #endif
 

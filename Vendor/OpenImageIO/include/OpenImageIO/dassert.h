@@ -35,7 +35,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "platform.h"
+#include <platform.h>
 
 
 /// \file
@@ -71,7 +71,7 @@
 #ifndef ASSERT
 # define ASSERT(x)                                              \
     (OIIO_LIKELY(x) ? ((void)0)                                 \
-         : (fprintf (stderr, "%s:%u: failed assertion '%s'\n",  \
+         : (std::fprintf (stderr, "%s:%u: failed assertion '%s'\n",  \
                      __FILE__, __LINE__, #x), abort()))
 #endif
 
@@ -80,7 +80,7 @@
 #ifndef ASSERT_MSG
 # define ASSERT_MSG(x,msg,...)                                      \
     (OIIO_LIKELY(x) ? ((void)0)                                     \
-         : (fprintf (stderr, "%s:%u: failed assertion '%s': " msg "\n", \
+         : (std::fprintf (stderr, "%s:%u: failed assertion '%s': " msg "\n", \
                     __FILE__, __LINE__, #x,  __VA_ARGS__), abort()))
 #endif
 
@@ -96,7 +96,7 @@
 # define DASSERT(x) ASSERT(x)
 #else
  /* DASSERT does nothing when not debugging; sizeof trick prevents warnings */
-# define DASSERT(x) ((void)sizeof(x))
+# define DASSERT(x) ((void)sizeof(x)) /*NOLINT*/
 #endif
 
 /// DASSERT_MSG(condition,msg,...) is just like ASSERT_MSG, except that it
@@ -105,7 +105,8 @@
 #ifndef NDEBUG
 # define DASSERT_MSG ASSERT_MSG
 #else
-# define DASSERT_MSG(x,...) ((void)sizeof(x)) /* does nothing when not debugging */
+ /* does nothing when not debugging */
+# define DASSERT_MSG(x,...) ((void)sizeof(x)) /*NOLINT*/
 #endif
 
 #ifndef DASSERTMSG
@@ -120,13 +121,9 @@
 #if (__cplusplus >= 201700L)  /* FIXME - guess the token, fix when C++17 */
 #  define OIIO_STATIC_ASSERT(cond)         static_assert(cond)
 #  define OIIO_STATIC_ASSERT_MSG(cond,msg) static_assert(cond,msg)
-#elif (__cplusplus >= 201103L)
+#else /* (__cplusplus >= 201103L) */
 #  define OIIO_STATIC_ASSERT(cond)         static_assert(cond,"")
 #  define OIIO_STATIC_ASSERT_MSG(cond,msg) static_assert(cond,msg)
-#else /* FIXME(C++11): this case can go away when C++11 is our minimum */
-#  include <boost/static_assert.hpp>
-#  define OIIO_STATIC_ASSERT(cond)         BOOST_STATIC_ASSERT(cond)
-#  define OIIO_STATIC_ASSERT_MSG(cond,msg) BOOST_STATIC_ASSERT_MSG(cond,msg)
 #endif
 
 

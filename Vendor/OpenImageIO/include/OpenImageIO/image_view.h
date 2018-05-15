@@ -48,14 +48,14 @@
 #  ifndef __STDC_LIMIT_MACROS
 #    define __STDC_LIMIT_MACROS  /* needed for some defs in stdint.h */
 #  endif
-#  include <stdint.h>
+#  include <cstdint>
 #  if ! defined(INT64_MIN)
 #    error You must define __STDC_LIMIT_MACROS prior to including stdint.h
 #  endif
 #endif
 
-#include "oiioversion.h"
-#include "strided_ptr.h"
+#include <oiioversion.h>
+#include <strided_ptr.h>
 
 
 OIIO_NAMESPACE_BEGIN
@@ -107,12 +107,13 @@ public:
         return *this;
     }
 
-    /// iav(x,y,z)returns a strided_ptr for the pixel (x,y,z).  The z
+    /// iav(x,y,z)returns a strided_ptr<T,1> for the pixel (x,y,z).  The z
     /// can be omitted for 2D images.  Note than the resulting
     /// strided_ptr can then have individual channels accessed with
-    /// operator[].
-    strided_ptr<T> operator() (int x, int y, int z=0) {
-        return strided_ptr<T> (getptr(0,x,y,z), m_chanstride);
+    /// operator[]. This particular strided pointer has stride multiplier
+    /// 1, because this class uses bytes as strides, not sizeof(T).
+    strided_ptr<T,1> operator() (int x, int y, int z=0) {
+        return strided_ptr<T,1> (getptr(0,x,y,z), m_chanstride);
     }
 
     int nchannels() const { return m_nchannels; }

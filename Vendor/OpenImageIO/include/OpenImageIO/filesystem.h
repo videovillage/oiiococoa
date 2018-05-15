@@ -42,20 +42,20 @@
 #ifndef OPENIMAGEIO_FILESYSTEM_H
 #define OPENIMAGEIO_FILESYSTEM_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <fstream>
 #include <string>
 #include <vector>
 
-#include "export.h"
-#include "oiioversion.h"
-#include "string_view.h"
+#include <export.h>
+#include <oiioversion.h>
+#include <string_view.h>
 
 #if defined(_WIN32) && defined(__GLIBCXX__)
 #define OIIO_FILESYSTEM_USE_STDIO_FILEBUF 1
-#include "fstream_mingw.h"
+#include <fstream_mingw.h>
 #endif
 
 OIIO_NAMESPACE_BEGIN

@@ -40,16 +40,16 @@
 #pragma once
 
 #include <string>
-#include <time.h>
+#include <ctime>
 
 #ifdef __MINGW32__
 #include <malloc.h> // for alloca
 #endif
 
-#include "export.h"
-#include "oiioversion.h"
-#include "platform.h"
-#include "string_view.h"
+#include <export.h>
+#include <oiioversion.h>
+#include <platform.h>
+#include <string_view.h>
 
 
 OIIO_NAMESPACE_BEGIN
