@@ -80,15 +80,15 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     if(fr) {
         float framerate = (*(const float *)tc->data());
-        if(floor(framerate) != 0.0){
+        if(floor(framerate) != 0.0 && framerate != INFINITY){
             *outFramerate = (double)framerate;
         }
         else{
-            *outFramerate = 23.976;
+            *outFramerate = INFINITY;
         }
     }
     else{
-        *outFramerate = 23.976;
+        *outFramerate = INFINITY;
     }
     
     if (metadata) {
