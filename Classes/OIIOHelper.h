@@ -31,7 +31,8 @@ NS_ASSUME_NONNULL_BEGIN
              outChannels:(NSInteger *)outChannels
           outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
             outFramerate:(double *)outFramerate
-             outTimecode:(NSInteger *)outTimecode;
+             outTimecode:(NSInteger *)outTimecode
+             outMetadata:(NSDictionary **)metadata;
 
 + (nullable NSData *)RGB8UBitmapFromURL:(NSURL *)url
                           outPixelWidth:(NSInteger *)outWidth

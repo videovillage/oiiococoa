@@ -45,7 +45,8 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
              outChannels:(NSInteger *)outChannels
           outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
             outFramerate:(double *)outFramerate
-             outTimecode:(NSInteger *)outTimecode{
+             outTimecode:(NSInteger *)outTimecode
+             outMetadata:(NSDictionary **)metadata {
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
@@ -88,6 +89,49 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     else{
         *outFramerate = 23.976;
+    }
+    
+    if (metadata) {
+        NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+        attributes[@"oiiococoa:ImageEncodingType"] = @([self encodingTypeFromSpec:&spec]);
+        for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
+            
+            const ParamValue &p (spec.extra_attribs[i]);
+            NSString *name = [NSString stringWithCString:p.name().c_str() encoding:NSUTF8StringEncoding];
+            id value = [NSNull null];
+            
+            if (p.type() == TypeString){
+                value = @(*(const char **)p.data());
+            }
+            else if (p.type() == TypeFloat) {
+                value = @(*(const float *)p.data());
+            }
+            else if (p.type() == TypeInt) {
+                value = @(*(const int *)p.data());
+            }
+            else if (p.type() == TypeUInt){
+                value = @(*(const unsigned int *)p.data());
+            }
+            else if (p.type() == TypeTimeCode){
+                int *timecodeSplit = (int *)p.data();
+                NSInteger timecode = 0;
+                if(timecodeSplit[0] != -1){
+                    timecode += timecodeSplit[0];
+                }
+                if(timecodeSplit[1] != -1){
+                    timecode += timecodeSplit[1];
+                }
+                value = @(timecode);
+            }
+            else{
+                value = [NSString stringWithCString:tostring(p.type(), p.data()).c_str() encoding:NSUTF8StringEncoding];
+            }
+            
+            attributes[name] = value;
+            
+        }
+        
+        *metadata = [NSDictionary dictionaryWithDictionary: attributes];
     }
     
     in->close();
