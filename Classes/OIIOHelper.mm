@@ -141,114 +141,191 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     return YES;
 }
 
-+ (nullable NSData *)RGB8UBitmapFromURL:(NSURL *)url
-                          outPixelWidth:(NSInteger *)outWidth
-                         outPixelHeight:(NSInteger *)outHeight{
++ (nullable NSData*)bitmapDataFromURL:(NSURL *)url
+                          pixelFormat:(OIIOImagePixelFormat)pixelFormat
+                             outWidth:(NSInteger *)outWidth
+                            outHeight:(NSInteger *)outHeight{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
         return nil;
     }
+    
+    const ImageSpec &spec = in->spec();
+    
+    NSInteger width = spec.width;
+    NSInteger height = spec.height;
+    
+    *outWidth = width;
+    *outHeight = height;
+    
+    in->close();
+    delete(in);
+    
+    NSInteger dataSize = 0;
+    
+    switch (pixelFormat) {
+        case OIIOImagePixelFormatRGB8U:
+            dataSize = width * height * 3 * 1;
+            break;
+        case OIIOImagePixelFormatRGBA8U:
+            dataSize = width * height * 4 * 1;
+            break;
+        case OIIOImagePixelFormatBGRA8U:
+            dataSize = width * height * 4 * 1;
+            break;
+        case OIIOImagePixelFormatRGBA16U:
+            dataSize = width * height * 4 * 2;
+            break;
+        case OIIOImagePixelFormatA2BGR10:
+            dataSize = width * height * 4 * 1;
+            break;
+        case OIIOImagePixelFormatRGB10A2UBigEndian:
+            dataSize = width * height * 4 * 1;
+            break;
+        case OIIOImagePixelFormatRGBAf:
+            dataSize = width * height * 4 * 4;
+            break;
+        case OIIOImagePixelFormatRGBAh:
+            dataSize = width * height * 4 * 2;
+            break;
+        default:
+            return nil;
+    }
+    
+    NSMutableData *mutableData = [NSMutableData dataWithLength:dataSize];
+    
+    bool success = [self loadBitmapIntoDataFromURL:url
+                                       pixelFormat:pixelFormat
+                                            inData:mutableData.mutableBytes
+                                         rowStride:0];
+    
+    if(success){
+        return mutableData;
+    }
+    else{
+        return nil;
+    }
+}
+
++ (bool)loadBitmapIntoDataFromURL:(NSURL *)url
+                      pixelFormat:(OIIOImagePixelFormat)pixelFormat
+                           inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
+    switch (pixelFormat) {
+        case OIIOImagePixelFormatRGB8U:
+            return [self RGB8UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatRGBA8U:
+            return [self RGBA8UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatBGRA8U:
+            return [self BGRA8UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatRGBA16U:
+            return [self RGBA16UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatA2BGR10:
+            return [self A2BGR10BitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatRGB10A2UBigEndian:
+            return [self RGB10A2UBigEndianBitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatRGBAf:
+            return [self RGBAfBitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatRGBAh:
+            return [self RGBAhBitmapFromURL:url inData:pixelData rowStride:rowStride];
+        default:
+            return false;
+        
+    }
+}
+
++ (bool)RGB8UBitmapFromURL:(NSURL *)url
+                    inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
+    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    
+    if (!in) {
+        return false;
+    }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*3];
-        
         if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+            in->read_image(TypeDesc::UINT8, pixelData);
         }
         else{
-            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes, 3);
+            in->read_image(TypeDesc::UINT8, pixelData, 3);
         }
-        
-        *outWidth = spec.width;
-        *outHeight = spec.height;
         
         in->close();
         delete(in);
         
-        return pixelData;
+        return true;
     }
     
 }
 
-+ (nullable NSData *)RGBA16UBitmapFromURL:(NSURL *)url
-                             outPixelWidth:(NSInteger *)outWidth
-                            outPixelHeight:(NSInteger *)outHeight{
++ (bool)RGBA16UBitmapFromURL:(NSURL *)url
+                      inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
-        return nil;
+        return false;
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*2*4];
-
         if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT16, pixelData.mutableBytes, 2*4);
+            in->read_image(TypeDesc::UINT16, pixelData, 2*4);
         }
         else{
-            in->read_image(TypeDesc::UINT16, pixelData.mutableBytes);
+            in->read_image(TypeDesc::UINT16, pixelData);
         }
-        
-        *outWidth = spec.width;
-        *outHeight = spec.height;
         
         in->close();
         delete(in);
         
-        return pixelData;
+        return true;
     }
 }
 
-+ (nullable NSData *)RGBA8UBitmapFromURL:(NSURL *)url
-                           outPixelWidth:(NSInteger *)outWidth
-                          outPixelHeight:(NSInteger *)outHeight{
++ (bool)RGBA8UBitmapFromURL:(NSURL *)url
+                     inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
-        return nil;
+        return false;
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
-        
         if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes, 4);
+            in->read_image(TypeDesc::UINT8, pixelData, 4);
         }
         else{
-            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+            in->read_image(TypeDesc::UINT8, pixelData);
         }
-        
-        *outWidth = spec.width;
-        *outHeight = spec.height;
         
         in->close();
         delete(in);
         
-        return pixelData;
+        return true;
     }
 }
 
-+ (nullable NSData *)BGRA8UBitmapFromURL:(NSURL *)url
-                          outPixelWidth:(NSInteger *)outWidth
-                         outPixelHeight:(NSInteger *)outHeight{
++ (bool)BGRA8UBitmapFromURL:(NSURL *)url
+                     inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
-        return nil;
+        return false;
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:spec.width*spec.height*4];
-        
         if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes, 4);
+            in->read_image(TypeDesc::UINT8, pixelData, 4);
         }
         else{
-            in->read_image(TypeDesc::UINT8, pixelData.mutableBytes);
+            in->read_image(TypeDesc::UINT8, pixelData);
         }
         
-        uint8_t *pixels = (uint8_t *)pixelData.mutableBytes;
+        uint8_t *pixels = (uint8_t *)pixelData;
         uint8_t temp = 0;
         for(int i = 0; i < spec.width*spec.height; i++){
             temp = pixels[i*4];
@@ -256,24 +333,21 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             pixels[i*4+2] = temp;
         }
         
-        *outWidth = spec.width;
-        *outHeight = spec.height;
-        
         in->close();
         delete(in);
         
-        return pixelData;
+        return true;
     }
 }
 
-+ (nullable NSData *)A2BGR10BitmapFromURL:(NSURL *)url
-                            outPixelWidth:(NSInteger *)outWidth
-                           outPixelHeight:(NSInteger *)outHeight{
++ (bool)A2BGR10BitmapFromURL:(NSURL *)url
+                      inData:(void *)pixelData
+                   rowStride:(NSInteger)rowStride{
     InStream *inStream = new InStream();
     if (! inStream->Open([[url path] cStringUsingEncoding:NSUTF8StringEncoding])) {
         delete inStream;
         inStream = NULL;
-        return nil;
+        return false;
     }
     dpx::Reader dpxReader;
     dpxReader.SetInStream(inStream);
@@ -281,7 +355,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         inStream->Close();
         delete inStream;
         inStream = NULL;
-        return nil;
+        return false;
     }
     
     
@@ -290,29 +364,31 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     dpx::Packing packing = dpxReader.header.ImagePacking(0);
     bool requiresByteSwap = dpxReader.header.RequiresByteSwap();
     
+    
     NSInteger width = dpxReader.header.Width();
     NSInteger height = dpxReader.header.Height();
     NSInteger pixelCount = width*height;
     
-    *outWidth = width;
-    *outHeight = height;
+    NSInteger imageDataSize = (pixelCount * dpxReader.header.ImageElementComponentCount(0) * 4);
     
     if (dpxReader.header.ImageDescriptor(0) != dpx::kRGB || bitdepth != 10){
         inStream -> Close();
         delete inStream;
         inStream = NULL;
-        return nil;
+        return false;
     }
+    
+    inStream -> Seek(byteOffset, InStream::kStart);
+    
+    //will not work with data allocated with a row stride! bad!
+    inStream -> Read(pixelData, imageDataSize);
     
     inStream -> Close();
     delete inStream;
     inStream = NULL;
+    
     @autoreleasepool{
-        NSData *dpxData = [NSData dataWithContentsOfURL:url];
-        
-        NSMutableData *pixelData = [NSMutableData dataWithData:[dpxData subdataWithRange:NSMakeRange(byteOffset, pixelCount*4)]];
-        
-        uint32_t *pixels = (uint32_t *)pixelData.mutableBytes;
+        uint32_t *pixels = (uint32_t *)pixelData;
         uint32_t pixel = 0;
         uint32_t redOnly = 0;
         uint32_t greenOnly = 0;
@@ -363,23 +439,23 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             }
         }
         else{
-            return nil;
+            return false;
         }
         
         
-        return pixelData;
+        return true;
     }
     
 }
 
-+ (nullable NSData *)RGB10A2UBigEndianBitmapFromURL:(NSURL *)url
-                                      outPixelWidth:(NSInteger *)outWidth
-                                     outPixelHeight:(NSInteger *)outHeight{
++ (bool)RGB10A2UBigEndianBitmapFromURL:(NSURL *)url
+                                inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
     InStream *inStream = new InStream();
     if (! inStream->Open([[url path] cStringUsingEncoding:NSUTF8StringEncoding])) {
         delete inStream;
         inStream = NULL;
-        return nil;
+        return false;
     }
     dpx::Reader dpxReader;
     dpxReader.SetInStream(inStream);
@@ -387,7 +463,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         inStream->Close();
         delete inStream;
         inStream = NULL;
-        return nil;
+        return false;
     }
     
     
@@ -400,25 +476,20 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     NSInteger height = dpxReader.header.Height();
     NSInteger pixelCount = width*height;
     
-    *outWidth = width;
-    *outHeight = height;
-    
     if (dpxReader.header.ImageDescriptor(0) != dpx::kRGB || bitdepth != 10){
         inStream -> Close();
         delete inStream;
         inStream = NULL;
-        return nil;
+        return false;
     }
+    
+    dpxReader.ReadImage(0, pixelData);
     
     inStream -> Close();
     delete inStream;
     inStream = NULL;
     @autoreleasepool{
-        NSData *dpxData = [NSData dataWithContentsOfURL:url];
-        
-        NSMutableData *pixelData = [NSMutableData dataWithData:[dpxData subdataWithRange:NSMakeRange(byteOffset, pixelCount*4)]];
-        
-        uint32_t *pixels = (uint32_t *)pixelData.mutableBytes;
+        uint32_t *pixels = (uint32_t *)pixelData;
         
         if(packing == dpx::kFilledMethodA){
             if(!requiresByteSwap){
@@ -440,67 +511,61 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             }
         }
         
-        return pixelData;
+        return true;
     }
     
 }
 
-+ (nullable NSData *)RGBAhBitmapFromURL:(NSURL *)url
-                 outPixelWidth:(NSInteger *)outWidth
-                outPixelHeight:(NSInteger *)outHeight{
++ (bool)RGBAhBitmapFromURL:(NSURL *)url
+                    inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
+    ImageSpec *configSpec = new ImageSpec();
+    configSpec->attribute("raw:ColorSpace", "raw");
+    configSpec->attribute("raw:Demosaic", "AMaZE");
     
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], configSpec);
+    
     if (!in) {
-        return nil;
+        return false;
     }
     const ImageSpec &spec = in->spec();
-    @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:4*2*spec.width*spec.height];
-        
-        if(spec.nchannels == 4){
-            in->read_image (TypeDesc::HALF, pixelData.mutableBytes);
-        }
-        else{
-            in->read_image (TypeDesc::HALF, pixelData.mutableBytes, 4*2);
-        }
-        *outWidth = spec.width;
-        *outHeight = spec.height;
-        
-        in->close ();
-        delete(in);
-        
-        return pixelData;
+    
+
+    if(spec.nchannels == 4){
+        in->read_image (TypeDesc::HALF, pixelData);
+    }
+    else{
+        in->read_image (TypeDesc::HALF, pixelData, 4*2);
     }
     
+    in->close ();
+    delete(in);
     
+    return true;
 }
 
-+ (nullable NSData *)RGBAfBitmapFromURL:(NSURL *)url
-                 outPixelWidth:(NSInteger *)outWidth
-                outPixelHeight:(NSInteger *)outHeight{
++ (bool)RGBAfBitmapFromURL:(NSURL *)url
+                    inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride{
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
-        return nil;
+        return false;
     }
     
     const ImageSpec &spec = in->spec();
     
     @autoreleasepool{
-        NSMutableData *pixelData = [NSMutableData dataWithLength:4*4*spec.width*spec.height];
-        
         if(spec.nchannels == 4){
-            in->read_image (TypeDesc::FLOAT, pixelData.mutableBytes);
+            in->read_image (TypeDesc::FLOAT, pixelData);
         }
         else{
-            in->read_image (TypeDesc::FLOAT, pixelData.mutableBytes, 4*4);
+            in->read_image (TypeDesc::FLOAT, pixelData, 4*4);
         }
-        *outWidth = spec.width;
-        *outHeight = spec.height;
-        
+
         in->close ();
         delete(in);
         
-        return pixelData;
+        return true;
     }
 }
 

@@ -23,6 +23,17 @@ typedef NS_ENUM(NSInteger, OIIOImageEncodingType) {
     OIIOImageEncodingTypeNONE
 };
 
+typedef NS_ENUM(NSInteger, OIIOImagePixelFormat) {
+    OIIOImagePixelFormatRGB8U,
+    OIIOImagePixelFormatRGBA8U,
+    OIIOImagePixelFormatBGRA8U,
+    OIIOImagePixelFormatRGBA16U,
+    OIIOImagePixelFormatA2BGR10,
+    OIIOImagePixelFormatRGB10A2UBigEndian,
+    OIIOImagePixelFormatRGBAf,
+    OIIOImagePixelFormatRGBAh
+};
+
 @interface OIIOHelper : NSObject
 NS_ASSUME_NONNULL_BEGIN
 + (BOOL)imageSpecFromURL:(NSURL *)url
@@ -34,37 +45,39 @@ NS_ASSUME_NONNULL_BEGIN
              outTimecode:(NSInteger *)outTimecode
              outMetadata:(NSDictionary **)metadata;
 
-+ (nullable NSData *)RGB8UBitmapFromURL:(NSURL *)url
-                          outPixelWidth:(NSInteger *)outWidth
-                         outPixelHeight:(NSInteger *)outHeight;
++ (nullable NSData*)bitmapDataFromURL:(NSURL *)url
+                          pixelFormat:(OIIOImagePixelFormat)pixelFormat
+                             outWidth:(NSInteger *)outWidth
+                            outHeight:(NSInteger *)outHeight;
 
-+ (nullable NSData *)RGBA8UBitmapFromURL:(NSURL *)url
-                           outPixelWidth:(NSInteger *)outWidth
-                          outPixelHeight:(NSInteger *)outHeight;
++ (bool)loadBitmapIntoDataFromURL:(NSURL *)url
+                      pixelFormat:(OIIOImagePixelFormat)pixelFormat
+                           inData:(void *)pixelData
+                        rowStride:(NSInteger)rowStride;
 
-+ (nullable NSData *)RGBAfBitmapFromURL:(nonnull NSURL *)url
-                 outPixelWidth:(nonnull NSInteger *)outWidth
-                outPixelHeight:(nonnull NSInteger *)outHeight;
-
-+ (nullable NSData *)BGRA8UBitmapFromURL:(NSURL *)url
-                            outPixelWidth:(NSInteger *)outWidth
-                           outPixelHeight:(NSInteger *)outHeight;
-
-+ (nullable NSData *)RGBA16UBitmapFromURL:(NSURL *)url
-                             outPixelWidth:(NSInteger *)outWidth
-                            outPixelHeight:(NSInteger *)outHeight;
-
-+ (nullable NSData *)A2BGR10BitmapFromURL:(NSURL *)url
-                            outPixelWidth:(NSInteger *)outWidth
-                           outPixelHeight:(NSInteger *)outHeight;
-
-+ (nullable NSData *)RGB10A2UBigEndianBitmapFromURL:(NSURL *)url
-                                      outPixelWidth:(NSInteger *)outWidth
-                                     outPixelHeight:(NSInteger *)outHeight;
-
-+ (nullable NSData *)RGBAhBitmapFromURL:(nonnull NSURL *)url
-                 outPixelWidth:(nonnull NSInteger *)outWidth
-                outPixelHeight:(nonnull NSInteger *)outHeight;
+//+ (nullable NSData *)RGB8UBitmapFromURL:(NSURL *)url
+//                                 inData:(NSMutableData *)pixelData;
+//
+//+ (nullable NSData *)RGBA8UBitmapFromURL:(NSURL *)url
+//                                  inData:(NSMutableData *)pixelData;
+//
+//+ (nullable NSData *)RGBAfBitmapFromURL:(nonnull NSURL *)url
+//                                 inData:(NSMutableData *)pixelData;
+//
+//+ (nullable NSData *)BGRA8UBitmapFromURL:(NSURL *)url
+//                                  inData:(NSMutableData *)pixelData;
+//
+//+ (nullable NSData *)RGBA16UBitmapFromURL:(NSURL *)url
+//                                   inData:(NSMutableData *)pixelData;
+//
+//+ (nullable NSData *)A2BGR10BitmapFromURL:(NSURL *)url
+//                                   inData:(NSMutableData *)pixelData;
+//
+//+ (nullable NSData *)RGB10A2UBigEndianBitmapFromURL:(NSURL *)url
+//                                             inData:(NSMutableData *)pixelData;
+//
+//+ (nullable NSData *)RGBAhBitmapFromURL:(nonnull NSURL *)url
+//                                 inData:(NSMutableData *)pixelData;
 
 + (NSData *)EXRFromRGBAfBitmap:(NSData *)bitmap
                          width:(NSInteger)width
