@@ -245,11 +245,29 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT8, pixelData);
+        if(rowStride == 0){
+            if(spec.nchannels == 3){
+                in->read_image(TypeDesc::UINT8, pixelData);
+            }
+            else{
+                in->read_image(TypeDesc::UINT8, pixelData, 3);
+            }
         }
         else{
-            in->read_image(TypeDesc::UINT8, pixelData, 3);
+            uint8* pixelBytes = (uint8*)pixelData;
+            NSInteger bytesPerScanline = 3*spec.width;
+            
+            if(spec.nchannels == 3){
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)]);
+                }
+            }
+            else{
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)], 3);
+                }
+            }
+            
         }
         
         in->close();
@@ -270,12 +288,31 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT16, pixelData, 2*4);
+        if(rowStride == 0){
+            if(spec.nchannels == 3){
+                in->read_image(TypeDesc::UINT16, pixelData, 2*4);
+            }
+            else{
+                in->read_image(TypeDesc::UINT16, pixelData);
+            }
         }
         else{
-            in->read_image(TypeDesc::UINT16, pixelData);
+            uint8* pixelBytes = (uint8*)pixelData;
+            NSInteger bytesPerScanline = 2*4*spec.width;
+            
+            if(spec.nchannels == 3){
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT16, &pixelBytes[y * (bytesPerScanline + rowStride)], 2*4);
+                }
+            }
+            else{
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT16, &pixelBytes[y * (bytesPerScanline + rowStride)]);
+                }
+            }
+            
         }
+        
         
         in->close();
         delete(in);
@@ -294,11 +331,29 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT8, pixelData, 4);
+        if(rowStride == 0){
+            if(spec.nchannels == 3){
+                in->read_image(TypeDesc::UINT8, pixelData, 4);
+            }
+            else{
+                in->read_image(TypeDesc::UINT8, pixelData);
+            }
         }
         else{
-            in->read_image(TypeDesc::UINT8, pixelData);
+            uint8* pixelBytes = (uint8*)pixelData;
+            NSInteger bytesPerScanline = 4*spec.width;
+            
+            if(spec.nchannels == 3){
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)], 4);
+                }
+            }
+            else{
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)]);
+                }
+            }
+            
         }
         
         in->close();
@@ -318,11 +373,29 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     const ImageSpec &spec = in->spec();
     @autoreleasepool{
-        if(spec.nchannels == 3){
-            in->read_image(TypeDesc::UINT8, pixelData, 4);
+        if(rowStride == 0){
+            if(spec.nchannels == 3){
+                in->read_image(TypeDesc::UINT8, pixelData, 4);
+            }
+            else{
+                in->read_image(TypeDesc::UINT8, pixelData);
+            }
         }
         else{
-            in->read_image(TypeDesc::UINT8, pixelData);
+            uint8* pixelBytes = (uint8*)pixelData;
+            NSInteger bytesPerScanline = 4*spec.width;
+            
+            if(spec.nchannels == 3){
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)], 4);
+                }
+            }
+            else{
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)]);
+                }
+            }
+            
         }
         
         uint8_t *pixels = (uint8_t *)pixelData;
@@ -380,8 +453,16 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     inStream -> Seek(byteOffset, InStream::kStart);
     
-    //will not work with data allocated with a row stride! bad!
-    inStream -> Read(pixelData, imageDataSize);
+    if(rowStride == 0){
+        inStream -> Read(pixelData, imageDataSize);
+    }
+    else{
+        uint8_t* pixelBytes = (uint8_t *)pixelData;
+        NSInteger bytesPerScanline = 4*width;
+        for(int y = 0; y < height; y++){
+            inStream -> Read((void *)(&pixelBytes[y * (bytesPerScanline + rowStride)]), bytesPerScanline);
+        }
+    }
     
     inStream -> Close();
     delete inStream;
@@ -475,6 +556,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     NSInteger width = dpxReader.header.Width();
     NSInteger height = dpxReader.header.Height();
     NSInteger pixelCount = width*height;
+    NSInteger imageDataSize = (pixelCount * dpxReader.header.ImageElementComponentCount(0) * 4);
     
     if (dpxReader.header.ImageDescriptor(0) != dpx::kRGB || bitdepth != 10){
         inStream -> Close();
@@ -483,7 +565,16 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     
-    dpxReader.ReadImage(0, pixelData);
+    if(rowStride == 0){
+        inStream -> Read(pixelData, imageDataSize);
+    }
+    else{
+        uint8_t* pixelBytes = (uint8_t *)pixelData;
+        NSInteger bytesPerScanline = 4*width;
+        for(int y = 0; y < height; y++){
+            inStream -> Read((void *)(&pixelBytes[y * (bytesPerScanline + rowStride)]), bytesPerScanline);
+        }
+    }
     
     inStream -> Close();
     delete inStream;
@@ -529,15 +620,31 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     const ImageSpec &spec = in->spec();
-    
-
-    if(spec.nchannels == 4){
-        in->read_image (TypeDesc::HALF, pixelData);
+    @autoreleasepool{
+        if(rowStride == 0){
+            if(spec.nchannels == 4){
+                in->read_image (TypeDesc::HALF, pixelData);
+            }
+            else{
+                in->read_image (TypeDesc::HALF, pixelData, 4*2);
+            }
+        }
+        else{
+            uint8* pixelBytes = (uint8*)pixelData;
+            NSInteger bytesPerScanline = 4*2*spec.width;
+            
+            if(spec.nchannels == 4){
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::HALF, &pixelBytes[y * (bytesPerScanline + rowStride)]);
+                }
+            }
+            else{
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::HALF, &pixelBytes[y * (bytesPerScanline + rowStride)], 4*2);
+                }
+            }
+        }
     }
-    else{
-        in->read_image (TypeDesc::HALF, pixelData, 4*2);
-    }
-    
     in->close ();
     delete(in);
     
@@ -555,11 +662,28 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     @autoreleasepool{
-        if(spec.nchannels == 4){
-            in->read_image (TypeDesc::FLOAT, pixelData);
+        if(rowStride == 0){
+            if(spec.nchannels == 4){
+                in->read_image (TypeDesc::FLOAT, pixelData);
+            }
+            else{
+                in->read_image (TypeDesc::FLOAT, pixelData, 4*4);
+            }
         }
         else{
-            in->read_image (TypeDesc::FLOAT, pixelData, 4*4);
+            uint8* pixelBytes = (uint8*)pixelData;
+            NSInteger bytesPerScanline = 4*4*spec.width;
+            
+            if(spec.nchannels == 4){
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::FLOAT, &pixelBytes[y * (bytesPerScanline + rowStride)]);
+                }
+            }
+            else{
+                for(int y = 0; y < spec.height; y++){
+                    in->read_scanline(y, 0, TypeDesc::FLOAT, &pixelBytes[y * (bytesPerScanline + rowStride)], 4*4);
+                }
+            }
         }
 
         in->close ();
