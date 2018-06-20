@@ -177,7 +177,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         case OIIOImagePixelFormatRGBA16U:
             dataSize = width * height * 4 * 2;
             break;
-        case OIIOImagePixelFormatA2BGR10:
+        case OIIOImagePixelFormatRGB10A2U:
             dataSize = width * height * 4 * 1;
             break;
         case OIIOImagePixelFormatRGB10A2UBigEndian:
@@ -221,8 +221,8 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             return [self BGRA8UBitmapFromURL:url inData:pixelData rowStride:rowStride];
         case OIIOImagePixelFormatRGBA16U:
             return [self RGBA16UBitmapFromURL:url inData:pixelData rowStride:rowStride];
-        case OIIOImagePixelFormatA2BGR10:
-            return [self A2BGR10BitmapFromURL:url inData:pixelData rowStride:rowStride];
+        case OIIOImagePixelFormatRGB10A2U:
+            return [self RGB10A2UBitmapFromURL:url inData:pixelData rowStride:rowStride];
         case OIIOImagePixelFormatRGB10A2UBigEndian:
             return [self RGB10A2UBigEndianBitmapFromURL:url inData:pixelData rowStride:rowStride];
         case OIIOImagePixelFormatRGBAf:
@@ -413,7 +413,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
 }
 
-+ (bool)A2BGR10BitmapFromURL:(NSURL *)url
++ (bool)RGB10A2UBitmapFromURL:(NSURL *)url
                       inData:(void *)pixelData
                    rowStride:(NSInteger)rowStride{
     InStream *inStream = new InStream();
