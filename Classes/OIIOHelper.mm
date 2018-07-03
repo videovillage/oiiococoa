@@ -79,7 +79,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ParamValue *fr = spec.find_attribute("dpx:FrameRate");
     
     if(fr) {
-        float framerate = (*(const float *)tc->data());
+        float framerate = fr->get_float();
         if(floor(framerate) != 0.0 && framerate != INFINITY){
             *outFramerate = (double)framerate;
         }
