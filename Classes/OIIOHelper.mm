@@ -317,6 +317,13 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         in->close();
         delete(in);
         
+        if(spec.nchannels == 3) {
+            uint16_t *pixels = (uint16_t *)pixelData;
+            for(int i = 0; i < spec.width*spec.height; i++){
+                pixels[i*4+3] = 65535;
+            }
+        }
+        
         return true;
     }
 }
@@ -359,6 +366,13 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         in->close();
         delete(in);
         
+        if(spec.nchannels == 3) {
+            uint8_t *pixels = (uint8_t *)pixelData;
+            for(int i = 0; i < spec.width*spec.height; i++){
+                pixels[i*4+3] = 255;
+            }
+        }
+        
         return true;
     }
 }
@@ -400,10 +414,21 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         
         uint8_t *pixels = (uint8_t *)pixelData;
         uint8_t temp = 0;
-        for(int i = 0; i < spec.width*spec.height; i++){
-            temp = pixels[i*4];
-            pixels[i*4] = pixels[i*4+2];
-            pixels[i*4+2] = temp;
+        
+        if(spec.nchannels == 3) {
+            for(int i = 0; i < spec.width*spec.height; i++){
+                temp = pixels[i*4];
+                pixels[i*4] = pixels[i*4+2];
+                pixels[i*4+2] = temp;
+                pixels[i*4+3] = 255;
+            }
+        }
+        else{
+            for(int i = 0; i < spec.width*spec.height; i++){
+                temp = pixels[i*4];
+                pixels[i*4] = pixels[i*4+2];
+                pixels[i*4+2] = temp;
+            }
         }
         
         in->close();
