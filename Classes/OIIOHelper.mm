@@ -77,6 +77,9 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     *outPixelFormat = [self encodingTypeFromSpec:&spec];
     
     const ParamValue *fr = spec.find_attribute("dpx:FrameRate");
+    if(!fr){
+        fr = spec.find_attribute("FramesPerSecond");
+    }
     
     if(fr) {
         float framerate = fr->get_float();
