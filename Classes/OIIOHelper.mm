@@ -94,15 +94,15 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     if(fr) {
         float framerate = fr->get_float();
-        if(floor(framerate) != 0.0 && framerate != INFINITY){
+        if(floor(framerate) != 0.0 && framerate != INFINITY && framerate != NAN){
             *outFramerate = (double)framerate;
         }
         else{
-            *outFramerate = INFINITY;
+            *outFramerate = NAN;
         }
     }
     else{
-        *outFramerate = INFINITY;
+        *outFramerate = NAN;
     }
     
     if (metadata) {
