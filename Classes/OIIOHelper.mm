@@ -39,6 +39,18 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     //remove with [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
 }
 
++ (BOOL)canRead:(NSURL *)url {
+    ImageInput *in = ImageInput::open([url.path cStringUsingEncoding:NSUTF8StringEncoding]);
+    if(in) {
+        in->close();
+        delete(in);
+        return YES;
+    }
+    else{
+        return NO;
+    }
+}
+
 + (BOOL)imageSpecFromURL:(NSURL *)url
                 outWidth:(NSInteger *)outWidth
                outHeight:(NSInteger *)outHeight
@@ -48,7 +60,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
              outTimecode:(NSInteger *)outTimecode
              outMetadata:(NSDictionary **)metadata {
     ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
-    
     if (!in) {
         return NO;
     }

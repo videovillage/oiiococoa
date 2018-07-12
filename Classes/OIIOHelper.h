@@ -37,6 +37,8 @@ typedef NS_ENUM(NSInteger, OIIOImagePixelFormat) {
 
 @interface OIIOHelper : NSObject
 NS_ASSUME_NONNULL_BEGIN
++ (BOOL)canRead:(NSURL *)url;
+
 + (BOOL)imageSpecFromURL:(NSURL *)url
                 outWidth:(NSInteger *)outWidth
                outHeight:(NSInteger *)outHeight
