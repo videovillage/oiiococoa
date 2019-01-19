@@ -10,6 +10,7 @@
  * This work is based on the pugxml parser, which is:
  * Copyright (C) 2003, by Kristen Wegner (kristen@tima.net)
  */
+// clang-format off
 
 #ifndef SOURCE_PUGIXML_CPP
 #define SOURCE_PUGIXML_CPP
@@ -8074,7 +8075,7 @@ PUGI__NS_BEGIN
 		char* exponent_string = strchr(buffer, 'e');
 		assert(exponent_string);
 
-		int exponent = atoi(exponent_string + 1);
+		int exponent = atoi(exponent_string + 1); // NOLINT(cert-err34-c)
 
 		// extract mantissa string: skip sign
 		char* mantissa = buffer[0] == '-' ? buffer + 1 : buffer;

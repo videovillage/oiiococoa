@@ -45,10 +45,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /// Additional web resources:
 ///   http://www.codersnotes.com/notes/maths-lib-2016/
 
+// clang-format off
 
 #pragma once
-#ifndef OIIO_SIMD_H
-#define OIIO_SIMD_H 1
 
 #include <dassert.h>
 #include <missing_math.h>
@@ -94,6 +93,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  include <x86intrin.h>
 #elif defined(__GNUC__) && defined(__ARM_NEON__)
 #  include <arm_neon.h>
+#endif
+
+// Disable SSE for 32 bit Windows patforms, it's unreliable and hard for us
+// to test thoroughly. We presume that anybody needing high performance
+// badly enough to want SIMD also is on a 64 bit CPU.
+#if defined(_WIN32) && defined(__i386__) && !defined(__x86_64__) && !defined(OIIO_NO_SSE)
+#define OIIO_NO_SSE 1
 #endif
 
 #if (defined(__SSE2__) || (_MSC_VER >= 1300 && !_M_CEE_PURE)) && !defined(OIIO_NO_SSE)
@@ -243,6 +249,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define OIIO_SIMD_HAS_SIMD16 1   /* vfloat16, vint16, vbool16 defined */
 
 
+#include "missing_math.h"
+
 
 OIIO_NAMESPACE_BEGIN
 
@@ -317,6 +325,7 @@ template<typename T,int elements> struct VecType {};
 template<> struct VecType<int,1>   { typedef int type; };
 template<> struct VecType<float,1> { typedef float type; };
 template<> struct VecType<int,4>   { typedef vint4 type; };
+template<> struct VecType<float,4>   { typedef vfloat4 type; };
 template<> struct VecType<float,3> { typedef vfloat3 type; };
 template<> struct VecType<bool,4>  { typedef vbool4 type; };
 template<> struct VecType<int,8>   { typedef vint8 type; };
@@ -2246,7 +2255,7 @@ public:
         m_row[2].load (f+8);
         m_row[3].load (f+12);
 #else
-        memcpy (&m_mat, f, 16*sizeof(float));
+        m_mat = *(const Imath::M44f*)f;
 #endif
     }
 
@@ -2966,6 +2975,48 @@ vfloat16 madd (const vfloat16& a, const vfloat16& b, const vfloat16& c); // a*b 
 vfloat16 msub (const vfloat16& a, const vfloat16& b, const vfloat16& c); // a*b - c
 vfloat16 nmadd (const vfloat16& a, const vfloat16& b, const vfloat16& c); // -a*b + c
 vfloat16 nmsub (const vfloat16& a, const vfloat16& b, const vfloat16& c); // -a*b - c
+
+
+
+// Odds and ends, other CPU hardware tricks
+
+// Try to set the flush_zero_mode CPU flag on x86. Return true if we are
+// able, otherwise false (because it's not available on that platform,
+// or because it's gcc 4.8 which has a bug that lacks this intrinsic).
+inline bool set_flush_zero_mode (bool on) {
+#if (defined(__x86_64__) || defined(__i386__)) && (OIIO_GNUC_VERSION == 0 || OIIO_GNUC_VERSION > 40900)
+    _MM_SET_FLUSH_ZERO_MODE (on ? _MM_FLUSH_ZERO_ON : _MM_FLUSH_ZERO_OFF);
+    return true;
+#endif
+    return false;
+}
+
+// Try to set the denorms_zero_mode CPU flag on x86. Return true if we are
+// able, otherwise false (because it's not available on that platform,
+// or because it's gcc 4.8 which has a bug that lacks this intrinsic).
+inline bool set_denorms_zero_mode (bool on) {
+#if (defined(__x86_64__) || defined(__i386__)) && (OIIO_GNUC_VERSION == 0 || OIIO_GNUC_VERSION > 40900)
+    _MM_SET_DENORMALS_ZERO_MODE (on ? _MM_DENORMALS_ZERO_ON : _MM_DENORMALS_ZERO_OFF);
+    return true;
+#endif
+    return false;
+}
+
+// Get the flush_zero_mode CPU flag on x86.
+inline bool get_flush_zero_mode () {
+#if (defined(__x86_64__) || defined(__i386__)) && (OIIO_GNUC_VERSION == 0 || OIIO_GNUC_VERSION > 40900)
+    return _MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON;
+#endif
+    return false;
+}
+
+// Get the denorms_zero_mode CPU flag on x86.
+inline bool get_denorms_zero_mode () {
+#if (defined(__x86_64__) || defined(__i386__)) && (OIIO_GNUC_VERSION == 0 || OIIO_GNUC_VERSION > 40900)
+    return _MM_GET_DENORMALS_ZERO_MODE() == _MM_DENORMALS_ZERO_ON;
+#endif
+    return false;
+}
 
 
 
@@ -9593,5 +9644,3 @@ OIIO_NAMESPACE_END
 #undef SIMD_CONSTRUCT_PAD
 #undef SIMD_RETURN
 #undef SIMD_RETURN_REDUCE
-
-#endif /* OIIO_SIMD_H */

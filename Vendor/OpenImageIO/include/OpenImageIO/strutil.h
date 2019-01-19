@@ -28,6 +28,7 @@
   (This is the Modified BSD License)
 */
 
+// clang-format off
 
 /////////////////////////////////////////////////////////////////////////
 /// @file  strutil.h
@@ -38,21 +39,52 @@
 
 
 #pragma once
-#ifndef OPENIMAGEIO_STRUTIL_H
-#define OPENIMAGEIO_STRUTIL_H
 
-#include <string>
 #include <cstdio>
-#include <vector>
 #include <map>
+#include <string>
+#include <vector>
 
 #include <export.h>
+#include <hash.h>
 #include <oiioversion.h>
 #include <string_view.h>
-#include <hash.h>
+
+// For now, let a prior set of OIIO_USE_FMT=0 cause us to fall back to
+// tinyformat.
+#ifndef OIIO_USE_FMT
+#    define OIIO_USE_FMT
+#endif
+
+#if OIIO_GNUC_VERSION >= 70000
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+#ifndef FMT_HEADER_ONLY
+#    define FMT_HEADER_ONLY
+#endif
+#include "ostream.h"
+#include "format.h"
+#include "printf.h"
+#if OIIO_GNUC_VERSION >= 70000
+#    pragma GCC diagnostic pop
+#endif
+
+// Allow client software to know if this version of OIIO as Strutil::sprintf
+#define OIIO_HAS_SPRINTF 1
+
+// Allow client software to know if this version of OIIO has Strutil::format
+// behave like sprintf (OIIO_FORMAT_IS_FMT==0) or like python / {fmt} /
+// C++20ish std::format (OIIO_FORMAT_IS_FMT==1).
+#define OIIO_FORMAT_IS_FMT 0
+
+// Allow client software to know that at this moment, the fmt-based string
+// formatting is not correctly locale-independent. We will change this value
+// to 1 when the fmt bugs are fixed.
+#define OIIO_FMT_LOCALE_INDEPENDENT 0
 
 #ifndef TINYFORMAT_USE_VARIADIC_TEMPLATES
-# define TINYFORMAT_USE_VARIADIC_TEMPLATES
+#    define TINYFORMAT_USE_VARIADIC_TEMPLATES
 #endif
 #include <tinyformat.h>
 
@@ -91,60 +123,160 @@ void OIIO_API sync_output (FILE *file, string_view str);
 void OIIO_API sync_output (std::ostream &file, string_view str);
 
 
-/// Construct a std::string in a printf-like fashion.  In other words,
-/// something like:
-///    std::string s = Strutil::format ("blah %d %g", (int)foo, (float)bar);
+/// Construct a std::string in a printf-like fashion.  For example:
 ///
-/// Uses the tinyformat library underneath, so it's fully type-safe, and
+///    std::string s = Strutil::sprintf ("blah %d %g", (int)foo, (float)bar);
+///
+/// Uses the tinyformat or fmt library underneath, so it's fully type-safe, and
 /// works with any types that understand stream output via '<<'.
 /// The formatting of the string will always use the classic "C" locale
 /// conventions (in particular, '.' as decimal separator for float values).
 template<typename... Args>
+inline std::string sprintf (const char* fmt, const Args&... args)
+{
+    // Have to fall back on tinyformat rather than fmt::format, because
+    // fmt::format is not correctly locale-independent for floating point
+    // values. As soon as they fix it, we will upgrade, then change this
+    // implementation to use `::fmt::sprintf(fmt, args...)` if it is faster.
+#if 1
+    return tinyformat::format (fmt, args...);
+#else
+    return ::fmt::sprintf (fmt, args...);
+#endif
+}
+
+
+
+/// format() constructs formatted strings. Note that this is in transition!
+///
+/// Strutil::old::format() uses printf conventions and matches format() used
+/// in OIIO 1.x. It is equivalent to Strutil::sprintf().
+///
+///    std::string s = Strutil::old::sprintf ("blah %d %g", (int)foo, (float)bar);
+///
+/// Strutil::fmt::format() uses "Python" conventions, in the style of string
+/// formatting being planned for C++20 and implemented today in the {fmt}
+/// package (https://github.com/fmtlib/fmt). For example:
+///
+///    std::string s = Strutil::format ("blah {}  {}", (int)foo, (float)bar);
+///
+/// Straight-up Strutil::format is today aliased to old::format for the sake
+/// of back-compatibility, but will someday be switched to fmt::format.
+///
+/// Recommended strategy for users:
+/// * If you want printf conventions, switch to Strutil::sprintf().
+/// * If you want to use the python conventions prior to the big switch,
+///   use Strutil::fmt::format() explicitly (but see the caveat below).
+/// * Use of unspecified Strutil::format() is, for back compatibility,
+///   currently equivalent to sprintf, but beware that some point it will
+///   switch to the future-standard formatting rules.
+///
+/// Caveat: BEWARE using fmt::format on floating point values if there is
+/// any chance you could be running with a global non-C locale, because fmt
+/// does not yet correctly produce locale-independent output! We will
+/// upgrade as soon as they get that fixed.
+
+namespace fmt {
+template<typename... Args>
+inline std::string format (const char* fmt, const Args&... args)
+{
+    return ::fmt::format (fmt, args...);
+}
+} // namespace fmt
+
+namespace old {
+template<typename... Args>
+inline std::string format (const char* fmt, const Args&... args)
+{
+    return Strutil::sprintf (fmt, args...);
+}
+
+// DEPRECATED(2.0) string_view version. Phasing this out because
+// std::string_view won't have a c_str() method.
+template<typename... Args>
 inline std::string format (string_view fmt, const Args&... args)
 {
-    return tinyformat::format (fmt.c_str(), args...);
+    return format (fmt.c_str(), args...);
 }
+} // namespace old
 
 
-/// Output formatted string to stdout, type-safe, and threads can't clobber
-/// one another. This will force the classic "C" locale.
+
+using old::format;
+
+
+
+/// Strutil::print (fmt, ...)
+/// Strutil::fprint (FILE*, fmt, ...)
+/// Strutil::fprint (ostream& fmt, ...)
+///
+/// Output formatted strings to stdout, a FILE*, or a stream, respectively.
+/// All use printf-like formatting rules, are type-safe, are thread-safe
+/// (the outputs are "atomic", at least versus other calls to
+/// Strutil::*printf), and automatically flush their outputs. They are all
+/// locale-independent (forcing classic "C" locale).
+
 template<typename... Args>
-inline void printf (string_view fmt, const Args&... args)
+inline void printf (const char* fmt, const Args&... args)
 {
-    sync_output (stdout, format(fmt, args...));
+    sync_output (stdout, Strutil::sprintf(fmt, args...));
 }
 
-
-/// Output formatted string to an open FILE*, type-safe, and threads can't
-/// clobber one another.  This will force classic "C" locale conventions.
 template<typename... Args>
-inline void fprintf (FILE *file, string_view fmt, const Args&... args)
+inline void fprintf (FILE *file, const char* fmt, const Args&... args)
 {
-    sync_output (file, format(fmt, args...));
+    sync_output (file, Strutil::sprintf(fmt, args...));
 }
 
-
-/// Output formatted string to an open ostream, type-safe, and threads can't
-/// clobber one another. This will force classic "C" locale conventions.
 template<typename... Args>
-inline void fprintf (std::ostream &file, string_view fmt, const Args&... args)
+inline void fprintf (std::ostream &file, const char* fmt, const Args&... args)
 {
-    sync_output (file, format(fmt, args...));
+    sync_output (file, Strutil::sprintf(fmt, args...));
 }
 
 
 
-/// Return a std::string formatted from printf-like arguments.  Like the
-/// real sprintf, this is not guaranteed type-safe and is not extensible
-/// like format().  You would only want to use this instead of the safe
-/// format() in rare situations where you really need to use obscure
-/// printf features that aren't supported by tinyformat.
-std::string OIIO_API format_raw (const char *fmt, ...)
-                                         OPENIMAGEIO_PRINTF_ARGS(1,2);
+/// Strutil::print (fmt, ...)
+/// Strutil::print (FILE*, fmt, ...)
+/// Strutil::print (ostream& fmt, ...)
+///
+/// Output formatted strings to stdout, a FILE*, or a stream, respectively.
+/// All use "Python-like" formatting description (as {fmt} does, and some
+/// day, std::format), are type-safe, are thread-safe (the outputs are
+/// "atomic", at least versus other calls to Strutil::*printf), and
+/// automatically flush their outputs. They are all locale-independent by
+/// default (use {:n} for locale-aware formatting).
+
+template<typename... Args>
+inline void print (const char* fmt, const Args&... args)
+{
+    sync_output (stdout, Strutil::fmt::format(fmt, args...));
+}
+
+template<typename... Args>
+inline void print (FILE *file, const char* fmt, const Args&... args)
+{
+    sync_output (file, Strutil::fmt::format(fmt, args...));
+}
+
+template<typename... Args>
+inline void print (std::ostream &file, const char* fmt, const Args&... args)
+{
+    sync_output (file, Strutil::fmt::format(fmt, args...));
+}
+
+
+
 
 /// Return a std::string formatted from printf-like arguments -- passed
-/// already as a va_list.  Like vsprintf, this is not guaranteed
-/// type-safe and is not extensible like format().
+/// already as a va_list.  This is not guaranteed type-safe and is not
+/// extensible like format(). Use with caution!
+std::string OIIO_API vsprintf (const char *fmt, va_list ap)
+                                         OPENIMAGEIO_PRINTF_ARGS(1,0);
+
+/// Return a std::string formatted like Strutil::format, but passed
+/// already as a va_list.  This is not guaranteed type-safe and is not
+/// extensible like format(). Use with caution!
 std::string OIIO_API vformat (const char *fmt, va_list ap)
                                          OPENIMAGEIO_PRINTF_ARGS(1,0);
 
@@ -180,13 +312,21 @@ std::string OIIO_API escape_chars (string_view unescaped);
 /// and collapse them into the 'real' characters.
 std::string OIIO_API unescape_chars (string_view escaped);
 
-/// Word-wrap string 'src' to no more than columns width, splitting at
-/// space characters.  It assumes that 'prefix' characters are already
-/// printed, and furthermore, if it should need to wrap, it prefixes that
-/// number of spaces in front of subsequent lines.  By illustration, 
-/// wordwrap("0 1 2 3 4 5 6 7 8", 4, 10) should return:
-/// "0 1 2\n    3 4 5\n    6 7 8"
-std::string OIIO_API wordwrap (string_view src, int columns=80, int prefix=0);
+/// Word-wrap string `src` to no more than `columns` width, starting with an
+/// assumed position of `prefix` on the first line and intending by `prefix`
+/// blanks before all lines other than the first.
+///
+/// Words may be split AT any characters in `sep` or immediately AFTER any
+/// characters in `presep`. After the break, any extra `sep` characters will
+/// be deleted.
+///
+/// By illustration,
+///     wordwrap("0 1 2 3 4 5 6 7 8", 10, 4)
+/// should return:
+///     "0 1 2\n    3 4 5\n    6 7 8"
+std::string OIIO_API wordwrap (string_view src, int columns = 80,
+                               int prefix = 0, string_view sep = " ",
+                               string_view presep = "");
 
 /// Hash a string_view.
 inline size_t
@@ -200,6 +340,10 @@ strhash (string_view s)
 /// Case-insensitive comparison of strings.  For speed, this always uses
 /// a static locale that doesn't require a mutex.
 bool OIIO_API iequals (string_view a, string_view b);
+
+/// Case-insensitive ordered comparison of strings.  For speed, this always
+/// uses a static locale that doesn't require a mutex.
+bool OIIO_API iless (string_view a, string_view b);
 
 /// Does 'a' start with the string 'b', with a case-sensitive comparison?
 bool OIIO_API starts_with (string_view a, string_view b);
@@ -230,6 +374,8 @@ void OIIO_API to_lower (std::string &a);
 /// a static locale that doesn't require a mutex lock.
 void OIIO_API to_upper (std::string &a);
 
+
+
 /// Return a reference to the section of str that has all consecutive
 /// characters in chars removed from the beginning and ending.  If chars is
 /// empty, it will be interpreted as " \t\n\r\f\v" (whitespace).
@@ -243,12 +389,34 @@ void OIIO_API split (string_view str, std::vector<string_view> &result,
 void OIIO_API split (string_view str, std::vector<std::string> &result,
                      string_view sep = string_view(), int maxsplit = -1);
 
+/// Split the contents of `str` using `sep` as the delimiter string (if
+/// `sep` is "", any whitespace string is a separator). If `maxsplit > -1`,
+/// at most `maxsplit` splits are performed. The result is returned as a
+/// vector of std::string (for `splits()`) or a vector of string_view (for
+/// `splitsv()`).
+OIIO_API std::vector<std::string>
+splits (string_view str, string_view sep = "", int maxsplit = -1);
+OIIO_API std::vector<string_view>
+splitsv (string_view str, string_view sep = "", int maxsplit = -1);
+
 /// Join all the strings in 'seq' into one big string, separated by the
-/// 'sep' string.
-std::string OIIO_API join (const std::vector<string_view> &seq,
-                           string_view sep = string_view());
-std::string OIIO_API join (const std::vector<std::string> &seq,
-                           string_view sep = string_view());
+/// 'sep' string. The Sequence can be any iterable collection of items that
+/// are able to convert to string via stream output. Examples include:
+/// std::vector<string_view>, std::vector<std::string>, std::set<ustring>,
+/// std::vector<int>, etc.
+template<class Sequence>
+std::string join (const Sequence& seq, string_view sep="")
+{
+    std::ostringstream out;
+    bool first = true;
+    for (auto&& s : seq) {
+        if (! first && sep.size())
+            out << sep;
+        out << s;
+        first = false;
+    }
+    return out.str();
+}
 
 /// Repeat a string formed by concatenating str n times.
 std::string OIIO_API repeat (string_view str, int n);
@@ -333,16 +501,25 @@ template<> inline float from_string<float> (string_view s) {
 
 
 // Template function to convert any type to a string. The default
-// implementation is just to use Strutil::format. The template can be
+// implementation is just to use sprintf. The template can be
 // overloaded if there is a better method for particular types.
+// Eventually, we want this to use fmt::to_string, but for now that doesn't
+// work because {fmt} doesn't correctly support locale-independent
+// formatting of floating-point types.
 template<typename T>
 inline std::string to_string (const T& value) {
-    return Strutil::format ("%s", value);
+    return Strutil::sprintf("%s",value);
 }
 
 template<> inline std::string to_string (const std::string& value) { return value; }
 template<> inline std::string to_string (const string_view& value) { return value; }
 inline std::string to_string (const char* value) { return value; }
+
+// Int types are SO much faster with fmt than tinyformat, specialize. Can't
+// do it for floats yet because of the locale-dependence.
+inline std::string to_string (int value) { return ::fmt::to_string(value); }
+inline std::string to_string (size_t value) { return ::fmt::to_string(value); }
+
 
 
 
@@ -406,6 +583,38 @@ int extract_from_list_string (std::vector<T> &vals,
 }
 
 
+/// Given a string containing values separated by a comma (or optionally
+/// another separator), extract the individual values, returning them as a
+/// std::vector<T>. The vector will be initialized with `nvals` elements
+/// with default value `val`. If only a single value was in the list,
+/// replace all elements of vals[] with the value. Otherwise, replace them
+/// in the same order.  A missing value will simply not be replaced and
+/// will retain the initialized default value. If the string contains more
+/// then `nvals` values, they will append to grow the vector.
+///
+/// For example, if T=float,
+///   extract_from_list_string ("", 3, 42.0f)
+///       --> {42.0, 42.0, 42.0}
+///   extract_from_list_string ("3.14", 3, 42.0f)
+///       --> {3.14, 3.14, 3.14}
+///   extract_from_list_string ("3.14,,-2.0", 3, 42.0f)
+///       --> {3.14, 42.0, -2.0}
+///   extract_from_list_string ("1,2,3,4", 3, 42.0f)
+///       --> {1.0, 2.0, 3.0, 4.0}
+///
+/// This can work for type T = int, float, or any type for that has
+/// an explicit constructor from a std::string.
+template<class T>
+std::vector<T>
+extract_from_list_string (string_view list, size_t nvals=0, T val=T(),
+                          string_view sep = ",")
+{
+    std::vector<T> vals (nvals, val);
+    extract_from_list_string (vals, list, sep);
+    return vals;
+}
+
+
 
 
 /// C++ functor wrapper class for using strhash for unordered_map or
@@ -424,17 +633,35 @@ public:
 
 
 
-/// C++ functor class for comparing two char*'s or std::string's for
-/// equality of their strings.
-class StringEqual {
-public:
-    bool operator() (const char *a, const char *b) const {
-        return strcmp (a, b) == 0;
-    }
-    bool operator() (string_view a, string_view b) const {
-        return a == b;
-    }
+/// C++ functor for comparing two strings for equality of their characters.
+struct OIIO_API StringEqual {
+    bool operator() (const char *a, const char *b) const { return strcmp (a, b) == 0; }
+    bool operator() (string_view a, string_view b) const { return a == b; }
 };
+
+
+/// C++ functor for comparing two strings for equality of their characters
+/// in a case-insensitive and locale-insensitive way.
+struct OIIO_API StringIEqual {
+    bool operator() (const char *a, const char *b) const;
+    bool operator() (string_view a, string_view b) const { return iequals (a, b); }
+};
+
+
+/// C++ functor for comparing the ordering of two strings.
+struct OIIO_API StringLess {
+    bool operator() (const char *a, const char *b) const { return strcmp (a, b) < 0; }
+    bool operator() (string_view a, string_view b) const { return a < b; }
+};
+
+
+/// C++ functor for comparing the ordering of two strings in a
+/// case-insensitive and locale-insensitive way.
+struct OIIO_API StringILess {
+    bool operator() (const char *a, const char *b) const;
+    bool operator() (string_view a, string_view b) const { return a < b; }
+};
+
 
 
 #ifdef _WIN32
@@ -527,12 +754,12 @@ bool OIIO_API parse_float (string_view &str, float &val, bool eat=true);
 enum QuoteBehavior { DeleteQuotes, KeepQuotes };
 /// If str's first non-whitespace characters form a valid string (either a
 /// single word separated by whitespace or anything inside a double-quoted
-/// string (""), return true, place the string's value (not including
-/// surrounding double quotes) in val, and additionally modify str to skip
-/// over the parsed string if eat is also true. Otherwise, if no string is
-/// found at the beginning of str, return false and don't modify val or str.
-/// If keep_quotes is true, the surrounding double quotes (if present)
-/// will be kept in val.
+/// ("") or single-quoted ('') string, return true, place the string's value
+/// (not including surrounding double quotes) in val, and additionally
+/// modify str to skip over the parsed string if eat is also true.
+/// Otherwise, if no string is found at the beginning of str, return false
+/// and don't modify val or str. If keep_quotes is true, the surrounding
+/// double quotes (if present) will be kept in val.
 bool OIIO_API parse_string (string_view &str, string_view &val, bool eat=true,
                             QuoteBehavior keep_quotes=DeleteQuotes);
 
@@ -559,7 +786,7 @@ string_view OIIO_API parse_identifier (string_view &str, bool eat=true);
 /// containing dollar signs and colons as well as the usual alphanumeric and
 /// underscore characters.
 string_view OIIO_API parse_identifier (string_view &str,
-                                       string_view allowed, bool eat);
+                                       string_view allowed, bool eat = true);
 
 /// If the C-like identifier at the head of str exactly matches id,
 /// return true, and also advance str if eat is true. If it is not a match
@@ -604,6 +831,3 @@ std::string OIIO_API base64_encode (string_view str);
 }  // namespace Strutil
 
 OIIO_NAMESPACE_END
-
-
-#endif // OPENIMAGEIO_STRUTIL_H

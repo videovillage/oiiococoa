@@ -1,7 +1,6 @@
 /*
   Copyright 2008 Larry Gritz and the other authors and contributors.
   All Rights Reserved.
-  Based on BSD-licensed software Copyright 2004 NVIDIA Corp.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
@@ -39,28 +38,30 @@
 ///
 /////////////////////////////////////////////////////////////////////////////
 
+// clang-format off
 
-#ifndef OPENIMAGEIO_IMAGEIO_H
+#pragma once
 #define OPENIMAGEIO_IMAGEIO_H
 
 #if defined(_MSC_VER)
 // Ignore warnings about DLL exported classes with member variables that are template classes.
 // This happens with the std::vector<T> and std::string members of the classes below.
-#  pragma warning (disable : 4251)
+#    pragma warning(disable : 4251)
 #endif
 
-#include <vector>
-#include <string>
-#include <limits>
 #include <cmath>
+#include <limits>
+#include <string>
+#include <vector>
 
+#include <span.h>
 #include <export.h>
 #include <oiioversion.h>
-#include <platform.h>
-#include <typedesc.h>
 #include <paramlist.h>
+#include <platform.h>
 #include <strutil.h>
-#include <array_view.h>
+#include <thread.h>
+#include <typedesc.h>
 
 OIIO_NAMESPACE_BEGIN
 
@@ -104,6 +105,118 @@ typedef bool (*ProgressCallback)(void *opaque_data, float portion_done);
 // Deprecated typedefs. Just use ParamValue and ParamValueList directly.
 typedef ParamValue ImageIOParameter;
 typedef ParamValueList ImageIOParameterList;
+
+
+
+/// Helper struct describing a region of interest in an image.
+/// The region is [xbegin,xend) x [begin,yend) x [zbegin,zend),
+/// with the "end" designators signifying one past the last pixel,
+/// a la STL style.
+struct ROI {
+    int xbegin, xend, ybegin, yend, zbegin, zend;
+    int chbegin, chend;
+
+    /// Default constructor is an undefined region. Note that this is also
+    /// interpreted as All().
+    constexpr ROI () : xbegin(std::numeric_limits<int>::min()), xend(0),
+             ybegin(0), yend(0), zbegin(0), zend(0), chbegin(0), chend(0)
+    { }
+
+    /// Constructor with an explicitly defined region.
+    ///
+    constexpr ROI (int xbegin, int xend, int ybegin, int yend,
+         int zbegin=0, int zend=1, int chbegin=0, int chend=10000)
+        : xbegin(xbegin), xend(xend), ybegin(ybegin), yend(yend),
+          zbegin(zbegin), zend(zend), chbegin(chbegin), chend(chend)
+    { }
+
+    /// Is a region defined?
+    constexpr bool defined () const { return (xbegin != std::numeric_limits<int>::min()); }
+
+    // Region dimensions.
+    constexpr int width () const { return xend - xbegin; }
+    constexpr int height () const { return yend - ybegin; }
+    constexpr int depth () const { return zend - zbegin; }
+
+    /// Number of channels in the region.  Beware -- this defaults to a
+    /// huge number, and to be meaningful you must consider
+    /// std::min (imagebuf.nchannels(), roi.nchannels()).
+    constexpr int nchannels () const { return chend - chbegin; }
+
+    /// Total number of pixels in the region.
+    constexpr imagesize_t npixels () const {
+        return defined()
+            ? imagesize_t(width()) * imagesize_t(height()) * imagesize_t(depth())
+            : 0;
+    }
+
+    /// All() is an alias for the default constructor, which indicates that
+    /// it means "all" of the image, or no region restruction.  For example,
+    ///     float myfunc (ImageBuf &buf, ROI roi = ROI::All());
+    /// Note that this is equivalent to:
+    ///     float myfunc (ImageBuf &buf, ROI roi = {});
+    static constexpr ROI All () { return ROI(); }
+
+    /// Test equality of two ROIs
+    friend constexpr bool operator== (const ROI &a, const ROI &b) {
+        return (a.xbegin == b.xbegin && a.xend == b.xend &&
+                a.ybegin == b.ybegin && a.yend == b.yend &&
+                a.zbegin == b.zbegin && a.zend == b.zend &&
+                a.chbegin == b.chbegin && a.chend == b.chend);
+    }
+    /// Test inequality of two ROIs
+    friend constexpr bool operator!= (const ROI &a, const ROI &b) {
+        return (a.xbegin != b.xbegin || a.xend != b.xend ||
+                a.ybegin != b.ybegin || a.yend != b.yend ||
+                a.zbegin != b.zbegin || a.zend != b.zend ||
+                a.chbegin != b.chbegin || a.chend != b.chend);
+    }
+
+    /// Test if the coordinate is within the ROI.
+    constexpr bool contains (int x, int y, int z=0, int ch=0) const {
+        return x >= xbegin && x < xend && y >= ybegin && y < yend
+            && z >= zbegin && z < zend && ch >= chbegin && ch < chend;
+    }
+
+    /// Test if another ROI is entirely within our ROI.
+    constexpr bool contains (const ROI& other) const {
+        return (other.xbegin >= xbegin && other.xend <= xend &&
+                other.ybegin >= ybegin && other.yend <= yend &&
+                other.zbegin >= zbegin && other.zend <= zend &&
+                other.chbegin >= chbegin && other.chend <= chend);
+    }
+
+    /// Stream output of the range
+    friend std::ostream & operator<< (std::ostream &out, const ROI &roi) {
+        out << roi.xbegin << ' ' << roi.xend << ' ' << roi.ybegin << ' '
+            << roi.yend << ' ' << roi.zbegin << ' ' << roi.zend << ' '
+            << roi.chbegin << ' ' << roi.chend;
+        return out;
+    }
+};
+
+
+
+/// Union of two regions, the smallest region containing both.
+inline constexpr ROI roi_union (const ROI &A, const ROI &B) {
+    return (A.defined() && B.defined())
+        ? ROI (std::min (A.xbegin,  B.xbegin),  std::max (A.xend,  B.xend),
+               std::min (A.ybegin,  B.ybegin),  std::max (A.yend,  B.yend),
+               std::min (A.zbegin,  B.zbegin),  std::max (A.zend,  B.zend),
+               std::min (A.chbegin, B.chbegin), std::max (A.chend, B.chend))
+        : (A.defined() ? A : B);
+}
+
+/// Intersection of two regions.
+inline constexpr ROI roi_intersection (const ROI &A, const ROI &B) {
+    return (A.defined() && B.defined())
+        ? ROI (std::max (A.xbegin,  B.xbegin),  std::min (A.xend,  B.xend),
+               std::max (A.ybegin,  B.ybegin),  std::min (A.yend,  B.yend),
+               std::max (A.zbegin,  B.zbegin),  std::min (A.zend,  B.zend),
+               std::max (A.chbegin, B.chbegin), std::min (A.chend, B.chend))
+        : (A.defined() ? A : B);
+}
+
 
 
 
@@ -359,8 +472,7 @@ public:
     /// For a given parameter p, format the value nicely as a string.  If
     /// 'human' is true, use especially human-readable explanations (units,
     /// or decoding of values) for certain known metadata.
-    static std::string metadata_val (const ParamValue &p,
-                              bool human=false);
+    static std::string metadata_val (const ParamValue &p, bool human=false);
 
     enum SerialFormat  { SerialText, SerialXML };
     enum SerialVerbose { SerialBrief, SerialDetailed, SerialDetailedHuman };
@@ -417,7 +529,78 @@ public:
 
     /// Return the index of the named channel, or -1 if not found.
     int channelindex (string_view name) const;
+
+    /// Return pixel data window for this ImageSpec as a ROI.
+    ROI roi () const {
+        return ROI (x, x+width, y, y+height, z, z+depth, 0, nchannels);
+    }
+
+    /// Return full/display window for this ImageSpec as a ROI.
+    ROI roi_full () const {
+        return ROI (full_x, full_x+full_width, full_y, full_y+full_height,
+                    full_z, full_z+full_depth, 0, nchannels);
+    }
+
+    /// Set pixel data window parameters (x, y, z, width, height, depth)
+    /// for this ImageSpec from an ROI.
+    /// Does NOT change the channels of the spec, regardless of r.
+    void set_roi (const ROI &r) {
+        x = r.xbegin;
+        y = r.ybegin;
+        z = r.zbegin;
+        width = r.width();
+        height = r.height();
+        depth = r.depth();
+    }
+
+    /// Set full/display window parameters (full_x, full_y, full_z,
+    /// full_width, full_height, full_depth) for this ImageSpec from an ROI.
+    /// Does NOT change the channels of the spec, regardless of r.
+    void set_roi_full (const ROI &r) {
+        full_x = r.xbegin;
+        full_y = r.ybegin;
+        full_z = r.zbegin;
+        full_width = r.width();
+        full_height = r.height();
+        full_depth = r.depth();
+    }
+
+    /// Copy the dimensions (x, y, z, width, height, depth, full*,
+    /// nchannels, format) and types of the other ImageSpec. Be careful,
+    /// this doesn't copy channelnames or the metadata in extra_attribs.
+    void copy_dimensions (const ImageSpec &other) {
+        x = other.x;
+        y = other.y;
+        z = other.z;
+        width = other.width;
+        height = other.height;
+        depth = other.depth;
+        full_x = other.full_x;
+        full_y = other.full_y;
+        full_z = other.full_z;
+        full_width = other.full_width;
+        full_height = other.full_height;
+        full_depth = other.full_depth;
+        tile_width = other.tile_width;
+        tile_height = other.tile_height;
+        tile_depth = other.tile_depth;
+        nchannels = other.nchannels;
+        format = other.format;
+        channelformats = other.channelformats;
+        alpha_channel = other.alpha_channel;
+        z_channel = other.z_channel;
+        deep = other.deep;
+    }
+
+    /// Is this ImageSpec undefined? (Designated by no channels and
+    /// undefined data type -- true of the uninitialized state of an
+    /// ImageSpec, and presumably not for any ImageSpec that is useful or
+    /// purposefully made.)
+    bool undefined () const {
+        return nchannels == 0 && format == TypeUnknown;
+    }
 };
+
 
 
 
@@ -425,12 +608,17 @@ public:
 /// format-agnostic manner.
 class OIIO_API ImageInput {
 public:
-    /// Create an ImageInput subclass instance that is able to read
-    /// the given file and open it, returning the opened ImageInput if
-    /// successful.  If it fails, return NULL and set an error that can
-    /// be retrieved by OpenImageIO::geterror().
+    /// unique_ptr to an ImageInput
+    using unique_ptr = std::unique_ptr<ImageInput>;
+
+    /// Create an ImageInput subclass instance that is able to read the
+    /// given file and open it, returning a unique_ptr to the ImageInput if
+    /// successful.  The unique_ptr is set up with an appropriate deleter so
+    /// the ImageInput will be properly deleted when the unique_ptr goes out
+    /// of scope or is reset. If the open fails, return an empty unique_ptr
+    /// and set an error that can be retrieved by OpenImageIO::geterror().
     ///
-    /// The 'config', if not NULL, points to an ImageSpec giving
+    /// The 'config', if not nullptr, points to an ImageSpec giving
     /// requests or special instructions.  ImageInput implementations
     /// are free to not respond to any such requests, so the default
     /// implementation is just to ignore config.
@@ -440,32 +628,35 @@ public:
     /// will try the TIFF plugin), but if one is not found or if the
     /// inferred one does not open the file, every known ImageInput type
     /// will be tried until one is found that will open the file.
-    static ImageInput *open (const std::string &filename,
-                             const ImageSpec *config = NULL);
+    static unique_ptr open (const std::string &filename,
+                            const ImageSpec *config = nullptr);
 
-    /// Create and return an ImageInput implementation that is willing
-    /// to read the given file.  The plugin_searchpath parameter is a
+    /// Create and return an ImageInput implementation that is able
+    /// to read the given file.  If do_open is true, fully open it if
+    /// possible (using the optional configuration spec, if supplied),
+    /// otherwise just create the ImageInput but don't open it.
+    /// The plugin_searchpath parameter is an override of the searchpath.
     /// colon-separated list of directories to search for ImageIO plugin
     /// DSO/DLL's (not a searchpath for the image itself!).  This will
     /// actually just try every imageio plugin it can locate, until it
-    /// finds one that's able to open the file without error.  This just
-    /// creates the ImageInput, it does not open the file.
+    /// finds one that's able to open the file without error.
     ///
     /// If the caller intends to immediately open the file, then it is
-    /// simpler to call static ImageInput::open().
-    static ImageInput *create (const std::string &filename,
-                               const std::string &plugin_searchpath="");
+    /// often simpler to call static ImageInput::open().
+    static unique_ptr create (const std::string &filename, bool do_open=false,
+                              const ImageSpec *config=nullptr,
+                              string_view plugin_searchpath="");
+    static unique_ptr create (const std::string &filename,
+                              const std::string &plugin_searchpath);
 
-    /// Destroy an ImageInput that was created using ImageInput::create() or
-    /// the static open(). For some systems (Windows, I'm looking at you),
-    /// it is not necessarily safe to allocate memory in one DLL and free it
-    /// in another, so directly calling 'delete' on an ImageInput allocated
-    /// by create() or open() may be unusafe, but passing it to destroy()
-    /// should be safe.
+    // Destructor for a raw ImageInput.
     static void destroy (ImageInput *x);
 
     ImageInput ();
     virtual ~ImageInput ();
+
+    typedef std::recursive_mutex mutex;
+    typedef std::lock_guard<mutex> lock_guard;
 
     /// Return the name of the format implemented by this class.
     ///
@@ -486,6 +677,7 @@ public:
     ///    "iptc"           Can this format store IPTC data?
     ///    "procedural"     Can this format create images without reading
     ///                        from a disk file?
+    ///    "ioproxy"        Does this format reader support IOProxy?
     ///
     /// Note that main advantage of this approach, versus having
     /// separate individual supports_foo() methods, is that this allows
@@ -521,11 +713,34 @@ public:
     /// Return a reference to the image format specification of the
     /// current subimage/MIPlevel.  Note that the contents of the spec
     /// are invalid before open() or after close(), and may change with
-    /// a call to seek_subimage().
-    const ImageSpec &spec (void) const { return m_spec; }
+    /// a call to seek_subimage(). It is thus not thread-safe, since the
+    /// spec may change if another thread calls seek_subimage, or any of
+    /// the read_*() functions that take explicit subimage/miplevel.
+    virtual const ImageSpec &spec (void) const { return m_spec; }
 
-    /// Close an image that we are totally done with.
-    ///
+    /// Return a full copy of the ImageSpec of the designated subimage and
+    /// MIPlevel. This method is thread-safe, but it is potentially
+    /// expensive, due to the work that needs to be done to fully copy an
+    /// ImageSpec if there is lots of named metadata to allocate and copy.
+    /// See also the less expensive spec_dimensions(). Errors (such as
+    /// having requested a nonexistant subimage) are indicated by returning
+    /// an ImageSpec with format==TypeUnknown.
+    virtual ImageSpec spec (int subimage, int miplevel=0);
+
+    /// Return a copy of the ImageSpec of the designated subimage and
+    /// miplevel, but only the dimension and type fields. Just as with a
+    /// call to ImageSpec::copy_dimensions(), neither the channel names nor
+    /// any of the arbitrary named metadata will be copied, thus this is a
+    /// relatively inexpensive operation if you don't need that information.
+    /// It is guaranteed to be thread-safe. Errors (such as having requested
+    /// a nonexistant subimage) are indicated by returning an ImageSpec with
+    /// format==TypeUnknown.
+    virtual ImageSpec spec_dimensions (int subimage, int miplevel=0);
+
+    /// Close an image that we are totally done with. The call to close() is
+    /// not strictly necessary if the ImageInput is destroyed immediately
+    /// afterwards, since it is required for the destructor to close if the
+    /// file is still open.
     virtual bool close () = 0;
 
     /// Returns the index of the subimage that is currently being read.
@@ -538,28 +753,35 @@ public:
     /// one) is number 0.
     virtual int current_miplevel (void) const { return 0; }
 
-    /// Seek to the given subimage and MIP-map level within the open
-    /// image file.  The first subimage of the file has index 0, the
-    /// highest-resolution MIP level has index 0.  Return true on
-    /// success, false on failure (including that there is not a
-    /// subimage or MIP level with the specified index).  The new
-    /// subimage's vital statistics are put in newspec (and also saved
-    /// in this->spec).  The reader is expected to give the appearance
-    /// of random access to subimages and MIP levels -- in other words,
-    /// if it can't randomly seek to the given subimage/level, it should
+    /// Seek to the given subimage and MIP-map level within the open image
+    /// file.  The first subimage of the file has index 0, the highest-
+    /// resolution MIP level has index 0.  Return true on success, false on
+    /// failure (including that there is not a subimage or MIP level with
+    /// the specified index).  The new subimage's vital statistics are put
+    /// in *newspec (if not NULL) and may also be retrieved by  in
+    /// this->spec()).  The reader is expected to give the appearance of
+    /// random access to subimages and MIP levels -- in other words, if it
+    /// can't randomly seek to the given subimage/level, it should
     /// transparently close, reopen, and sequentially read through prior
     /// subimages and levels.
-    virtual bool seek_subimage (int subimage, int miplevel,
-                                ImageSpec &newspec) {
-        if (subimage == current_subimage() && miplevel == current_miplevel()) {
-            newspec = spec();
-            return true;
-        }
-        return false;
+    virtual bool seek_subimage (int subimage, int miplevel) {
+        // Default implementation assumes no support for subimages or
+        // mipmaps, so there is no work to do.
+        return subimage == current_subimage() && miplevel == current_miplevel();
     }
 
-    /// Seek to the given subimage -- backwards-compatible call that
-    /// doesn't worry about MIP-map levels at all.
+    // Old version for backwards-compatibility: pass reference to newspec.
+    // Some day this will be deprecated.
+    bool seek_subimage (int subimage, int miplevel, ImageSpec &newspec) {
+        bool ok = seek_subimage (subimage, miplevel);
+        if (ok)
+            newspec = spec();
+        return ok;
+    }
+
+    // Seek to the given subimage -- backwards-compatible call that
+    // doesn't worry about MIP-map levels at all.
+    // Some day this will be deprecated.
     bool seek_subimage (int subimage, ImageSpec &newspec) {
         return seek_subimage (subimage, 0 /* miplevel */, newspec);
     }
@@ -589,32 +811,40 @@ public:
         return read_scanline (y, z, TypeDesc::FLOAT, data);
     }
 
-    /// Read multiple scanlines that include pixels (*,y,z) for all
-    /// ybegin <= y < yend, into data, using the strides given and
-    /// converting to the requested data format (unless format is
-    /// TypeDesc::UNKNOWN, in which case pixels will be copied in the
-    /// native data layout, including per-channel data formats).  This
-    /// is analogous to read_scanline except that it may be used to read
-    /// more than one scanline at a time (which, for some formats, may
-    /// be able to be done much more efficiently or in parallel).
-    virtual bool read_scanlines (int ybegin, int yend, int z,
-                                 TypeDesc format, void *data,
-                                 stride_t xstride=AutoStride,
-                                 stride_t ystride=AutoStride);
-
-    /// Read multiple scanlines that include pixels (*,y,z) for all
-    /// ybegin <= y < yend, into data, using the strides given and
-    /// converting to the requested data format (unless format is
-    /// TypeDesc::UNKNOWN, in which case pixels will be copied in the
-    /// native data layout, including per-channel data formats).  Only
-    /// channels [chbegin,chend) will be read/copied (chbegin=0,
-    /// chend=spec.nchannels reads all channels, yielding equivalent
-    /// behavior to the simpler variant of read_scanlines).
-    virtual bool read_scanlines (int ybegin, int yend, int z,
+    /// Read multiple scanlines that include pixels (*,y,z) for all ybegin
+    /// <= y < yend in the specified subimage and mip level, into data,
+    /// using the strides given and converting to the requested data format
+    /// (unless format is TypeDesc::UNKNOWN, in which case pixels will be
+    /// copied in the native data layout, including per-channel data
+    /// formats).  Only channels [chbegin,chend) will be read/copied
+    /// (chbegin=0, chend=spec.nchannels reads all channels, yielding
+    /// equivalent behavior to the simpler variant of read_scanlines).
+    ///
+    /// This version of read_scanlines, because it passes explicit
+    /// subimage/miplevel, does not require a separate call to
+    /// seek_subimage, and is guaranteed to be thread-safe against other
+    /// concurrent calls to any of the read_* methods that take an explicit
+    /// subimage/miplevel (but not against any other ImageInput methods).
+    virtual bool read_scanlines (int subimage, int miplevel,
+                                 int ybegin, int yend, int z,
                                  int chbegin, int chend,
                                  TypeDesc format, void *data,
                                  stride_t xstride=AutoStride,
                                  stride_t ystride=AutoStride);
+
+    // DEPRECATED versions of read_scanlines (pre-1.9 OIIO). These will
+    // eventually be removed. Try to replace these calls with ones to the
+    // new variety of read_scanlines that takes an explicit subimage and
+    // miplevel. These old versions are NOT THREAD-SAFE.
+    bool read_scanlines (int ybegin, int yend, int z,
+                         TypeDesc format, void *data,
+                         stride_t xstride=AutoStride,
+                         stride_t ystride=AutoStride);
+    bool read_scanlines (int ybegin, int yend, int z,
+                         int chbegin, int chend,
+                         TypeDesc format, void *data,
+                         stride_t xstride=AutoStride,
+                         stride_t ystride=AutoStride);
 
     /// Read the tile whose upper-left origin is (x,y,z) into data,
     /// converting if necessary from the native data format of the file
@@ -647,45 +877,44 @@ public:
                           AutoStride, AutoStride, AutoStride);
     }
 
-    /// Read the block of multiple tiles that include all pixels in
-    /// [xbegin,xend) X [ybegin,yend) X [zbegin,zend), into data, using
-    /// the strides given and converting to the requested data format
-    /// (unless format is TypeDesc::UNKNOWN, in which case pixels will
-    /// be copied in the native data layout, including per-channel data
-    /// formats).  This is analogous to read_tile except that it may be
-    /// used to read more than one tile at a time (which, for some
-    /// formats, may be able to be done much more efficiently or in
-    /// parallel).  The begin/end pairs must correctly delineate tile
-    /// boundaries, with the exception that it may also be the end of
-    /// the image data if the image resolution is not a whole multiple
-    /// of the tile size.
+    /// Read the block of tiles that include all pixels and channels in the
+    /// ROI, at the specified subimage and MIP level. The values are
+    /// converted to the requested data format (unless format is
+    /// TypeDesc::UNKNOWN, in which case pixels will be copied in the native
+    /// data layout, including per-channel data formats), and stored in
+    /// `data` according to the optional stride lengths (in bytes).
+    ///
     /// The stride values give the data spacing of adjacent pixels,
     /// scanlines, and volumetric slices (measured in bytes). Strides set to
     /// AutoStride imply 'contiguous' data in the shape of the [begin,end)
     /// region, i.e.,
-    ///     xstride == spec.nchannels*format.size()
-    ///     ystride == xstride * (xend-xbegin)
-    ///     zstride == ystride * (yend-ybegin)
-    virtual bool read_tiles (int xbegin, int xend, int ybegin, int yend,
-                             int zbegin, int zend, TypeDesc format,
-                             void *data, stride_t xstride=AutoStride,
-                             stride_t ystride=AutoStride,
+    ///     xstride == (chend - chbegin) * format.size()
+    ///     ystride == xstride * (xend - xbegin)
+    ///     zstride == ystride * (yend - ybegin)
+    ///
+    /// This version of read_tiles, because it passes explicit
+    /// subimage/miplevel, does not require a separate call to
+    /// seek_subimage, and is guaranteed to be thread-safe against other
+    /// concurrent calls to any of the read_* methods that take an explicit
+    /// subimage/miplevel (but not against any other ImageInput methods).
+    virtual bool read_tiles (int subimage, int miplevel, int xbegin, int xend,
+                             int ybegin, int yend, int zbegin, int zend,
+                             int chbegin, int chend, TypeDesc format, void *data,
+                             stride_t xstride=AutoStride, stride_t ystride=AutoStride,
                              stride_t zstride=AutoStride);
 
-    /// Read the block of multiple tiles that include all pixels in
-    /// [xbegin,xend) X [ybegin,yend) X [zbegin,zend), into data, using
-    /// the strides given and converting to the requested data format
-    /// (unless format is TypeDesc::UNKNOWN, in which case pixels will
-    /// be copied in the native data layout, including per-channel data
-    /// formats).  Only channels [chbegin,chend) will be read/copied
-    /// (chbegin=0, chend=spec.nchannels reads all channels, yielding
-    /// equivalent behavior to the simpler variant of read_tiles).
-    virtual bool read_tiles (int xbegin, int xend, int ybegin, int yend,
-                             int zbegin, int zend, 
-                             int chbegin, int chend, TypeDesc format,
-                             void *data, stride_t xstride=AutoStride,
-                             stride_t ystride=AutoStride,
-                             stride_t zstride=AutoStride);
+    // DEPRECATED versions of read_tiles (pre-1.9 OIIO). These will
+    // eventually be removed. Try to replace these calls with ones to the
+    // new variety of read_tiles that takes an explicit subimage and
+    // miplevel. These old versions are NOT THREAD-SAFE.
+    bool read_tiles (int xbegin, int xend, int ybegin, int yend,
+                     int zbegin, int zend, TypeDesc format, void *data,
+                     stride_t xstride=AutoStride, stride_t ystride=AutoStride,
+                     stride_t zstride=AutoStride);
+    bool read_tiles (int xbegin, int xend, int ybegin, int yend,
+                     int zbegin, int zend, int chbegin, int chend,
+                     TypeDesc format, void *data, stride_t xstride=AutoStride,
+                     stride_t ystride=AutoStride, stride_t zstride=AutoStride);
 
     /// Read the entire image of spec.width x spec.height x spec.depth
     /// pixels into data (which must already be sized large enough for
@@ -716,6 +945,18 @@ public:
     /// [chbegin,chend) will be read/copied (chbegin=0, chend=spec.nchannels
     /// reads all channels, yielding equivalent behavior to the simpler
     /// variant of read_image).
+    virtual bool read_image (int subimage, int miplevel,
+                             int chbegin, int chend,
+                             TypeDesc format, void *data,
+                             stride_t xstride=AutoStride,
+                             stride_t ystride=AutoStride,
+                             stride_t zstride=AutoStride,
+                             ProgressCallback progress_callback=NULL,
+                             void *progress_callback_data=NULL);
+    // DEPRECATED versions of read_image (pre-1.9 OIIO). These will
+    // eventually be removed. Try to replace these calls with ones to the
+    // new variety of read_tiles that takes an explicit subimage and
+    // miplevel. These old versions are NOT THREAD-SAFE.
     virtual bool read_image (int chbegin, int chend,
                              TypeDesc format, void *data,
                              stride_t xstride=AutoStride,
@@ -731,71 +972,91 @@ public:
     }
 
 
-    /// read_native_scanline is just like read_scanline, except that it
-    /// keeps the data in the native format of the disk file and always
-    /// reads into contiguous memory (no strides).  It's up to the user to
-    /// have enough space allocated and know what to do with the data.
-    /// IT IS EXPECTED THAT EACH FORMAT PLUGIN WILL OVERRIDE THIS METHOD.
-    virtual bool read_native_scanline (int y, int z, void *data) = 0;
+    ////////////////////////////////////////////////////////////////////////
+    // read_native_* methods are usually not directly called by user code
+    // (except for read_native_deep_* varieties). These are the methods that
+    // are overloaded by the ImageInput subclasses that implement the
+    // individual file format readers.
+    //
+    // The read_native_* methods always read the "native" data types
+    // (including per-channel data types) and assume that `data` points to
+    // contiguous memory (no non-default strides). In contrast, the
+    // read_scanline/scanlines/tile/tiles handle data type translation and
+    // arbitrary strides.
+    //
+    // The read_native_* methods take an explicit subimage and miplevel, and
+    // thus do not require a prior call to seek_subimage (and therefore no
+    // saved state). They are all required to be thread-safe when called
+    // concurrently with any other read_native_* call or with the varieties
+    // of read_tiles() that also takes an explicit subimage and miplevel
+    // parameter.
+    //
+    // As far as format-reading ImageInput subclasses are concerned, the
+    // only truly required overloads are read_native_scanline (always) and
+    // read_native_tile (only for formats that support tiles). The other
+    // varieties are special cases, for example if the particular format is
+    // able to efficiently read multiple scanlines or tiles at once, and if
+    // the subclass does not provide overloads, the base class
+    // implementaiton will be used instead, which is implemented by reducing
+    // the operation to multiple calls to read_scanline or read_tile.
 
-    /// read_native_scanlines is just like read_scanlines, except that
-    /// it keeps the data in the native format of the disk file and
-    /// always reads into contiguous memory (no strides).  It's up to
-    /// the user to have enough space allocated and know what to do with
-    /// the data.  If a format reader subclass does not override this
-    /// method, the default implementation it will simply be a loop
-    /// calling read_native_scanline for each scanline.
-    virtual bool read_native_scanlines (int ybegin, int yend, int z,
+    /// Read a single scanline of native data into contiguous memory.
+    virtual bool read_native_scanline (int subimage, int miplevel,
+                                       int y, int z, void *data) = 0;
+
+    virtual bool read_native_scanlines (int subimage, int miplevel,
+                                        int ybegin, int yend, int z,
                                         void *data);
-
-    /// A variant of read_native_scanlines that reads only channels
-    /// [chbegin,chend).  If a format reader subclass does
-    /// not override this method, the default implementation will simply
-    /// call the all-channel version of read_native_scanlines into a
-    /// temporary buffer and copy the subset of channels.
-    virtual bool read_native_scanlines (int ybegin, int yend, int z,
+    virtual bool read_native_scanlines (int subimage, int miplevel,
+                                        int ybegin, int yend, int z,
                                         int chbegin, int chend, void *data);
 
-    /// read_native_tile is just like read_tile, except that it
-    /// keeps the data in the native format of the disk file and always
-    /// read into contiguous memory (no strides).  It's up to the user to
-    /// have enough space allocated and know what to do with the data.
-    /// IT IS EXPECTED THAT EACH FORMAT PLUGIN WILL OVERRIDE THIS METHOD
-    /// IF IT SUPPORTS TILED IMAGES.
-    virtual bool read_native_tile (int x, int y, int z, void *data);
+    /// Read a single tile (all channels) of native data into contiguous
+    /// mamory. The base class read_native_tile fails. A format reader that
+    /// supports tiles MUST overload this virtual method that reads a single
+    /// tile (all channels).
+    virtual bool read_native_tile (int subimage, int miplevel,
+                                   int x, int y, int z, void *data);
 
-    /// read_native_tiles is just like read_tiles, except that it keeps
-    /// the data in the native format of the disk file and always reads
-    /// into contiguous memory (no strides).  It's up to the caller to
-    /// have enough space allocated and know what to do with the data.
-    /// If a format reader does not override this method, the default
-    /// implementation it will simply be a loop calling read_native_tile
-    /// for each tile in the block.
-    virtual bool read_native_tiles (int xbegin, int xend, int ybegin, int yend,
+    /// Read multiple tiles (all channels) of native data into contigious
+    /// memory. A format reader that supports reading multiple tiles at once
+    /// (in a way that's more efficient than reading the tiles one at a
+    /// time) is advised (but not required) to overload this virtual method.
+    /// If an ImageInput subclass does not overload this, the default
+    /// implementation here is simply to loop over the tiles, calling the
+    /// single-tile read_native_tile() for each one.
+    virtual bool read_native_tiles (int subimage, int miplevel,
+                                    int xbegin, int xend, int ybegin, int yend,
                                     int zbegin, int zend, void *data);
 
-    /// A variant of read_native_tiles that reads only channels
-    /// [chbegin,chend).  If a format reader subclass does
-    /// not override this method, the default implementation will simply
-    /// call the all-channel version of read_native_tiles into a
-    /// temporary buffer and copy the subset of channels.
-    virtual bool read_native_tiles (int xbegin, int xend, int ybegin, int yend,
+    /// Read multiple tiles (potentially a subset of channels) of native
+    /// data into contigious memory. A format reader that supports reading
+    /// multiple tiles at once, and can handle a channel subset while doing
+    /// so, is advised (but not required) to overload this virtual method.
+    /// If an ImageInput subclass does not overload this, the default
+    /// implementation here is simply to loop over the tiles, calling the
+    /// single-tile read_native_tile() for each one (and copying carefully
+    /// to handle the channel subset issues).
+    virtual bool read_native_tiles (int subimage, int miplevel,
+                                    int xbegin, int xend, int ybegin, int yend,
                                     int zbegin, int zend,
                                     int chbegin, int chend, void *data);
 
-    /// Read native deep data from multiple scanlines that include
-    /// pixels (*,y,z) for all ybegin <= y < yend, into deepdata.  Only
-    /// channels [chbegin, chend) will be read (chbegin=0,
-    /// chend=spec.nchannels reads all channels).
-    virtual bool read_native_deep_scanlines (int ybegin, int yend, int z,
+    /// Read into deepdata the block of native deep scanlines corresponding
+    /// to pixels (*,y,z) for all roi.ybegin <= y < roi.yend, into deepdata.
+    /// Only channels [roi.chbegin, chend) will be read (roi.chbegin=0,
+    /// roi.chend=spec.nchannels reads all channels). The x range must be
+    /// the full width of the image data, and the z range must be just one
+    /// depth plane.
+    virtual bool read_native_deep_scanlines (int subimage, int miplevel,
+                                             int ybegin, int yend, int z,
                                              int chbegin, int chend,
                                              DeepData &deepdata);
 
-    /// Read the block of multiple native deep data tiles that include
-    /// all pixels in [xbegin,xend) X [ybegin,yend) X [zbegin,zend),
-    /// into deepdata.  Only channels [chbegin,chend) will
-    /// be read (chbegin=0, chend=spec.nchannels reads all channels).
-    virtual bool read_native_deep_tiles (int xbegin, int xend,
+    /// Read into deepdata the block of native deep data tiles that include
+    /// all pixels and channels specified by the ROI.
+    virtual bool read_native_deep_tiles (int subimage, int miplevel,
+                                         int xbegin, int xend,
                                          int ybegin, int yend,
                                          int zbegin, int zend,
                                          int chbegin, int chend,
@@ -803,7 +1064,27 @@ public:
 
     /// Read the entire deep data image of spec.width x spec.height x
     /// spec.depth pixels, all channels, into deepdata.
-    virtual bool read_native_deep_image (DeepData &deepdata);
+    virtual bool read_native_deep_image (int subimage, int miplevel,
+                                         DeepData &deepdata);
+
+    // DEPRECATED(1.9), Now just used for back compatibility:
+    bool read_native_deep_scanlines (int ybegin, int yend, int z,
+                             int chbegin, int chend, DeepData &deepdata) {
+        return read_native_deep_scanlines (current_subimage(), current_miplevel(),
+                                           ybegin, yend, z,
+                                           chbegin, chend, deepdata);
+    }
+    bool read_native_deep_tiles (int xbegin, int xend, int ybegin, int yend,
+                                 int zbegin, int zend, int chbegin, int chend,
+                                 DeepData &deepdata) {
+        return read_native_deep_tiles (current_subimage(), current_miplevel(),
+                                       xbegin, xend, ybegin, yend,
+                                       zbegin, zend, chbegin, chend, deepdata);
+    }
+    bool read_native_deep_image (DeepData &deepdata) {
+        return read_native_deep_image (current_subimage(), current_miplevel(),
+                                       deepdata);
+    }
 
 
     /// General message passing between client and image input server
@@ -816,21 +1097,33 @@ public:
     /// flags).  If no error has occurred since the last time geterror()
     /// was called, it will return an empty string.
     std::string geterror () const {
+        lock_guard lock (m_mutex);
         std::string e = m_errmessage;
         m_errmessage.clear ();
         return e;
     }
 
-    /// An ImageInput::Creator is a function that creates and returns an
-    /// ImageInput.  Once invoked, the resulting ImageInput is owned by
-    /// the caller, who is responsible for deleting it when done with it.
-    typedef ImageInput* (*Creator)();
+    /// Error reporting for the plugin implementation: call this with
+    /// Strutil::format-like arguments.
+    /// Use with caution! Some day this will change to be fmt-like rather
+    /// than printf-like.
+    template<typename... Args>
+    void error(const char* fmt, const Args&... args) const {
+        append_error(Strutil::format (fmt, args...));
+    }
 
     /// Error reporting for the plugin implementation: call this with
-    /// printf-like arguments.  Note however that this is fully typesafe!
+    /// printf-like arguments.
     template<typename... Args>
-    void error (string_view fmt, const Args&... args) const {
-        append_error(Strutil::format (fmt, args...));
+    void errorf(const char* fmt, const Args&... args) const {
+        append_error(Strutil::sprintf (fmt, args...));
+    }
+
+    /// Error reporting for the plugin implementation: call this with
+    /// fmt::format-like arguments.
+    template<typename... Args>
+    void fmterror(const char* fmt, const Args&... args) const {
+        append_error(Strutil::fmt::format (fmt, args...));
     }
 
     /// Set the current thread-spawning policy: the maximum number of
@@ -842,16 +1135,31 @@ public:
     /// Retrieve the current thread-spawning policy.
     int threads () const { return m_threads; }
 
+    /// Lock, try_lock, and unlock for the internal mutex.
+    void lock () { m_mutex.lock(); }
+    bool try_lock () { return m_mutex.try_lock(); }
+    void unlock () { m_mutex.unlock(); }
+
+    // Custom new and delete to ensure that allocations & frees happen in
+    // the OpenImageIO library, not in the app or plugins (because Windows).
+    void* operator new (size_t size);
+    void operator delete (void *ptr);
+
+    /// Call signature of a function that creates and returns an ImageInput*
+    typedef ImageInput* (*Creator)();
+
 protected:
+    mutable mutex m_mutex;   // lock of the thread-safe methods
     ImageSpec m_spec;  // format spec of the current open subimage/MIPlevel
+                       // BEWARE using m_spec directly -- not thread-safe
 
 private:
     mutable std::string m_errmessage;  // private storage of error message
     int m_threads;    // Thread policy
     void append_error (const std::string& message) const; // add to m_errmessage
-    static ImageInput *create (const std::string &filename, bool do_open,
-                               const std::string &plugin_searchpath);
-
+    // Deprecated:
+    static unique_ptr create (const std::string &filename, bool do_open,
+                              const std::string &plugin_searchpath);
 };
 
 
@@ -861,19 +1169,21 @@ private:
 /// format-agnostic manner.
 class OIIO_API ImageOutput {
 public:
+    /// unique_ptr to an ImageOutput, with custom deleter.
+    using unique_ptr = std::unique_ptr<ImageOutput>;
+
     /// Create an ImageOutput that will write to a file, with the format
     /// inferred from the extension of the name.  The plugin_searchpath
     /// parameter is a colon-separated list of directories to search for
     /// ImageIO plugin DSO/DLL's.  This just creates the ImageOutput, it
-    /// does not open the file.
-    static ImageOutput *create (const std::string &filename,
-                                const std::string &plugin_searchpath="");
+    /// does not open the file.  If the writer could be created, a
+    /// unique_ptr to it will be returned, otherwise an empty pointer will
+    /// be returned and an appropriate error message will be set that can be
+    /// retrieved with OIIO::geterror().
+    static unique_ptr create (const std::string &filename,
+                              const std::string &plugin_searchpath="");
 
-    /// Destroy an ImageOutput that was created using ImageOutput::create().
-    /// For some systems (Windows, I'm looking at you), it is not
-    /// necessarily safe to allocate memory in one DLL and free it in
-    /// another, so directly calling 'delete' on an ImageOutput allocated by
-    /// create() may be unusafe, but passing it to destroy() should be safe.
+    // Destructor for a raw ImageOutput.
     static void destroy (ImageOutput *x);
 
     ImageOutput ();
@@ -933,6 +1243,7 @@ public:
     ///                        arbitrary names and types?
     ///    "exif"           Can this format store Exif camera data?
     ///    "iptc"           Can this format store IPTC data?
+    ///    "ioproxy"        Does this format writer support IOProxy?
     ///
     /// Note that main advantage of this approach, versus having
     /// separate individual supports_foo() methods, is that this allows
@@ -1017,7 +1328,6 @@ public:
     /// the distance (in bytes) between successive pixels, scanlines,
     /// and volumetric slices, respectively.  Strides set to AutoStride
     /// imply 'contiguous' data in the shape of a full tile, i.e.,
-
     ///     xstride == spec.nchannels*format.size()
     ///     ystride == xstride*spec.tile_width
     ///     zstride == ystride*spec.tile_height
@@ -1153,16 +1463,27 @@ public:
         return e;
     }
 
-    /// An ImageOutput::Creator is a function that creates and returns an
-    /// ImageOutput.  Once invoked, the resulting ImageOutput is owned by
-    /// the caller, who is responsible for deleting it when done with it.
-    typedef ImageOutput* (*Creator)();
+    /// Error reporting for the plugin implementation: call this with
+    /// Strutil::format-like arguments.
+    /// Use with caution! Some day this will change to be fmt-like rather
+    /// than printf-like.
+    template<typename... Args>
+    void error(const char* fmt, const Args&... args) const {
+        append_error(Strutil::format (fmt, args...));
+    }
 
     /// Error reporting for the plugin implementation: call this with
-    /// printf-like arguments.  Note however that this is fully typesafe!
+    /// printf-like arguments.
     template<typename... Args>
-    void error (string_view fmt, const Args&... args) const {
-        append_error(Strutil::format (fmt, args...));
+    void errorf(const char* fmt, const Args&... args) const {
+        append_error(Strutil::sprintf (fmt, args...));
+    }
+
+    /// Error reporting for the plugin implementation: call this with
+    /// fmt::format-like arguments.
+    template<typename... Args>
+    void fmterror(const char* fmt, const Args&... args) const {
+        append_error(Strutil::fmt::format (fmt, args...));
     }
 
     /// Set the current thread-spawning policy: the maximum number of
@@ -1173,6 +1494,14 @@ public:
 
     /// Retrieve the current thread-spawning policy.
     int threads () const { return m_threads; }
+
+    // Custom new and delete to ensure that allocations & frees happen in
+    // the OpenImageIO library, not in the app or plugins (because Windows).
+    void* operator new (size_t size);
+    void operator delete (void *ptr);
+
+    /// Call signature of a function that creates and returns an ImageOutput*
+    typedef ImageOutput* (*Creator)();
 
 protected:
     /// Helper routines used by write_* implementations: convert data (in
@@ -1277,9 +1606,15 @@ OIIO_API std::string geterror ();
 ///             once for read_image calls (default: 256).
 ///     int debug
 ///             When nonzero, various debug messages may be printed.
-///             The default is 0 for release builds, 1 for DEBUG builds,
+///             The default is 0 for release builds, >=1 for DEBUG builds,
 ///             but also may be overridden by the OPENIMAGEIO_DEBUG env
 ///             variable.
+///     int log_times
+///             When nonzero, various internals will record how much total
+///             time they spend in execution. If the value is >= 2, these
+///             times will be printed upon exit. Thd default is 0, but will
+///             be initialized to the value of the OPENIMAGEIO_LOG_TIMES
+///             environment variable, if it exists.
 ///     int tiff:half
 ///             When nonzero, allows TIFF to write 'half' pixel data.
 ///             N.B. Most apps may not read these correctly, but OIIO will.
@@ -1328,6 +1663,8 @@ inline bool attribute (string_view name, string_view val) {
 ///             the library. Semicolons separate the lists for formats. For
 ///             example,
 ///              "jpeg:jpeg-turbo 1.5.1;png:libpng 1.6.29;gif:gif_lib 5.1.4"
+///     string "timing_report"
+///             A string containing the report of all the log_times.
 ///     string "oiio:simd"
 ///             Comma-separated list of the SIMD-related capabilities
 ///             enabled when the OIIO library was built. For example,
@@ -1336,6 +1673,9 @@ inline bool attribute (string_view name, string_view val) {
 ///             Comma-separated list of the SIMD-related capabilities
 ///             detected at runtime at the time of the query (which may not
 ///             match the support compiled into the library).
+///     int "resident_memory_used_MB"
+///             Approximate process memory used (resident) by the application,
+///             in MB. This might be helpful in debugging.
 OIIO_API bool getattribute (string_view name, TypeDesc type, void *val);
 // Shortcuts for common types
 inline bool getattribute (string_view name, int &val) {
@@ -1378,7 +1718,6 @@ OIIO_API void declare_imageio_format (const std::string &format_name,
                                       const char **output_extensions,
                                       const char *lib_version);
 
-
 /// Helper function: convert contiguous arbitrary data between two
 /// arbitrary types (specified by TypeDesc's)
 /// Return true if ok, false if it didn't know how to do the
@@ -1402,8 +1741,20 @@ OIIO_API bool convert_image (int nchannels, int width, int height, int depth,
                              stride_t src_zstride,
                              void *dst, TypeDesc dst_type,
                              stride_t dst_xstride, stride_t dst_ystride,
-                             stride_t dst_zstride,
-                             int alpha_channel = -1, int z_channel = -1);
+                             stride_t dst_zstride);
+/// DEPRECATED(2.0) -- the alpha_channel, z_channel were never used
+inline bool convert_image(int nchannels, int width, int height, int depth,
+            const void *src, TypeDesc src_type,
+            stride_t src_xstride, stride_t src_ystride, stride_t src_zstride,
+            void *dst, TypeDesc dst_type,
+            stride_t dst_xstride, stride_t dst_ystride, stride_t dst_zstride,
+            int alpha_channel, int z_channel = -1)
+{
+    return convert_image(nchannels, width, height, depth, src, src_type,
+                         src_xstride, src_ystride, src_zstride, dst, dst_type,
+                         dst_xstride, dst_ystride, dst_zstride);
+}
+
 
 /// A version of convert_image that will break up big jobs into multiple
 /// threads.
@@ -1414,8 +1765,20 @@ OIIO_API bool parallel_convert_image (
                stride_t src_zstride,
                void *dst, TypeDesc dst_type,
                stride_t dst_xstride, stride_t dst_ystride,
-               stride_t dst_zstride,
-               int alpha_channel=-1, int z_channel=-1, int nthreads=0);
+               stride_t dst_zstride, int nthreads=0);
+/// DEPRECATED(2.0) -- the alpha_channel, z_channel were never used
+inline bool parallel_convert_image(
+            int nchannels, int width, int height, int depth,
+            const void *src, TypeDesc src_type,
+            stride_t src_xstride, stride_t src_ystride, stride_t src_zstride,
+            void *dst, TypeDesc dst_type,
+            stride_t dst_xstride, stride_t dst_ystride, stride_t dst_zstride,
+            int alpha_channel, int z_channel, int nthreads=0)
+{
+    return parallel_convert_image (nchannels, width, height, depth,
+           src, src_type, src_xstride, src_ystride, src_zstride,
+           dst, dst_type, dst_xstride, dst_ystride, dst_zstride, nthreads);
+}
 
 /// Add random [-theramplitude,ditheramplitude] dither to the color channels
 /// of the image.  Dither will not be added to the alpha or z channel.  The
@@ -1454,55 +1817,6 @@ OIIO_API bool copy_image (int nchannels, int width, int height, int depth,
                           void *dst, stride_t dst_xstride,
                           stride_t dst_ystride, stride_t dst_zstride);
 
-/// Decode a raw Exif data block and save all the metadata in an
-/// ImageSpec.  Return true if all is ok, false if the exif block was
-/// somehow malformed.  The binary data pointed to by 'exif' should
-/// start with a TIFF directory header.
-OIIO_API bool decode_exif (string_view exif, ImageSpec &spec);
-OIIO_API bool decode_exif (const void *exif, int length, ImageSpec &spec); // DEPRECATED (1.8)
-
-/// Construct an Exif data block from the ImageSpec, appending the Exif 
-/// data as a big blob to the char vector.
-OIIO_API void encode_exif (const ImageSpec &spec, std::vector<char> &blob);
-
-/// Helper: For the given OIIO metadata attribute name, look up the Exif tag
-/// ID, TIFFDataType (expressed as an int), and count. Return true and fill
-/// in the fields if found, return false if not found.
-OIIO_API bool exif_tag_lookup (string_view name, int &tag,
-                               int &tifftype, int &count);
-
-/// Add metadata to spec based on raw IPTC (International Press
-/// Telecommunications Council) metadata in the form of an IIM
-/// (Information Interchange Model).  Return true if all is ok, false if
-/// the iptc block was somehow malformed.  This is a utility function to
-/// make it easy for multiple format plugins to support embedding IPTC
-/// metadata without having to duplicate functionality within each
-/// plugin.  Note that IIM is actually considered obsolete and is
-/// replaced by an XML scheme called XMP.
-OIIO_API bool decode_iptc_iim (const void *iptc, int length, ImageSpec &spec);
-
-/// Find all the IPTC-amenable metadata in spec and assemble it into an
-/// IIM data block in iptc.  This is a utility function to make it easy
-/// for multiple format plugins to support embedding IPTC metadata
-/// without having to duplicate functionality within each plugin.  Note
-/// that IIM is actually considered obsolete and is replaced by an XML
-/// scheme called XMP.
-OIIO_API void encode_iptc_iim (const ImageSpec &spec, std::vector<char> &iptc);
-
-/// Add metadata to spec based on XMP data in an XML block.  Return true
-/// if all is ok, false if the xml was somehow malformed.  This is a
-/// utility function to make it easy for multiple format plugins to
-/// support embedding XMP metadata without having to duplicate
-/// functionality within each plugin.
-OIIO_API bool decode_xmp (const std::string &xml, ImageSpec &spec);
-
-/// Find all the relavant metadata (IPTC, Exif, etc.) in spec and
-/// assemble it into an XMP XML string.  This is a utility function to
-/// make it easy for multiple format plugins to support embedding XMP
-/// metadata without having to duplicate functionality within each
-/// plugin.  If 'minimal' is true, then don't encode things that would
-/// be part of ordinary TIFF or exif tags.
-OIIO_API std::string encode_xmp (const ImageSpec &spec, bool minimal=false);
 
 // All the wrap_foo functions implement a wrap mode, wherein coord is
 // altered to be origin <= coord < origin+width.  The return value
@@ -1525,10 +1839,26 @@ typedef bool (*wrap_impl) (int &coord, int origin, int width);
 /// output to stderr for debugging statements.
 OIIO_API void debug (string_view str);
 
+/// debug output with fmt/std::format conventions.
 template<typename T1, typename... Args>
-void debug (string_view fmt, const T1& v1, const Args&... args)
+void fmtdebug (const char* fmt, const T1& v1, const Args&... args)
 {
-    debug (Strutil::format(fmt.c_str(), v1, args...));
+    debug (Strutil::fmt::format(fmt, v1, args...));
+}
+
+/// debug output with printf conventions.
+template<typename T1, typename... Args>
+void debugf (const char* fmt, const T1& v1, const Args&... args)
+{
+    debug (Strutil::sprintf(fmt, v1, args...));
+}
+
+/// debug output with the same conventions as Strutil::format. Beware, this
+/// will change one day!
+template<typename T1, typename... Args>
+void debug (const char* fmt, const T1& v1, const Args&... args)
+{
+    debug (Strutil::format(fmt, v1, args...));
 }
 
 
@@ -1536,5 +1866,3 @@ void debug (string_view fmt, const T1& v1, const Args&... args)
 OIIO_API void _ImageIO_force_link ();
 
 OIIO_NAMESPACE_END
-
-#endif  // OPENIMAGEIO_IMAGEIO_H

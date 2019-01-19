@@ -28,6 +28,7 @@
   (This is the Modified BSD License)
 */
 
+// clang-format off
 
 /// @file  filesystem.h
 ///
@@ -39,24 +40,32 @@
 ///
 
 
-#ifndef OPENIMAGEIO_FILESYSTEM_H
-#define OPENIMAGEIO_FILESYSTEM_H
+#pragma once
 
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <fstream>
+#include <mutex>
 #include <string>
 #include <vector>
 
+#include <span.h>
 #include <export.h>
 #include <oiioversion.h>
 #include <string_view.h>
 
 #if defined(_WIN32) && defined(__GLIBCXX__)
-#define OIIO_FILESYSTEM_USE_STDIO_FILEBUF 1
-#include <fstream_mingw.h>
+#    define OIIO_FILESYSTEM_USE_STDIO_FILEBUF 1
+#    include <fstream_mingw.h>
 #endif
+
+
+// Define symbols that let client applications determine if newly added
+// features are supported.
+#define OIIO_FILESYSTEM_SUPPORTS_IOPROXY 1
+
+
 
 OIIO_NAMESPACE_BEGIN
 
@@ -323,8 +332,143 @@ OIIO_API bool scan_for_matching_filenames (const std::string &pattern,
                                            std::vector<int> &numbers,
                                            std::vector<std::string> &filenames);
 
+
+
+/// Proxy class for I/O. This provides a simplified interface for file I/O
+/// that can have custom overrides.
+class OIIO_API IOProxy {
+public:
+    enum Mode { Closed = 0, Read = 'r', Write = 'w' };
+    IOProxy () {}
+    IOProxy (string_view filename, Mode mode)
+        : m_filename(filename), m_mode(mode) {}
+    virtual ~IOProxy () { }
+    virtual const char* proxytype () const = 0;
+    virtual void close () { }
+    virtual bool opened () const { return mode() != Closed; }
+    virtual int64_t tell () { return m_pos; }
+    virtual bool seek (int64_t offset) { m_pos = offset; return true; }
+    virtual size_t read (void *buf, size_t size) { return 0; }
+    virtual size_t write (const void *buf, size_t size) { return 0; }
+    // pread(), pwrite() are stateless, do not alter the current file
+    // position, and are thread-safe (against each other).
+    virtual size_t pread (void *buf, size_t size, int64_t offset) { return 0; }
+    virtual size_t pwrite (const void *buf, size_t size, int64_t offset) { return 0; }
+    virtual size_t size () const { return 0; }
+    virtual void flush () const { }
+
+    Mode mode () const { return m_mode; }
+    const std::string& filename () const { return m_filename; }
+    template<class T> size_t read (span<T> buf) {
+        return read (buf.data(), buf.size()*sizeof(T));
+    }
+    template<class T> size_t write (span<T> buf) {
+        return write (buf.data(), buf.size()*sizeof(T));
+    }
+    size_t write (string_view buf) {
+        return write (buf.data(), buf.size());
+    }
+    bool seek (int64_t offset, int origin) {
+        return seek ((origin == SEEK_SET ? offset : 0) +
+                     (origin == SEEK_CUR ? offset+tell() : 0) +
+                     (origin == SEEK_END ? size() : 0));
+    }
+protected:
+    std::string m_filename;
+    int64_t m_pos = 0;
+    Mode m_mode   = Closed;
+};
+
+
+/// IOProxy subclass for reading or writing (but not both) that wraps C
+/// stdio 'FILE'.
+class OIIO_API IOFile : public IOProxy {
+public:
+    // Construct from a filename, open, own the FILE*.
+    IOFile(string_view filename, Mode mode);
+    // Construct from an already-open FILE* that is owned by the caller.
+    // Caller is responsible for closing the FILE* after the proxy is gone.
+    IOFile(FILE* file, Mode mode);
+    virtual ~IOFile();
+    virtual const char* proxytype() const { return "file"; }
+    virtual void close();
+    virtual bool seek(int64_t offset);
+    virtual size_t read(void* buf, size_t size);
+    virtual size_t write(const void* buf, size_t size);
+    virtual size_t pread(void* buf, size_t size, int64_t offset);
+    virtual size_t pwrite(const void* buf, size_t size, int64_t offset);
+    virtual size_t size() const;
+    virtual void flush() const;
+
+    // Access the FILE*
+    FILE* handle() const { return m_file; }
+
+protected:
+    FILE* m_file      = nullptr;
+    size_t m_size     = 0;
+    bool m_auto_close = false;
+};
+
+
+/// IOProxy subclass for writing that wraps a std::vector<char> that will
+/// grow as we write.
+class OIIO_API IOVecOutput : public IOProxy {
+public:
+    // Construct, IOVecOutput owns its own vector.
+    IOVecOutput()
+        : IOProxy("", IOProxy::Write)
+        , m_buf(m_local_buf)
+    {
+    }
+    // Construct to wrap an existing vector.
+    IOVecOutput(std::vector<unsigned char>& buf)
+        : IOProxy("", Write)
+        , m_buf(buf)
+    {
+    }
+    virtual const char* proxytype() const { return "vecoutput"; }
+    virtual size_t write(const void* buf, size_t size);
+    virtual size_t pwrite(const void* buf, size_t size, int64_t offset);
+    virtual size_t size() const { return m_buf.size(); }
+
+    // Access the buffer
+    std::vector<unsigned char>& buffer() const { return m_buf; }
+
+protected:
+    std::vector<unsigned char>& m_buf;       // reference to buffer
+    std::vector<unsigned char> m_local_buf;  // our own buffer
+    std::mutex m_mutex;                      // protect the buffer
+};
+
+
+
+/// IOProxy subclass for reading that wraps an cspan<char>.
+class OIIO_API IOMemReader : public IOProxy {
+public:
+    IOMemReader(void* buf, size_t size)
+        : IOProxy("", Read)
+        , m_buf((const unsigned char*)buf, size)
+    {
+    }
+    IOMemReader(cspan<unsigned char> buf)
+        : IOProxy("", Read)
+        , m_buf(buf.data(), buf.size())
+    {
+    }
+    virtual const char* proxytype() const { return "memreader"; }
+    virtual bool seek(int64_t offset)
+    {
+        m_pos = offset;
+        return true;
+    }
+    virtual size_t read(void* buf, size_t size);
+    virtual size_t pread(void* buf, size_t size, int64_t offset);
+    virtual size_t size() const { return m_buf.size(); }
+
+protected:
+    cspan<unsigned char> m_buf;
+};
+
 };  // namespace Filesystem
 
 OIIO_NAMESPACE_END
-
-#endif // OPENIMAGEIO_FILESYSTEM_H

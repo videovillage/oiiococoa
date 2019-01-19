@@ -34,9 +34,9 @@
 
 
 // Versioning of the OpenImageIO software
-#define OIIO_VERSION_MAJOR 1
-#define OIIO_VERSION_MINOR 8
-#define OIIO_VERSION_PATCH 11
+#define OIIO_VERSION_MAJOR 2
+#define OIIO_VERSION_MINOR 0
+#define OIIO_VERSION_PATCH 4
 #define OIIO_VERSION_RELEASE_TYPE 
 
 #define OIIO_VERSION (10000 * OIIO_VERSION_MAJOR + \
@@ -56,13 +56,13 @@
 
 
 // Establish the name spaces
-namespace OpenImageIO_v1_8 { }
-namespace OIIO = OpenImageIO_v1_8;
+namespace OpenImageIO_v2_0 { }
+namespace OIIO = OpenImageIO_v2_0;
 
 // Macros to use in each file to enter and exit the right name spaces.
-#define OIIO_NAMESPACE OpenImageIO_v1_8
-#define OIIO_NAMESPACE_STRING "OpenImageIO_v1_8"
-#define OIIO_NAMESPACE_BEGIN namespace OpenImageIO_v1_8 {
+#define OIIO_NAMESPACE OpenImageIO_v2_0
+#define OIIO_NAMESPACE_STRING "OpenImageIO_v2_0"
+#define OIIO_NAMESPACE_BEGIN namespace OpenImageIO_v2_0 {
 #define OIIO_NAMESPACE_END }
 #define OIIO_NAMESPACE_USING using namespace OIIO;
 
@@ -94,8 +94,15 @@ namespace OIIO = OpenImageIO_v1_8;
 /// Version 18 changed to add an m_threads member to ImageInput/Output.
 /// Version 19 changed the definition of DeepData.
 /// Version 20 added FMT_imageio_library_version() to plugins. (OIIO 1.7)
+/// Version 21 changed the signatures of ImageInput methods: added
+///     subimage,miplevel params to many read_*() methods; changed thread
+///     safety expectations; removed newspec param from seek_subimage;
+///     added spec(subimage,miplevel) and spec_dimensions(subimage,miplevel).
+///     (OIIO 1.9)
+/// Version 22 changed the signatures of ImageInput/ImageOutput create()
+///     to return unique_ptr. (OIIO 1.9)
 
-#define OIIO_PLUGIN_VERSION 20
+#define OIIO_PLUGIN_VERSION 22
 
 #define OIIO_PLUGIN_NAMESPACE_BEGIN OIIO_NAMESPACE_BEGIN
 #define OIIO_PLUGIN_NAMESPACE_END OIIO_NAMESPACE_END
@@ -109,10 +116,12 @@ namespace OIIO = OpenImageIO_v1_8;
 #endif
 
 #define OIIO_BUILD_CPP11 1 /* Always build for C++ >= 11 */
-// OIIO_BUILD_CPP14 will be 1 if this OIIO was built using C++14
+// OIIO_BUILD_CPP14 will be 1 if this OIIO was built using C++14 or higher
 #define OIIO_BUILD_CPP14 0
-// OIIO_BUILD_CPP17 will be 1 if this OIIO was built using C++17
+// OIIO_BUILD_CPP17 will be 1 if this OIIO was built using C++17 or higher
 #define OIIO_BUILD_CPP17 0
+// OIIO_BUILD_CPP20 will be 1 if this OIIO was built using C++20 or higher
+#define OIIO_BUILD_CPP20 0
 
 #endif
 

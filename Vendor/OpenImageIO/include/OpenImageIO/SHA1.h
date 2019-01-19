@@ -70,6 +70,7 @@
 	SHA1(A million repetitions of "a") =
 		34AA973C D4C4DAA4 F61EEB2B DBAD2731 6534016F
 */
+// clang-format off
 
 #ifndef ___SHA1_HDR___
 #define ___SHA1_HDR___
@@ -121,27 +122,10 @@
 #define SHA1_WIPE_VARIABLES
 #endif
 
-#if defined(SHA1_HAS_TCHAR)
-#include <tchar.h>
-#else
 #ifdef _MSC_VER
-#include <tchar.h>
+#define _sntprintf std::snprintf
 #else
-#ifndef TCHAR
-#define TCHAR char
-#endif
-#ifndef _T
-#define _T(__x) (__x)
-#define _tmain main
-#define _tprintf printf
-#define _getts gets
-#define _tcslen strlen
-#define _tfopen fopen
-#define _tcscpy strcpy
-#define _tcscat strcat
-#define _sntprintf snprintf
-#endif
-#endif
+#define _sntprintf std::snprintf
 #endif
 
 // Fallback, if no 64-bit support
@@ -203,18 +187,18 @@ public:
 
 #ifdef SHA1_UTILITY_FUNCTIONS
 	// Hash in file contents
-	bool HashFile(const TCHAR* tszFileName);
+	bool HashFile(const char* szFileName);
 #endif
 
 	// Finalize hash, call before using ReportHash(Stl)
 	void Final();
 
 #ifdef SHA1_UTILITY_FUNCTIONS
-	bool ReportHash(TCHAR* tszReport, REPORT_TYPE rtReportType = REPORT_HEX) const;
+	bool ReportHash(char* szReport, REPORT_TYPE rtReportType = REPORT_HEX) const;
 #endif
 
 #ifdef SHA1_STL_FUNCTIONS
-	bool ReportHashStl(std::basic_string<TCHAR>& strOut, REPORT_TYPE rtReportType =
+	bool ReportHashStl(std::string& strOut, REPORT_TYPE rtReportType =
 		REPORT_HEX) const;
 #endif
 

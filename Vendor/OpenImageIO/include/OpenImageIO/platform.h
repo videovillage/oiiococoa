@@ -35,53 +35,41 @@
 /// @brief Platform-related macros.
 /////////////////////////////////////////////////////////////////////////
 
+// clang-format off
 
 #pragma once
 
+#include <utility>  // std::forward
+
 // Make sure all platforms have the explicit sized integer types
-#if defined(_MSC_VER) && _MSC_VER < 1600
-   typedef __int8  int8_t;
-   typedef __int16 int16_t;
-   typedef __int32 int32_t;
-   typedef __int64 int64_t;
-   typedef unsigned __int8  uint8_t;
-   typedef unsigned __int16 uint16_t;
-# ifndef _UINT64_T
-   typedef unsigned __int32 uint32_t;
-   typedef unsigned __int64 uint64_t;
-#  define _UINT32_T
-#  define _UINT64_T
-# endif
-#else
-#  ifndef __STDC_LIMIT_MACROS
-#    define __STDC_LIMIT_MACROS  /* needed for some defs in stdint.h */
-#  endif
-#  include <cstdint>
+#ifndef __STDC_LIMIT_MACROS
+#    define __STDC_LIMIT_MACROS /* needed for some defs in stdint.h */
 #endif
+#include <cstdint>
 
 #if defined(__FreeBSD__)
-#include <sys/param.h>
+#    include <sys/param.h>
 #endif
 
 #ifdef __MINGW32__
-#include <malloc.h> // for alloca
+#    include <malloc.h>  // for alloca
 #endif
 
 #if defined(_MSC_VER) || defined(_WIN32)
-# ifndef WIN32_LEAN_AND_MEAN
-#   define WIN32_LEAN_AND_MEAN
-# endif
-# ifndef VC_EXTRALEAN
-#   define VC_EXTRALEAN
-# endif
-# ifndef NOMINMAX
-#   define NOMINMAX
-# endif
-# include <windows.h>
+#    ifndef WIN32_LEAN_AND_MEAN
+#        define WIN32_LEAN_AND_MEAN
+#    endif
+#    ifndef VC_EXTRALEAN
+#        define VC_EXTRALEAN
+#    endif
+#    ifndef NOMINMAX
+#        define NOMINMAX
+#    endif
+#    include <windows.h>
 #endif
 
-# ifdef _MSC_VER
-#include <intrin.h>
+#ifdef _MSC_VER
+#    include <intrin.h>
 #endif
 
 #include <oiioversion.h>
@@ -92,52 +80,60 @@
 // OIIO_USING_CPP11 : (deprecated) defined and 1 if using C++11 or newer.
 // OIIO_CONSTEXPR14 : constexpr for C++ >= 14, otherwise nothing (this is
 //                      useful for things that can only be constexpr for 14)
+// OIIO_CONSTEXPR17 : constexpr for C++ >= 17, otherwise nothing (this is
+//                      useful for things that can only be constexpr for 17)
 //
-// Note: oiioversion.h defines OIIO_BUILD_CPP11 or OIIO_BUILD_CPP14 to be 1
-// if OIIO itself was built using C++11 or C++14, respectively. In contrast,
+// Note: oiioversion.h defines OIIO_BUILD_CPP11, OIIO_BUILD_CPP14,
+// OIIO_BUILD_CPP17, or OIIO_BUILD_CPP20 to be 1 if OIIO itself was *built*
+// using C++11, C++14, C++17, or C++20, respectively. In contrast,
 // OIIO_CPLUSPLUS_VERSION defined below will be set to the right number for
 // the C++ standard being compiled RIGHT NOW. These two things may be the
 // same when compiling OIIO, but they may not be the same if another
 // packages is compiling against OIIO and using these headers (OIIO may be
 // C++11 but the client package may be older, or vice versa -- use these two
 // symbols to differentiate these cases, when important).
-#if (__cplusplus >= 201700L)
-#  define OIIO_CPLUSPLUS_VERSION  17
-#  define OIIO_CONSTEXPR14        constexpr
+#if (__cplusplus >= 201703L)
+#    define OIIO_CPLUSPLUS_VERSION 17
+#    define OIIO_CONSTEXPR14 constexpr
+#    define OIIO_CONSTEXPR17 constexpr
+#    define OIIO_CONSTEXPR20 /* not constexpr before C++20 */
 #elif (__cplusplus >= 201402L)
-#  define OIIO_CPLUSPLUS_VERSION  14
-#  define OIIO_CONSTEXPR14        constexpr
-#elif (__cplusplus >= 201103L) || _MSC_VER >= 1900
-#  define OIIO_CPLUSPLUS_VERSION  11
-#  define OIIO_CONSTEXPR14        /* not constexpr before C++14 */
+#    define OIIO_CPLUSPLUS_VERSION 14
+#    define OIIO_CONSTEXPR14 constexpr
+#    define OIIO_CONSTEXPR17 /* not constexpr before C++17 */
+#    define OIIO_CONSTEXPR20 /* not constexpr before C++20 */
+#elif (__cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+#    define OIIO_CPLUSPLUS_VERSION 11
+#    define OIIO_CONSTEXPR14 /* not constexpr before C++14 */
+#    define OIIO_CONSTEXPR17 /* not constexpr before C++17 */
+#    define OIIO_CONSTEXPR20 /* not constexpr before C++20 */
 #else
-#  error "This version of OIIO is meant to work only with C++11 and above"
+#    error "This version of OIIO is meant to work only with C++11 and above"
 #endif
 
 // DEPRECATED(1.8): use C++11 constexpr
-#define OIIO_CONSTEXPR          constexpr
+#define OIIO_CONSTEXPR constexpr
 #define OIIO_CONSTEXPR_OR_CONST constexpr
 
 // DEPRECATED(1.8): use C++11 noexcept
 #define OIIO_NOEXCEPT noexcept
 
 
-// Fallback definitions for feature testing. Some newer compilers define
-// these for real, and it may be standard for C++17.
-#ifndef __has_feature
-#  define __has_feature(x) 0
+// In C++20 (and some compilers before that), __has_cpp_attribute can
+// test for understand of [[attr]] tests.
+#ifndef __has_cpp_attribute
+#    define __has_cpp_attribute(x) 0
 #endif
-#ifndef __has_extension
-#  define __has_extension(x) __has_feature(x)
-#endif
+
+// On gcc & clang, __has_attribute can test for __attribute__((attr))
 #ifndef __has_attribute
-#  define __has_attribute(x) 0
+#    define __has_attribute(x) 0
 #endif
-#ifndef __has_builtin
-#  define __has_builtin(x) 0
-#endif
+
+// In C++17 (and some compilers before that), __has_include("blah.h") or
+// __has_include(<blah.h>) can test for presence of an include file.
 #ifndef __has_include
-#  define __has_include(x) 0
+#    define __has_include(x) 0
 #endif
 
 
@@ -172,15 +168,22 @@
 
 // Tests for MSVS versions, always 0 if not MSVS at all.
 #if defined(_MSC_VER)
+#  if _MSC_VER < 1900
+#    error "This version of OIIO is meant to work only with Visual Studio 2015 or later"
+#  endif
 #  define OIIO_MSVS_AT_LEAST_2013 (_MSC_VER >= 1800)
 #  define OIIO_MSVS_BEFORE_2013   (_MSC_VER <  1800)
 #  define OIIO_MSVS_AT_LEAST_2015 (_MSC_VER >= 1900)
 #  define OIIO_MSVS_BEFORE_2015   (_MSC_VER <  1900)
+#  define OIIO_MSVS_AT_LEAST_2017 (_MSC_VER >= 1910)
+#  define OIIO_MSVS_BEFORE_2017   (_MSC_VER <  1910)
 #else
 #  define OIIO_MSVS_AT_LEAST_2013 0
 #  define OIIO_MSVS_BEFORE_2013   0
 #  define OIIO_MSVS_AT_LEAST_2015 0
 #  define OIIO_MSVS_BEFORE_2015   0
+#  define OIIO_MSVS_AT_LEAST_2017 0
+#  define OIIO_MSVS_BEFORE_2017   0
 #endif
 
 
@@ -192,16 +195,16 @@
 
 
 // Define a macro that can be used for memory alignment.
-// I think that in a future world of C++1x compatibility, all these can
-// be replaced with [[ align(size) ]].
-#if defined (__GNUC__) || __has_attribute(aligned)
-#  define OIIO_ALIGN(size) __attribute__((aligned(size)))
-#elif defined (_MSC_VER)
-#  define OIIO_ALIGN(size) __declspec(align(size))
-#elif defined (__INTEL_COMPILER)
-#  define OIIO_ALIGN(size) __declspec(align((size)))
+// This macro is mostly obsolete and C++11 alignas() should be preferred
+// for new code.
+#if defined(__GNUC__) || __has_attribute(aligned)
+#    define OIIO_ALIGN(size) __attribute__((aligned(size)))
+#elif defined(_MSC_VER)
+#    define OIIO_ALIGN(size) __declspec(align(size))
+#elif defined(__INTEL_COMPILER)
+#    define OIIO_ALIGN(size) __declspec(align((size)))
 #else
-#  error "Don't know how to define OIIO_ALIGN"
+#    error "Don't know how to define OIIO_ALIGN"
 #endif
 
 // Cache line size is 64 on all modern x86 CPUs. If this changes or we
@@ -224,11 +227,11 @@
 // Caveat: Programmers are notoriously bad at guessing this, so it
 // should be used only with thorough benchmarking.
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
-#define OIIO_LIKELY(x)   (__builtin_expect(bool(x), true))
-#define OIIO_UNLIKELY(x) (__builtin_expect(bool(x), false))
+#    define OIIO_LIKELY(x) (__builtin_expect(bool(x), true))
+#    define OIIO_UNLIKELY(x) (__builtin_expect(bool(x), false))
 #else
-#define OIIO_LIKELY(x)   (x)
-#define OIIO_UNLIKELY(x) (x)
+#    define OIIO_LIKELY(x) (x)
+#    define OIIO_UNLIKELY(x) (x)
 #endif
 
 
@@ -237,13 +240,13 @@
 // this attribute before the function return type, just like you would use
 // 'inline'.
 #if defined(__CUDACC__)
-#  define OIIO_FORCEINLINE __inline__
+#    define OIIO_FORCEINLINE __inline__
 #elif defined(__GNUC__) || defined(__clang__) || __has_attribute(always_inline)
-#  define OIIO_FORCEINLINE inline __attribute__((always_inline))
+#    define OIIO_FORCEINLINE inline __attribute__((always_inline))
 #elif defined(_MSC_VER) || defined(__INTEL_COMPILER)
-#  define OIIO_FORCEINLINE __forceinline
+#    define OIIO_FORCEINLINE __forceinline
 #else
-#  define OIIO_FORCEINLINE inline
+#    define OIIO_FORCEINLINE inline
 #endif
 
 // OIIO_PURE_FUNC is a function attribute that assures the compiler that the
@@ -253,11 +256,11 @@
 // any other memory. This declaration goes after the function declaration:
 //   int blah (int arg) OIIO_PURE_FUNC;
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER) || __has_attribute(pure)
-#  define OIIO_PURE_FUNC __attribute__((pure))
+#    define OIIO_PURE_FUNC __attribute__((pure))
 #elif defined(_MSC_VER)
-#  define OIIO_PURE_FUNC  /* seems not supported by MSVS */
+#    define OIIO_PURE_FUNC /* seems not supported by MSVS */
 #else
-#  define OIIO_PURE_FUNC
+#    define OIIO_PURE_FUNC
 #endif
 
 // OIIO_CONST_FUNC is a function attribute that assures the compiler that
@@ -267,20 +270,25 @@
 // more optimizations (such as eliminating multiple calls to the function
 // that have the exact same argument values).
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER) || __has_attribute(const)
-#  define OIIO_CONST_FUNC __attribute__((const))
+#    define OIIO_CONST_FUNC __attribute__((const))
 #elif defined(_MSC_VER)
-#  define OIIO_CONST_FUNC  /* seems not supported by MSVS */
+#    define OIIO_CONST_FUNC /* seems not supported by MSVS */
 #else
-#  define OIIO_CONST_FUNC
+#    define OIIO_CONST_FUNC
 #endif
 
-// OIIO_UNUSED_OK is a function or variable attribute that assures tells the
+// OIIO_MAYBE_UNUSED is a function or variable attribute that assures the
 // compiler that it's fine for the item to appear to be unused.
-#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER) || __has_attribute(unused)
-#  define OIIO_UNUSED_OK __attribute__((unused))
+#if OIIO_CPLUSPLUS_VERSION >= 17 || __has_cpp_attribute(maybe_unused)
+#    define OIIO_MAYBE_UNUSED [[maybe_unused]]
+#elif defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER) || __has_attribute(unused)
+#    define OIIO_MAYBE_UNUSED __attribute__((unused))
 #else
-#  define OIIO_UNUSED_OK
+#    define OIIO_MAYBE_UNUSED
 #endif
+
+// DEPRECATED(1.9) name:
+#define OIIO_UNUSED_OK OIIO_MAYBE_UNUSED
 
 // OIIO_RESTRICT is a parameter attribute that indicates a promise that the
 // parameter definitely will not alias any other parameters in such a way
@@ -288,20 +296,35 @@
 #if defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #  define OIIO_RESTRICT __restrict
 #else
-#  define OIIO_RESTRICT 
+#  define OIIO_RESTRICT
 #endif
 
 
-#if OIIO_CPLUSPLUS_VERSION >= 14 && __has_attribute(deprecated)
-#  define OIIO_DEPRECATED(msg) [[deprecated(msg)]]
-#elif OIIO_GNUC_VERSION >= 40600 || defined(__clang__)
-#  define OIIO_DEPRECATED(msg) __attribute__((deprecated(msg)))
-#elif defined(__GNUC__) /* older gcc -- only the one with no message */
-#  define OIIO_DEPRECATED(msg) __attribute__((deprecated))
+#if OIIO_CPLUSPLUS_VERSION >= 14 || __has_cpp_attribute(deprecated)
+#    define OIIO_DEPRECATED(msg) [[deprecated(msg)]]
+#elif defined(__GNUC__) || defined(__clang__) || __has_attribute(deprecated)
+#    define OIIO_DEPRECATED(msg) __attribute__((deprecated(msg)))
 #elif defined(_MSC_VER)
-#  define OIIO_DEPRECATED(msg) __declspec(deprecated(msg))
+#    define OIIO_DEPRECATED(msg) __declspec(deprecated(msg))
 #else
-#  define OIIO_DEPRECATED(msg)
+#    define OIIO_DEPRECATED(msg)
+#endif
+
+
+// OIIO_FALLTHROUGH documents that switch statement fallthrough case.
+#if OIIO_CPLUSPLUS_VERSION >= 17 || __has_cpp_attribute(fallthrough)
+#    define OIIO_FALLTHROUGH [[fallthrough]]
+#else
+#    define OIIO_FALLTHROUGH
+#endif
+
+
+// OIIO_NODISCARD documents functions whose return values should never be
+// ignored.
+#if OIIO_CPLUSPLUS_VERSION >= 17 || __has_cpp_attribute(nodiscard)
+#    define OIIO_NODISCARD [[nodiscard]]
+#else
+#    define OIIO_NODISCARD
 #endif
 
 
@@ -310,52 +333,54 @@
 // false positives that you can't easily get rid of.
 // This should work for any clang >= 3.3 and gcc >= 4.8, which are
 // guaranteed by our minimum requirements.
-#if defined(__clang__) || defined (__GNUC__)
-#  define OIIO_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#if defined(__clang__) || defined(__GNUC__) || __has_attribute(no_sanitize_address)
+#    define OIIO_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
 #else
-#  define OIIO_NO_SANITIZE_ADDRESS
-#endif
-
-
-// Try to deduce endianness
-#if (defined(_WIN32) || defined(__i386__) || defined(__x86_64__))
-#  ifndef __LITTLE_ENDIAN__
-#    define __LITTLE_ENDIAN__ 1
-#    undef __BIG_ENDIAN__
-#  endif
+#    define OIIO_NO_SANITIZE_ADDRESS
 #endif
 
 
 // OIIO_HOSTDEVICE is used to supply the function decorators needed when
 // compiling for CUDA devices.
 #ifdef __CUDACC__
-#  define OIIO_HOSTDEVICE __host__ __device__
+#    define OIIO_HOSTDEVICE __host__ __device__
 #else
-#  define OIIO_HOSTDEVICE
+#    define OIIO_HOSTDEVICE
 #endif
 
 
 OIIO_NAMESPACE_BEGIN
 
-/// Return true if the architecture we are running on is little endian
-OIIO_FORCEINLINE bool littleendian (void)
-{
-#if defined(__BIG_ENDIAN__)
-    return false;
-#elif defined(__LITTLE_ENDIAN__)
-    return true;
-#else
-    // Otherwise, do something quick to compute it
-    int i = 1;
-    return *((char *) &i);
+/// Class for describing endianness. Test for endianness as
+/// `if (endian::native == endian::little)` or
+/// `if (endian::native == endian::big)`.
+/// This uses the same semantics as C++20's std::endian.
+enum class endian {
+#ifdef _WIN32 /* All Windows platforms are little endian */
+    little = 0,
+    big    = 1,
+    native = little
+#else /* gcc, clang, icc all define these macros */
+    little = __ORDER_LITTLE_ENDIAN__,
+    big    = __ORDER_BIG_ENDIAN__,
+    native = __BYTE_ORDER__
 #endif
+};
+
+
+/// Return true if the architecture we are running on is little endian
+OIIO_FORCEINLINE constexpr bool
+littleendian(void)
+{
+    return endian::native == endian::little;
 }
 
 
 /// Return true if the architecture we are running on is big endian
-OIIO_FORCEINLINE bool bigendian (void)
+OIIO_FORCEINLINE constexpr bool
+bigendian(void)
 {
-    return ! littleendian();
+    return endian::native == endian::big;
 }
 
 
@@ -407,6 +432,25 @@ inline bool cpu_has_avx512cd() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<28)) 
 inline bool cpu_has_avx512bw() {int i[4]; cpuid(i,7,0); return (i[1] & (1<<30)) != 0; }
 inline bool cpu_has_avx512vl() {int i[4]; cpuid(i,7,0); return (i[1] & (0x80000000 /*1<<31*/)) != 0; }
 
+// portable aligned malloc
+void* aligned_malloc(std::size_t size, std::size_t align);
+void  aligned_free(void* ptr);
+
+// basic wrappers to new/delete over-aligned types since this isn't guaranteed to be supported until C++17
+template <typename T, class... Args>
+inline T* aligned_new(Args&&... args) {
+    static_assert(alignof(T) > alignof(void*), "Type doesn't seem to be over-aligned, aligned_new is not required");
+    void* ptr = aligned_malloc(sizeof(T), alignof(T));
+    return ptr ? new (ptr) T(std::forward<Args>(args)...) : nullptr;
+}
+
+template <typename T>
+inline void aligned_delete(T* t) {
+    if (t) {
+        t->~T();
+        aligned_free(t);
+    }
+}
+
 
 OIIO_NAMESPACE_END
-

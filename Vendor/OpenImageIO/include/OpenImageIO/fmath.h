@@ -41,6 +41,8 @@
 */
 
 
+// clang-format off
+
 /// \file
 ///
 /// A variety of floating-point math helper routines (and, slight
@@ -51,19 +53,18 @@
 #pragma once
 #define OIIO_FMATH_H 1
 
+#include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <typeinfo>
-#include <algorithm>
-#include <cstring>
-#include <cmath>
 
-#include <oiioversion.h>
-#include <platform.h>
+#include <span.h>
 #include <dassert.h>
 #include <missing_math.h>
+#include <oiioversion.h>
+#include <platform.h>
 #include <simd.h>
-#include <array_view.h>
 
 
 OIIO_NAMESPACE_BEGIN
@@ -88,12 +89,12 @@ template<typename T> struct is_same<T,T> { static const bool value = true; };
 ///
 template<typename T>
 inline OIIO_HOSTDEVICE bool
-ispow2 (T x)
+ispow2(T x)
 {
     // Numerous references for this bit trick are on the web.  The
     // principle is that x is a power of 2 <=> x == 1<<b <=> x-1 is
     // all 1 bits for bits < b.
-    return (x & (x-1)) == 0 && (x >= 0);
+    return (x & (x - 1)) == 0 && (x >= 0);
 }
 
 
@@ -101,7 +102,7 @@ ispow2 (T x)
 /// Round up to next higher power of 2 (return x if it's already a power
 /// of 2).
 inline OIIO_HOSTDEVICE int
-pow2roundup (int x)
+pow2roundup(int x)
 {
     // Here's a version with no loops.
     if (x < 0)
@@ -116,7 +117,7 @@ pow2roundup (int x)
     x |= x >> 8;
     x |= x >> 16;
     // Now we have 2^n-1, by adding 1, we make it a power of 2 again
-    return x+1;
+    return x + 1;
 }
 
 
@@ -124,7 +125,7 @@ pow2roundup (int x)
 /// Round down to next lower power of 2 (return x if it's already a power
 /// of 2).
 inline OIIO_HOSTDEVICE int
-pow2rounddown (int x)
+pow2rounddown(int x)
 {
     // Make all bits past the first 1 also be 1, i.e. 0001xxxx -> 00011111
     x |= x >> 1;
@@ -155,10 +156,10 @@ inline OIIO_HOSTDEVICE V round_to_multiple (V value, M multiple)
 // integer type.
 template<typename T>
 inline OIIO_HOSTDEVICE T
-round_to_multiple_of_pow2 (T x, T m)
+round_to_multiple_of_pow2(T x, T m)
 {
-    DASSERT (ispow2 (m));
-    return (x + m - 1) & (~(m-1));
+    DASSERT(ispow2(m));
+    return (x + m - 1) & (~(m - 1));
 }
 
 
@@ -166,10 +167,10 @@ round_to_multiple_of_pow2 (T x, T m)
 /// Multiply two unsigned 32-bit ints safely, carefully checking for
 /// overflow, and clamping to uint32_t's maximum value.
 inline OIIO_HOSTDEVICE uint32_t
-clamped_mult32 (uint32_t a, uint32_t b)
+clamped_mult32(uint32_t a, uint32_t b)
 {
     const uint32_t Err = std::numeric_limits<uint32_t>::max();
-    uint64_t r = (uint64_t)a * (uint64_t)b;   // Multiply into a bigger int
+    uint64_t r = (uint64_t)a * (uint64_t)b;  // Multiply into a bigger int
     return r < Err ? (uint32_t)r : Err;
 }
 
@@ -178,10 +179,10 @@ clamped_mult32 (uint32_t a, uint32_t b)
 /// Multiply two unsigned 64-bit ints safely, carefully checking for
 /// overflow, and clamping to uint64_t's maximum value.
 inline OIIO_HOSTDEVICE uint64_t
-clamped_mult64 (uint64_t a, uint64_t b)
+clamped_mult64(uint64_t a, uint64_t b)
 {
-    uint64_t ab = a*b;
-    if (b && ab/b != a)
+    uint64_t ab = a * b;
+    if (b && ab / b != a)
         return std::numeric_limits<uint64_t>::max();
     else
         return ab;
@@ -190,23 +191,26 @@ clamped_mult64 (uint64_t a, uint64_t b)
 
 
 /// Bitwise circular rotation left by k bits (for 32 bit unsigned integers)
-OIIO_FORCEINLINE OIIO_HOSTDEVICE uint32_t rotl32 (uint32_t x, int k) {
+OIIO_FORCEINLINE OIIO_HOSTDEVICE uint32_t
+rotl32(uint32_t x, int k)
+{
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 320
-    return __funnelshift_lc(x, x,  k);
+    return __funnelshift_lc(x, x, k);
 #else
-    return (x<<k) | (x>>(32-k));
+    return (x << k) | (x >> (32 - k));
 #endif
 }
 
 /// Bitwise circular rotation left by k bits (for 64 bit unsigned integers)
-OIIO_FORCEINLINE OIIO_HOSTDEVICE uint64_t rotl64 (uint64_t x, int k) {
-    return (x<<k) | (x>>(64-k));
+OIIO_FORCEINLINE OIIO_HOSTDEVICE uint64_t
+rotl64(uint64_t x, int k)
+{
+    return (x << k) | (x >> (64 - k));
 }
 
 
 // (end of integer helper functions)
 ////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -566,7 +570,7 @@ inline OIIO_HOSTDEVICE OUT_TYPE bit_cast (const IN_TYPE in) {
     // NOTE: this is the only standards compliant way of doing this type of casting,
     // luckily the compilers we care about know how to optimize away this idiom.
     OUT_TYPE out;
-    memcpy (&out, &in, sizeof(IN_TYPE));
+    memcpy ((void *)&out, &in, sizeof(IN_TYPE));
     return out;
 }
 
@@ -615,14 +619,14 @@ template<> struct big_enough_float<double>       { typedef double float_t; };
 /// templates, it probably has no other use.
 template<typename S, typename D, typename F>
 inline OIIO_HOSTDEVICE D
-scaled_conversion (const S &src, F scale, F min, F max)
+scaled_conversion(const S& src, F scale, F min, F max)
 {
     if (std::numeric_limits<S>::is_signed) {
         F s = src * scale;
         s += (s < 0 ? (F)-0.5 : (F)0.5);
-        return (D) clamp (s, min, max);
+        return (D)clamp(s, min, max);
     } else {
-        return (D) clamp ((F)src * scale + (F)0.5, min, max);
+        return (D)clamp((F)src * scale + (F)0.5, min, max);
     }
 }
 
@@ -744,10 +748,19 @@ inline void convert_type<half,float> (const half *src,
                                       float *dst, size_t n,
                                       float _min, float _max)
 {
+#if OIIO_SIMD >= 8 && OIIO_F16C_ENABLED
+    // If f16c ops are enabled, it's worth doing this by 8's
+    for ( ; n >= 8; n -= 8, src += 8, dst += 8) {
+        simd::vfloat8 s_simd (src);
+        s_simd.store (dst);
+    }
+#endif
+#if OIIO_SIMD >= 4
     for ( ; n >= 4; n -= 4, src += 4, dst += 4) {
         simd::vfloat4 s_simd (src);
         s_simd.store (dst);
     }
+#endif
     while (n--)
         *dst++ = (*src++);
 }
@@ -764,7 +777,6 @@ convert_type<float,uint16_t> (const float *src, uint16_t *dst, size_t n,
     float max = std::numeric_limits<uint16_t>::max();
     float scale = max;
     simd::vfloat4 max_simd (max);
-    simd::vfloat4 one_half_simd (0.5f);
     simd::vfloat4 zero_simd (0.0f);
     for ( ; n >= 4; n -= 4, src += 4, dst += 4) {
         simd::vfloat4 scaled = simd::round (simd::vfloat4(src) * max_simd);
@@ -786,7 +798,6 @@ convert_type<float,uint8_t> (const float *src, uint8_t *dst, size_t n,
     float max = std::numeric_limits<uint8_t>::max();
     float scale = max;
     simd::vfloat4 max_simd (max);
-    simd::vfloat4 one_half_simd (0.5f);
     simd::vfloat4 zero_simd (0.0f);
     for ( ; n >= 4; n -= 4, src += 4, dst += 4) {
         simd::vfloat4 scaled = simd::round (simd::vfloat4(src) * max_simd);
@@ -805,10 +816,19 @@ inline void
 convert_type<float,half> (const float *src, half *dst, size_t n,
                           half _min, half _max)
 {
+#if OIIO_SIMD >= 8 && OIIO_F16C_ENABLED
+    // If f16c ops are enabled, it's worth doing this by 8's
+    for ( ; n >= 8; n -= 8, src += 8, dst += 8) {
+        simd::vfloat8 s (src);
+        s.store (dst);
+    }
+#endif
+#if OIIO_SIMD >= 4
     for ( ; n >= 4; n -= 4, src += 4, dst += 4) {
         simd::vfloat4 s (src);
         s.store (dst);
     }
+#endif
     while (n--)
         *dst++ = *src++;
 }
@@ -1381,9 +1401,11 @@ inline OIIO_HOSTDEVICE float fast_atan (float x) {
     const float s = 1.0f - (1.0f - k); // crush denormals
     const float t = s * s;
     // http://mathforum.org/library/drmath/view/62672.html
-    // Examined 4278190080 values of atan: 2.36864877 avg ulp diff, 302 max ulp, 6.55651e-06 max error      // (with  denormals)
-    // Examined 4278190080 values of atan: 171160502 avg ulp diff, 855638016 max ulp, 6.55651e-06 max error // (crush denormals)
-    float r = s * madd(0.43157974f, t, 1.0f) / madd(madd(0.05831938f, t, 0.76443945f), t, 1.0f);
+    // the coefficients were tuned in mathematica with the assumption that we want atan(1)=pi/4
+    // (slightly higher error but no discontinuities)
+    // Examined 4278190080 values of atan: 2.53989068 avg ulp diff, 315 max ulp, 9.17912e-06 max error      // (with  denormals)
+    // Examined 4278190080 values of atan: 171160502 avg ulp diff, 855638016 max ulp, 9.17912e-06 max error // (crush denormals)
+    float r = s * madd(0.430165678f, t, 1.0f) / madd(madd(0.0579354987f, t, 0.763007998f), t, 1.0f);
     if (a > 1.0f) r = 1.570796326794896557998982f - r;
     return copysignf(r, x);
 #else
@@ -1403,7 +1425,7 @@ inline OIIO_HOSTDEVICE float fast_atan2 (float y, float x) {
     const float s = 1.0f - (1.0f - k); // crush denormals
     const float t = s * s;
 
-    float r = s * madd(0.43157974f, t, 1.0f) / madd(madd(0.05831938f, t, 0.76443945f), t, 1.0f);
+    float r = s * madd(0.430165678f, t, 1.0f) / madd(madd(0.0579354987f, t, 0.763007998f), t, 1.0f);
 
     if (b > a) r = 1.570796326794896557998982f - r; // account for arg reduction
     if (bit_cast<float, unsigned>(x) & 0x80000000u) // test sign bit of x
@@ -1722,6 +1744,24 @@ inline OIIO_HOSTDEVICE T fast_pow_pos (const T& x, const U& y) {
 }
 
 
+// Fast cube root (performs better that using fast_pow's above with y=1/3)
+inline OIIO_HOSTDEVICE float fast_cbrt (float x) {
+#ifndef __CUDA_ARCH__
+    float x0 = fabsf(x);
+    // from hacker's delight
+    float a = bit_cast<int, float>(0x2a5137a0 + bit_cast<float, int>(x0) / 3); // Initial guess.
+    // Examined 14272478 values of cbrt on [-9.99999935e-39,9.99999935e-39]: 8.14687e-14 max error
+    // Examined 2131958802 values of cbrt on [9.99999935e-39,3.40282347e+38]: 2.46930719 avg ulp diff, 12 max ulp
+    a = 0.333333333f * (2.0f * a + x0 / (a * a));  // Newton step.
+    a = 0.333333333f * (2.0f * a + x0 / (a * a));  // Newton step again.
+    a = (x0 == 0) ? 0 : a; // Fix 0 case
+    return copysignf(a, x);
+#else
+    return cbrtf(x);
+#endif
+}
+
+
 inline OIIO_HOSTDEVICE float fast_erf (float x)
 {
 #ifndef __CUDA_ARCH__
@@ -1865,7 +1905,7 @@ T invert (Func &func, T y, T xmin=0.0, T xmax=1.0,
 /// y[0] corresponding to the value at x==0.0 and y[len-1] corresponding to
 /// x==1.0.
 inline OIIO_HOSTDEVICE float
-interpolate_linear (float x, array_view_strided<const float> y)
+interpolate_linear (float x, span_strided<const float> y)
 {
 #ifndef __CUDA_ARCH__
     DASSERT_MSG (y.size() >= 2, "interpolate_linear needs at least 2 knot values (%zd)", y.size());

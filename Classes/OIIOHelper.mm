@@ -40,10 +40,8 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 }
 
 + (BOOL)canRead:(NSURL *)url {
-    ImageInput *in = ImageInput::open([url.path cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([url.path cStringUsingEncoding:NSUTF8StringEncoding]);
     if(in) {
-        in->close();
-        delete(in);
         return YES;
     }
     else{
@@ -59,7 +57,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             outFramerate:(double *)outFramerate
              outTimecode:(NSInteger *)outTimecode
              outMetadata:(NSDictionary **)metadata {
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
         return NO;
     }
@@ -148,10 +146,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         *metadata = [NSDictionary dictionaryWithDictionary: attributes];
     }
     
-    in->close();
-    
-    delete(in);
-    
     return YES;
 }
 
@@ -159,7 +153,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                           pixelFormat:(OIIOImagePixelFormat)pixelFormat
                              outWidth:(NSInteger *)outWidth
                             outHeight:(NSInteger *)outHeight{
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
         return nil;
@@ -172,9 +166,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     *outWidth = width;
     *outHeight = height;
-    
-    in->close();
-    delete(in);
     
     NSInteger dataSize = 0;
     
@@ -252,7 +243,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 + (bool)RGB8UBitmapFromURL:(NSURL *)url
                     inData:(void *)pixelData
                         rowStride:(NSInteger)rowStride{
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
         return false;
@@ -284,9 +275,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             
         }
         
-        in->close();
-        delete(in);
-        
         return true;
     }
     
@@ -295,7 +283,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 + (bool)RGBA16UBitmapFromURL:(NSURL *)url
                       inData:(void *)pixelData
                         rowStride:(NSInteger)rowStride{
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
         return false;
@@ -327,10 +315,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             
         }
         
-        
-        in->close();
-        delete(in);
-        
         if(spec.nchannels == 3) {
             uint16_t *pixels = (uint16_t *)pixelData;
             for(int i = 0; i < spec.width*spec.height; i++){
@@ -345,7 +329,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 + (bool)RGBA8UBitmapFromURL:(NSURL *)url
                      inData:(void *)pixelData
                         rowStride:(NSInteger)rowStride{
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
         return false;
@@ -377,9 +361,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             
         }
         
-        in->close();
-        delete(in);
-        
         if(spec.nchannels == 3) {
             uint8_t *pixels = (uint8_t *)pixelData;
             for(int i = 0; i < spec.width*spec.height; i++){
@@ -394,7 +375,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 + (bool)BGRA8UBitmapFromURL:(NSURL *)url
                      inData:(void *)pixelData
                         rowStride:(NSInteger)rowStride{
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
         return false;
@@ -444,9 +425,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                 pixels[i*4+2] = temp;
             }
         }
-        
-        in->close();
-        delete(in);
         
         return true;
     }
@@ -653,7 +631,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     configSpec->attribute("raw:ColorSpace", "raw");
     configSpec->attribute("raw:Demosaic", "AMaZE");
     
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], configSpec);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], configSpec);
     
     if (!in) {
         return false;
@@ -684,8 +662,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             }
         }
     }
-    in->close ();
-    delete(in);
     
     return true;
 }
@@ -693,7 +669,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 + (bool)RGBAfBitmapFromURL:(NSURL *)url
                     inData:(void *)pixelData
                         rowStride:(NSInteger)rowStride{
-    ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
         return false;
     }
@@ -724,9 +700,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                 }
             }
         }
-
-        in->close ();
-        delete(in);
         
         return true;
     }
@@ -740,7 +713,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     NSURL *tempURL = [self.class uniqueTempFileURLWithFileExtension:@"exr"];
     
-    ImageOutput *output = ImageOutput::create ([[tempURL path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto output = ImageOutput::create ([[tempURL path] cStringUsingEncoding:NSUTF8StringEncoding]);
 //    
     //ImageSpec selfspec = ImageSpec(width, height, 4, TypeDesc::FLOAT);
     
@@ -764,14 +737,9 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     if([[NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding] length] > 0){
         NSLog(@"%@", [NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding]);
-        output->close();
-        delete output;
         [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
         return nil;
     }
-    
-    output->close();
-    delete output;
     
     NSData *data = [NSData dataWithContentsOfURL:tempURL];
     
