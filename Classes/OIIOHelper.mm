@@ -582,6 +582,8 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     
+    inStream -> Seek(byteOffset, InStream::kStart);
+    
     if(rowStride == 0){
         inStream -> Read(pixelData, imageDataSize);
     }
