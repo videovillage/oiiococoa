@@ -168,31 +168,40 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     *outHeight = height;
     
     NSInteger dataSize = 0;
+    NSInteger bytesPerRow = 0;
     
     switch (pixelFormat) {
         case OIIOImagePixelFormatRGB8U:
             dataSize = width * height * 3 * 1;
+            bytesPerRow = width * 3 * 1;
             break;
         case OIIOImagePixelFormatRGBA8U:
             dataSize = width * height * 4 * 1;
+            bytesPerRow = width * 4 * 1;
             break;
         case OIIOImagePixelFormatBGRA8U:
             dataSize = width * height * 4 * 1;
+            bytesPerRow = width * 4 * 1;
             break;
         case OIIOImagePixelFormatRGBA16U:
             dataSize = width * height * 4 * 2;
+            bytesPerRow = width * 4 * 2;
             break;
         case OIIOImagePixelFormatRGB10A2U:
-            dataSize = width * height * 4 * 1;
+            dataSize = width * height * 4;
+            bytesPerRow = width * 4;
             break;
         case OIIOImagePixelFormatRGB10A2UBigEndian:
-            dataSize = width * height * 4 * 1;
+            dataSize = width * height * 4;
+            bytesPerRow = width * 4;
             break;
         case OIIOImagePixelFormatRGBAf:
             dataSize = width * height * 4 * 4;
+            bytesPerRow = width * 4 * 4;
             break;
         case OIIOImagePixelFormatRGBAh:
             dataSize = width * height * 4 * 2;
+            bytesPerRow = width * 4 * 2;
             break;
         default:
             return nil;
@@ -203,7 +212,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     bool success = [self loadBitmapIntoDataFromURL:url
                                        pixelFormat:pixelFormat
                                             inData:mutableData.mutableBytes
-                                         rowStride:0];
+                                       bytesPerRow:bytesPerRow];
     
     if(success){
         return mutableData;
@@ -216,24 +225,24 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 + (bool)loadBitmapIntoDataFromURL:(NSURL *)url
                       pixelFormat:(OIIOImagePixelFormat)pixelFormat
                            inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+                        bytesPerRow:(NSInteger)bytesPerRow{
     switch (pixelFormat) {
         case OIIOImagePixelFormatRGB8U:
-            return [self RGB8UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self RGB8UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         case OIIOImagePixelFormatRGBA8U:
-            return [self RGBA8UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self RGBA8UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         case OIIOImagePixelFormatBGRA8U:
-            return [self BGRA8UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self BGRA8UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         case OIIOImagePixelFormatRGBA16U:
-            return [self RGBA16UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self RGBA16UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         case OIIOImagePixelFormatRGB10A2U:
-            return [self RGB10A2UBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self RGB10A2UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         case OIIOImagePixelFormatRGB10A2UBigEndian:
-            return [self RGB10A2UBigEndianBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self RGB10A2UBigEndianBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         case OIIOImagePixelFormatRGBAf:
-            return [self RGBAfBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self RGBAfBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         case OIIOImagePixelFormatRGBAh:
-            return [self RGBAhBitmapFromURL:url inData:pixelData rowStride:rowStride];
+            return [self RGBAhBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow];
         default:
             return false;
         
@@ -242,7 +251,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 
 + (bool)RGB8UBitmapFromURL:(NSURL *)url
                     inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+                        bytesPerRow:(NSInteger)bytesPerRow{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
@@ -251,17 +260,17 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT8, pixelData, 3, 3 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
     }
     else{
-        in->read_image(TypeDesc::UINT8, pixelData, 3, 3 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
     }
     
 }
 
 + (bool)RGBA16UBitmapFromURL:(NSURL *)url
                       inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+                        bytesPerRow:(NSInteger)bytesPerRow{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
@@ -270,16 +279,16 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT16, pixelData, 8, 8 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
     }
     else{
-        in->read_image(TypeDesc::UINT16, pixelData, 8, 8 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
     }
 }
 
 + (bool)RGBA8UBitmapFromURL:(NSURL *)url
                      inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+                        bytesPerRow:(NSInteger)bytesPerRow{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
@@ -288,10 +297,10 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
     }
     else{
-        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
     }
     
     return true;
@@ -299,7 +308,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 
 + (bool)BGRA8UBitmapFromURL:(NSURL *)url
                      inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+                        bytesPerRow:(NSInteger)bytesPerRow{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     if (!in) {
@@ -309,10 +318,10 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
     }
     else{
-        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
+        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
     }
     
     return true;
@@ -320,7 +329,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 
 + (bool)RGB10A2UBitmapFromURL:(NSURL *)url
                       inData:(void *)pixelData
-                   rowStride:(NSInteger)rowStride{
+                   bytesPerRow:(NSInteger)bytesPerRow{
     InStream *inStream = new InStream();
     if (! inStream->Open([[url path] cStringUsingEncoding:NSUTF8StringEncoding])) {
         delete inStream;
@@ -358,14 +367,14 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     inStream -> Seek(byteOffset, InStream::kStart);
     
-    if(rowStride == 0){
+    if(bytesPerRow == 4 * width){
         inStream -> Read(pixelData, imageDataSize);
     }
     else{
         uint8_t* pixelBytes = (uint8_t *)pixelData;
         NSInteger bytesPerScanline = 4*width;
         for(int y = 0; y < height; y++){
-            inStream -> Read((void *)(&pixelBytes[y * (bytesPerScanline + rowStride)]), bytesPerScanline);
+            inStream -> Read((void *)(&pixelBytes[y * bytesPerRow]), bytesPerScanline);
         }
     }
     
@@ -436,7 +445,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 
 + (bool)RGB10A2UBigEndianBitmapFromURL:(NSURL *)url
                                 inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+                        bytesPerRow:(NSInteger)bytesPerRow{
     InStream *inStream = new InStream();
     if (! inStream->Open([[url path] cStringUsingEncoding:NSUTF8StringEncoding])) {
         delete inStream;
@@ -472,14 +481,14 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     inStream -> Seek(byteOffset, InStream::kStart);
     
-    if(rowStride == 0){
+    if(bytesPerRow == 4 * width){
         inStream -> Read(pixelData, imageDataSize);
     }
     else{
         uint8_t* pixelBytes = (uint8_t *)pixelData;
         NSInteger bytesPerScanline = 4*width;
         for(int y = 0; y < height; y++){
-            inStream -> Read((void *)(&pixelBytes[y * (bytesPerScanline + rowStride)]), bytesPerScanline);
+            inStream -> Read((void *)(&pixelBytes[y * bytesPerRow]), bytesPerScanline);
         }
     }
     
@@ -516,7 +525,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 
 + (bool)RGBAhBitmapFromURL:(NSURL *)url
                     inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+                        bytesPerRow:(NSInteger)bytesPerRow{
     ImageSpec *configSpec = new ImageSpec();
     configSpec->attribute("raw:ColorSpace", "raw");
     configSpec->attribute("raw:Demosaic", "AMaZE");
@@ -529,10 +538,10 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     if(spec.nchannels == 4){
-        in->read_image (TypeDesc::HALF, pixelData, 8, 8 * spec.width + rowStride);
+        in->read_image (TypeDesc::HALF, pixelData, 8, bytesPerRow);
     }
     else{
-        in->read_image (TypeDesc::HALF, pixelData, 8, 8 * spec.width + rowStride);
+        in->read_image (TypeDesc::HALF, pixelData, 8, bytesPerRow);
     }
     
     return true;
@@ -540,7 +549,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 
 + (bool)RGBAfBitmapFromURL:(NSURL *)url
                     inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride{
+               bytesPerRow:(NSInteger)bytesPerRow{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
         return false;
@@ -549,10 +558,10 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     if(spec.nchannels == 4){
-        in->read_image (TypeDesc::FLOAT, pixelData, 16, 16 * spec.width + rowStride);
+        in->read_image (TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
     }
     else{
-        in->read_image (TypeDesc::FLOAT, pixelData, 16, 16 * spec.width + rowStride);
+        in->read_image (TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
     }
     
     return true;

@@ -56,7 +56,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (bool)loadBitmapIntoDataFromURL:(NSURL *)url
                       pixelFormat:(OIIOImagePixelFormat)pixelFormat
                            inData:(void *)pixelData
-                        rowStride:(NSInteger)rowStride;
+                      bytesPerRow:(NSInteger)bytesPerRow;
 
 //+ (nullable NSData *)RGB8UBitmapFromURL:(NSURL *)url
 //                                 inData:(NSMutableData *)pixelData;
