@@ -249,33 +249,12 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     const ImageSpec &spec = in->spec();
-    @autoreleasepool{
-        if(rowStride == 0){
-            if(spec.nchannels == 3){
-                in->read_image(TypeDesc::UINT8, pixelData);
-            }
-            else{
-                in->read_image(TypeDesc::UINT8, pixelData, 3);
-            }
-        }
-        else{
-            uint8* pixelBytes = (uint8*)pixelData;
-            NSInteger bytesPerScanline = 3*spec.width;
-            
-            if(spec.nchannels == 3){
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)]);
-                }
-            }
-            else{
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)], 3);
-                }
-            }
-            
-        }
-        
-        return true;
+    
+    if(spec.nchannels == 3){
+        in->read_image(TypeDesc::UINT8, pixelData, 3, 3 * spec.width + rowStride);
+    }
+    else{
+        in->read_image(TypeDesc::UINT8, pixelData, 3, 3 * spec.width + rowStride);
     }
     
 }
@@ -289,40 +268,12 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     const ImageSpec &spec = in->spec();
-    @autoreleasepool{
-        if(rowStride == 0){
-            if(spec.nchannels == 3){
-                in->read_image(TypeDesc::UINT16, pixelData, 2*4);
-            }
-            else{
-                in->read_image(TypeDesc::UINT16, pixelData);
-            }
-        }
-        else{
-            uint8* pixelBytes = (uint8*)pixelData;
-            NSInteger bytesPerScanline = 2*4*spec.width;
-            
-            if(spec.nchannels == 3){
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT16, &pixelBytes[y * (bytesPerScanline + rowStride)], 2*4);
-                }
-            }
-            else{
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT16, &pixelBytes[y * (bytesPerScanline + rowStride)]);
-                }
-            }
-            
-        }
-        
-        if(spec.nchannels == 3) {
-            uint16_t *pixels = (uint16_t *)pixelData;
-            for(int i = 0; i < spec.width*spec.height; i++){
-                pixels[i*4+3] = 65535;
-            }
-        }
-        
-        return true;
+    
+    if(spec.nchannels == 3){
+        in->read_image(TypeDesc::UINT16, pixelData, 8, 8 * spec.width + rowStride);
+    }
+    else{
+        in->read_image(TypeDesc::UINT16, pixelData, 8, 8 * spec.width + rowStride);
     }
 }
 
@@ -335,41 +286,15 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     const ImageSpec &spec = in->spec();
-    @autoreleasepool{
-        if(rowStride == 0){
-            if(spec.nchannels == 3){
-                in->read_image(TypeDesc::UINT8, pixelData, 4);
-            }
-            else{
-                in->read_image(TypeDesc::UINT8, pixelData);
-            }
-        }
-        else{
-            uint8* pixelBytes = (uint8*)pixelData;
-            NSInteger bytesPerScanline = 4*spec.width;
-            
-            if(spec.nchannels == 3){
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)], 4);
-                }
-            }
-            else{
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)]);
-                }
-            }
-            
-        }
-        
-        if(spec.nchannels == 3) {
-            uint8_t *pixels = (uint8_t *)pixelData;
-            for(int i = 0; i < spec.width*spec.height; i++){
-                pixels[i*4+3] = 255;
-            }
-        }
-        
-        return true;
+    
+    if(spec.nchannels == 3){
+        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
     }
+    else{
+        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
+    }
+    
+    return true;
 }
 
 + (bool)BGRA8UBitmapFromURL:(NSURL *)url
@@ -380,54 +305,17 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     if (!in) {
         return false;
     }
+    
     const ImageSpec &spec = in->spec();
-    @autoreleasepool{
-        if(rowStride == 0){
-            if(spec.nchannels == 3){
-                in->read_image(TypeDesc::UINT8, pixelData, 4);
-            }
-            else{
-                in->read_image(TypeDesc::UINT8, pixelData);
-            }
-        }
-        else{
-            uint8* pixelBytes = (uint8*)pixelData;
-            NSInteger bytesPerScanline = 4*spec.width;
-            
-            if(spec.nchannels == 3){
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)], 4);
-                }
-            }
-            else{
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::UINT8, &pixelBytes[y * (bytesPerScanline + rowStride)]);
-                }
-            }
-            
-        }
-        
-        uint8_t *pixels = (uint8_t *)pixelData;
-        uint8_t temp = 0;
-        
-        if(spec.nchannels == 3) {
-            for(int i = 0; i < spec.width*spec.height; i++){
-                temp = pixels[i*4];
-                pixels[i*4] = pixels[i*4+2];
-                pixels[i*4+2] = temp;
-                pixels[i*4+3] = 255;
-            }
-        }
-        else{
-            for(int i = 0; i < spec.width*spec.height; i++){
-                temp = pixels[i*4];
-                pixels[i*4] = pixels[i*4+2];
-                pixels[i*4+2] = temp;
-            }
-        }
-        
-        return true;
+    
+    if(spec.nchannels == 3){
+        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
     }
+    else{
+        in->read_image(TypeDesc::UINT8, pixelData, 4, 4 * spec.width + rowStride);
+    }
+    
+    return true;
 }
 
 + (bool)RGB10A2UBitmapFromURL:(NSURL *)url
@@ -639,30 +527,12 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     const ImageSpec &spec = in->spec();
-    @autoreleasepool{
-        if(rowStride == 0){
-            if(spec.nchannels == 4){
-                in->read_image (TypeDesc::HALF, pixelData);
-            }
-            else{
-                in->read_image (TypeDesc::HALF, pixelData, 4*2);
-            }
-        }
-        else{
-            uint8* pixelBytes = (uint8*)pixelData;
-            NSInteger bytesPerScanline = 4*2*spec.width;
-            
-            if(spec.nchannels == 4){
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::HALF, &pixelBytes[y * (bytesPerScanline + rowStride)]);
-                }
-            }
-            else{
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::HALF, &pixelBytes[y * (bytesPerScanline + rowStride)], 4*2);
-                }
-            }
-        }
+    
+    if(spec.nchannels == 4){
+        in->read_image (TypeDesc::HALF, pixelData, 8, 8 * spec.width + rowStride);
+    }
+    else{
+        in->read_image (TypeDesc::HALF, pixelData, 8, 8 * spec.width + rowStride);
     }
     
     return true;
@@ -678,33 +548,14 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     const ImageSpec &spec = in->spec();
     
-    @autoreleasepool{
-        if(rowStride == 0){
-            if(spec.nchannels == 4){
-                in->read_image (TypeDesc::FLOAT, pixelData);
-            }
-            else{
-                in->read_image (TypeDesc::FLOAT, pixelData, 4*4);
-            }
-        }
-        else{
-            uint8* pixelBytes = (uint8*)pixelData;
-            NSInteger bytesPerScanline = 4*4*spec.width;
-            
-            if(spec.nchannels == 4){
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::FLOAT, &pixelBytes[y * (bytesPerScanline + rowStride)]);
-                }
-            }
-            else{
-                for(int y = 0; y < spec.height; y++){
-                    in->read_scanline(y, 0, TypeDesc::FLOAT, &pixelBytes[y * (bytesPerScanline + rowStride)], 4*4);
-                }
-            }
-        }
-        
-        return true;
+    if(spec.nchannels == 4){
+        in->read_image (TypeDesc::FLOAT, pixelData, 16, 16 * spec.width + rowStride);
     }
+    else{
+        in->read_image (TypeDesc::FLOAT, pixelData, 16, 16 * spec.width + rowStride);
+    }
+    
+    return true;
 }
 
 + (NSData *)EXRFromRGBAfBitmap:(NSData *)bitmap
