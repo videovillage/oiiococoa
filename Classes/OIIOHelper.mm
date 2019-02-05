@@ -324,6 +324,17 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
     }
     
+    uint8_t *pixelChannels = (uint8_t *)pixelData;
+    uint8_t swap = 0;
+    
+    for(NSInteger y = 0; y < bytesPerRow * spec.height; y += bytesPerRow){
+        for(NSInteger x = 0; x < spec.width; x++){
+            swap = pixelChannels[x * 4 + y];
+            pixelChannels[x * 4 + y] = pixelChannels[x * 4 + 2 + y];
+            pixelChannels[x * 4 + 2 + y] = swap;
+        }
+    }
+    
     return true;
 }
 
