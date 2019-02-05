@@ -393,64 +393,76 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     delete inStream;
     inStream = NULL;
     
-    @autoreleasepool{
-        uint32_t *pixels = (uint32_t *)pixelData;
-        uint32_t pixel = 0;
-        uint32_t redOnly = 0;
-        uint32_t greenOnly = 0;
-        uint32_t blueOnly = 0;
-        
-        uint32_t redChannelMask = 0b00111111111100000000000000000000;
-        uint32_t greenChannelMask = 0b00000000000011111111110000000000;
-        uint32_t blueChannelMask = 0b00000000000000000000001111111111;
-        
-        if(packing == dpx::kFilledMethodA){
-            if(requiresByteSwap){
-                for(NSInteger i = 0; i < pixelCount; i++){
-                    pixel = rotr32(CFSwapInt32(pixels[i]), 2);
+    uint32_t *pixels = (uint32_t *)pixelData;
+    uint32_t pixel = 0;
+    uint32_t redOnly = 0;
+    uint32_t greenOnly = 0;
+    uint32_t blueOnly = 0;
+    
+    uint32_t redChannelMask = 0b00111111111100000000000000000000;
+    uint32_t greenChannelMask = 0b00000000000011111111110000000000;
+    uint32_t blueChannelMask = 0b00000000000000000000001111111111;
+    
+    uint32_t pixelOffset = 0;
+    
+    if(packing == dpx::kFilledMethodA){
+        if(requiresByteSwap){
+            for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
+                pixelOffset = y / 4;
+                for(NSInteger x = 0; x < width; x++){
+                    pixel = rotr32(CFSwapInt32(pixels[x + pixelOffset]), 2);
                     redOnly = pixel & redChannelMask;
                     greenOnly = pixel & greenChannelMask;
                     blueOnly = pixel & blueChannelMask;
-                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
-                }
-            }
-            else{
-                for(NSInteger i = 0; i < pixelCount; i++){
-                    pixel = rotr32(pixels[i], 2);
-                    redOnly = pixel & redChannelMask;
-                    greenOnly = pixel & greenChannelMask;
-                    blueOnly = pixel & blueChannelMask;
-                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
-                }
-            }
-        }
-        else if(packing == dpx::kFilledMethodB){
-            if(requiresByteSwap){
-                for(NSInteger i = 0; i < pixelCount; i++){
-                    pixel = CFSwapInt32(pixels[i]);
-                    redOnly = pixel & redChannelMask;
-                    greenOnly = pixel & greenChannelMask;
-                    blueOnly = pixel & blueChannelMask;
-                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
-                }
-            }
-            else{
-                for(NSInteger i = 0; i < pixelCount; i++){
-                    pixel = pixels[i];
-                    redOnly = pixel & redChannelMask;
-                    greenOnly = pixel & greenChannelMask;
-                    blueOnly = pixel & blueChannelMask;
-                    pixels[i] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                    pixels[x + pixelOffset] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
                 }
             }
         }
         else{
-            return false;
+            for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
+                pixelOffset = y / 4;
+                for(NSInteger x = 0; x < width; x++){
+                    pixel = rotr32(pixels[x + pixelOffset], 2);
+                    redOnly = pixel & redChannelMask;
+                    greenOnly = pixel & greenChannelMask;
+                    blueOnly = pixel & blueChannelMask;
+                    pixels[x + pixelOffset] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                }
+            }
         }
-        
-        
-        return true;
     }
+    else if(packing == dpx::kFilledMethodB){
+        if(requiresByteSwap){
+            for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
+                pixelOffset = y / 4;
+                for(NSInteger x = 0; x < width; x++){
+                    pixel = CFSwapInt32(pixels[x + pixelOffset]);
+                    redOnly = pixel & redChannelMask;
+                    greenOnly = pixel & greenChannelMask;
+                    blueOnly = pixel & blueChannelMask;
+                    pixels[x + pixelOffset] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                }
+            }
+        }
+        else{
+            for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
+                pixelOffset = y / 4;
+                for(NSInteger x = 0; x < width; x++){
+                    pixel = pixels[x + pixelOffset];
+                    redOnly = pixel & redChannelMask;
+                    greenOnly = pixel & greenChannelMask;
+                    blueOnly = pixel & blueChannelMask;
+                    pixels[x + pixelOffset] = (redOnly >> 20) | (blueOnly << 20) | greenOnly;
+                }
+            }
+        }
+    }
+    else{
+        return false;
+    }
+    
+    
+    return true;
     
 }
 
@@ -508,23 +520,32 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     inStream = NULL;
     @autoreleasepool{
         uint32_t *pixels = (uint32_t *)pixelData;
-        
+        uint32_t pixelOffset = 0;
         if(packing == dpx::kFilledMethodA){
             if(!requiresByteSwap){
-                for(NSInteger i = 0; i < pixelCount; i++){
-                    pixels[i] = CFSwapInt32(pixels[i]);
+                for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
+                    pixelOffset = y / 4;
+                    for(NSInteger x = 0; x < width; x++){
+                        pixels[x + pixelOffset] = CFSwapInt32(pixels[x + pixelOffset]);
+                    }
                 }
             }
         }
         else if(packing == dpx::kFilledMethodB){
             if(!requiresByteSwap){
-                for(NSInteger i = 0; i < pixelCount; i++){
-                    pixels[i] = CFSwapInt32(rotr32(pixels[i], 2));
+                for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
+                    pixelOffset = y / 4;
+                    for(NSInteger x = 0; x < pixelCount; x++){
+                        pixels[x + pixelOffset] = CFSwapInt32(rotr32(pixels[x + pixelOffset], 2));
+                    }
                 }
             }
             else{
-                for(NSInteger i = 0; i < pixelCount; i++){
-                    pixels[i] = CFSwapInt32(rotr32(CFSwapInt32(pixels[i]), 2));
+                for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
+                    pixelOffset = y / 4;
+                    for(NSInteger x = 0; x < pixelCount; x++){
+                        pixels[x + pixelOffset] = CFSwapInt32(rotr32(CFSwapInt32(pixels[x + pixelOffset]), 2));
+                    }
                 }
             }
         }
