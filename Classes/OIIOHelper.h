@@ -28,7 +28,6 @@ typedef NS_ENUM(NSInteger, OIIOImagePixelFormat) {
     OIIOImagePixelFormatRGBA8U,
     OIIOImagePixelFormatBGRA8U,
     OIIOImagePixelFormatRGBA16U,
-    OIIOImagePixelFormatRGBA16UBigEndian,
     OIIOImagePixelFormatRGB10A2U,
     OIIOImagePixelFormatRGB10A2UBigEndian,
     OIIOImagePixelFormatRGBAf,
