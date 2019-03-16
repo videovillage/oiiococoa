@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
 
   s.platform     = :osx
   s.osx.deployment_target = '10.12'
+  s.frameworks = ['Accelerate']
 
   s.source       = { :git => "https://github.com/videovillage/oiiococoa.git", :tag => s.version.to_s }
 

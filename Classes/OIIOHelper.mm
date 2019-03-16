@@ -9,6 +9,7 @@
 #import "OIIOHelper.h"
 #include "imageio.h"
 #include "DPX.h"
+#import <Accelerate/Accelerate.h>
 
 OIIO_NAMESPACE_USING
 
@@ -259,13 +260,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     const ImageSpec &spec = in->spec();
     
-    if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
-    }
-    else{
-        in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
-    }
-    
+    in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
 }
 
 + (bool)RGBA16UBitmapFromURL:(NSURL *)url
@@ -277,12 +272,18 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         return false;
     }
     const ImageSpec &spec = in->spec();
+    in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
     
     if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
-    }
-    else{
-        in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
+        vImage_Buffer src;
+        src.height = spec.height;
+        src.width = spec.width;
+        src.rowBytes = bytesPerRow;
+        src.data = pixelData;
+        
+        const uint16_t fill[4] = {0, 0, 0, 65535};
+        
+        vImageOverwriteChannelsWithPixel_ARGB16U(fill, &src, &src, 0x1, kvImageNoFlags);
     }
 }
 
@@ -296,11 +297,16 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     const ImageSpec &spec = in->spec();
     
+    in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+    
     if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
-    }
-    else{
-        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+        vImage_Buffer src;
+        src.height = spec.height;
+        src.width = spec.width;
+        src.rowBytes = bytesPerRow;
+        src.data = pixelData;
+        
+        vImageOverwriteChannelsWithScalar_ARGB8888(255, &src, &src, 0x1, kvImageNoFlags);
     }
     
     return true;
@@ -317,23 +323,21 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     const ImageSpec &spec = in->spec();
     
+    in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+    
+    vImage_Buffer src;
+    src.height = spec.height;
+    src.width = spec.width;
+    src.rowBytes = bytesPerRow;
+    src.data = pixelData;
+    
     if(spec.nchannels == 3){
-        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
-    }
-    else{
-        in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+        vImageOverwriteChannelsWithScalar_ARGB8888(255, &src, &src, 0x1, kvImageNoFlags);
     }
     
-    uint8_t *pixelChannels = (uint8_t *)pixelData;
-    uint8_t swap = 0;
+    const uint8_t permuteMap[4] = {2, 1, 0, 3};
     
-    for(NSInteger y = 0; y < bytesPerRow * spec.height; y += bytesPerRow){
-        for(NSInteger x = 0; x < spec.width; x++){
-            swap = pixelChannels[x * 4 + y];
-            pixelChannels[x * 4 + y] = pixelChannels[x * 4 + 2 + y];
-            pixelChannels[x * 4 + 2 + y] = swap;
-        }
-    }
+    vImagePermuteChannels_ARGB8888(&src, &src, permuteMap, kvImageNoFlags);
     
     return true;
 }
@@ -551,8 +555,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     
     return true;
-    
-    
 }
 
 + (bool)RGBAhBitmapFromURL:(NSURL *)url
@@ -569,11 +571,18 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     const ImageSpec &spec = in->spec();
     
-    if(spec.nchannels == 4){
-        in->read_image (TypeDesc::HALF, pixelData, 8, bytesPerRow);
-    }
-    else{
-        in->read_image (TypeDesc::HALF, pixelData, 8, bytesPerRow);
+    in->read_image (TypeDesc::HALF, pixelData, 8, bytesPerRow);
+    
+    if(spec.nchannels == 3) {
+        vImage_Buffer src;
+        src.height = spec.height;
+        src.width = spec.width;
+        src.rowBytes = bytesPerRow;
+        src.data = pixelData;
+        
+        const uint16_t pixel[4] = {0, 0, 0, 15360};
+        
+        vImageOverwriteChannelsWithPixel_ARGB16U(pixel, &src, &src, 0x1, kvImageNoFlags);
     }
     
     return true;
@@ -589,11 +598,16 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     const ImageSpec &spec = in->spec();
     
-    if(spec.nchannels == 4){
-        in->read_image (TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
-    }
-    else{
-        in->read_image (TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
+    in->read_image (TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
+    
+    if(spec.nchannels == 3) {
+        vImage_Buffer src;
+        src.height = spec.height;
+        src.width = spec.width;
+        src.rowBytes = bytesPerRow;
+        src.data = pixelData;
+        
+        vImageOverwriteChannelsWithScalar_ARGBFFFF(1.0, &src, &src, 0x1, kvImageNoFlags);
     }
     
     return true;
