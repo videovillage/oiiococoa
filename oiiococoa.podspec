@@ -13,6 +13,7 @@ Pod::Spec.new do |s|
   s.social_media_url = "http://twitter.com/wilgieseler"
 
   s.platform     = :osx
+
   s.osx.deployment_target = '10.12'
   s.frameworks = ['Accelerate']
 
