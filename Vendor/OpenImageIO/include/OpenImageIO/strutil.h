@@ -28,6 +28,7 @@
   (This is the Modified BSD License)
 */
 
+// clang-format off
 
 /////////////////////////////////////////////////////////////////////////
 /// @file  strutil.h
@@ -37,20 +38,56 @@
 
 
 
-#ifndef OPENIMAGEIO_STRUTIL_H
-#define OPENIMAGEIO_STRUTIL_H
+#pragma once
 
-#include <cstdarg>
-#include <string>
-#include <cstring>
-#include <cstdlib>
-#include <vector>
+#include <cstdio>
 #include <map>
+#include <string>
+#include <vector>
 
-#include "export.h"
-#include "oiioversion.h"
-#include "tinyformat.h"
-#include "string_view.h"
+#include <export.h>
+#include <hash.h>
+#include <oiioversion.h>
+#include <platform.h>
+#include <string_view.h>
+
+// For now, let a prior set of OIIO_USE_FMT=0 cause us to fall back to
+// tinyformat.
+#ifndef OIIO_USE_FMT
+#    define OIIO_USE_FMT
+#endif
+
+#if OIIO_GNUC_VERSION >= 70000
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+#ifndef FMT_HEADER_ONLY
+#    define FMT_HEADER_ONLY
+#endif
+#include "ostream.h"
+#include "format.h"
+#include "printf.h"
+#if OIIO_GNUC_VERSION >= 70000
+#    pragma GCC diagnostic pop
+#endif
+
+// Allow client software to know if this version of OIIO as Strutil::sprintf
+#define OIIO_HAS_SPRINTF 1
+
+// Allow client software to know if this version of OIIO has Strutil::format
+// behave like sprintf (OIIO_FORMAT_IS_FMT==0) or like python / {fmt} /
+// C++20ish std::format (OIIO_FORMAT_IS_FMT==1).
+#define OIIO_FORMAT_IS_FMT 0
+
+// Allow client software to know that at this moment, the fmt-based string
+// formatting is not correctly locale-independent. We will change this value
+// to 1 when the fmt bugs are fixed.
+#define OIIO_FMT_LOCALE_INDEPENDENT 0
+
+#ifndef TINYFORMAT_USE_VARIADIC_TEMPLATES
+#    define TINYFORMAT_USE_VARIADIC_TEMPLATES
+#endif
+#include <tinyformat.h>
 
 #ifndef OPENIMAGEIO_PRINTF_ARGS
 #   ifndef __GNUC__
@@ -72,35 +109,175 @@
 #endif
 
 
-OIIO_NAMESPACE_ENTER
-{
+OIIO_NAMESPACE_BEGIN
 /// @namespace Strutil
 ///
 /// @brief     String-related utilities.
 namespace Strutil {
 
-/// Construct a std::string in a printf-like fashion.  In other words,
-/// something like:
-///    std::string s = Strutil::format ("blah %d %g", (int)foo, (float)bar);
-///
-/// The printf argument list is fully typesafe via tinyformat; format
-/// conceptually has the signature
-///
-/// std::string Strutil::format (const char *fmt, ...);
-TINYFORMAT_WRAP_FORMAT (std::string, format, /**/,
-    std::ostringstream msg;, msg, return msg.str();)
+/// Output the string to the file/stream in a synchronized fashion, so that
+/// buffers are flushed and internal mutex is used to prevent threads from
+/// clobbering each other -- output strings coming from concurrent threads
+/// may be interleaved, but each string is "atomic" and will never splice
+/// each other character-by-character.
+void OIIO_API sync_output (FILE *file, string_view str);
+void OIIO_API sync_output (std::ostream &file, string_view str);
 
-/// Return a std::string formatted from printf-like arguments.  Like the
-/// real sprintf, this is not guaranteed type-safe and is not extensible
-/// like format().  You would only want to use this instead of the safe
-/// format() in rare situations where you really need to use obscure
-/// printf features that aren't supported by tinyformat.
-std::string OIIO_API format_raw (const char *fmt, ...)
-                                         OPENIMAGEIO_PRINTF_ARGS(1,2);
+
+/// Construct a std::string in a printf-like fashion.  For example:
+///
+///    std::string s = Strutil::sprintf ("blah %d %g", (int)foo, (float)bar);
+///
+/// Uses the tinyformat or fmt library underneath, so it's fully type-safe, and
+/// works with any types that understand stream output via '<<'.
+/// The formatting of the string will always use the classic "C" locale
+/// conventions (in particular, '.' as decimal separator for float values).
+template<typename... Args>
+inline std::string sprintf (const char* fmt, const Args&... args)
+{
+    // Have to fall back on tinyformat rather than fmt::format, because
+    // fmt::format is not correctly locale-independent for floating point
+    // values. As soon as they fix it, we will upgrade, then change this
+    // implementation to use `::fmt::sprintf(fmt, args...)` if it is faster.
+#if 1
+    return tinyformat::format (fmt, args...);
+#else
+    return ::fmt::sprintf (fmt, args...);
+#endif
+}
+
+
+
+/// format() constructs formatted strings. Note that this is in transition!
+///
+/// Strutil::old::format() uses printf conventions and matches format() used
+/// in OIIO 1.x. It is equivalent to Strutil::sprintf().
+///
+///    std::string s = Strutil::old::sprintf ("blah %d %g", (int)foo, (float)bar);
+///
+/// Strutil::fmt::format() uses "Python" conventions, in the style of string
+/// formatting being planned for C++20 and implemented today in the {fmt}
+/// package (https://github.com/fmtlib/fmt). For example:
+///
+///    std::string s = Strutil::format ("blah {}  {}", (int)foo, (float)bar);
+///
+/// Straight-up Strutil::format is today aliased to old::format for the sake
+/// of back-compatibility, but will someday be switched to fmt::format.
+///
+/// Recommended strategy for users:
+/// * If you want printf conventions, switch to Strutil::sprintf().
+/// * If you want to use the python conventions prior to the big switch,
+///   use Strutil::fmt::format() explicitly (but see the caveat below).
+/// * Use of unspecified Strutil::format() is, for back compatibility,
+///   currently equivalent to sprintf, but beware that some point it will
+///   switch to the future-standard formatting rules.
+///
+/// Caveat: BEWARE using fmt::format on floating point values if there is
+/// any chance you could be running with a global non-C locale, because fmt
+/// does not yet correctly produce locale-independent output! We will
+/// upgrade as soon as they get that fixed.
+
+namespace fmt {
+template<typename... Args>
+inline std::string format (const char* fmt, const Args&... args)
+{
+    return ::fmt::format (fmt, args...);
+}
+} // namespace fmt
+
+namespace old {
+template<typename... Args>
+inline std::string format (const char* fmt, const Args&... args)
+{
+    return Strutil::sprintf (fmt, args...);
+}
+
+// DEPRECATED(2.0) string_view version. Phasing this out because
+// std::string_view won't have a c_str() method.
+template<typename... Args>
+inline std::string format (string_view fmt, const Args&... args)
+{
+    return format (fmt.c_str(), args...);
+}
+} // namespace old
+
+
+
+using old::format;
+
+
+
+/// Strutil::print (fmt, ...)
+/// Strutil::fprint (FILE*, fmt, ...)
+/// Strutil::fprint (ostream& fmt, ...)
+///
+/// Output formatted strings to stdout, a FILE*, or a stream, respectively.
+/// All use printf-like formatting rules, are type-safe, are thread-safe
+/// (the outputs are "atomic", at least versus other calls to
+/// Strutil::*printf), and automatically flush their outputs. They are all
+/// locale-independent (forcing classic "C" locale).
+
+template<typename... Args>
+inline void printf (const char* fmt, const Args&... args)
+{
+    sync_output (stdout, Strutil::sprintf(fmt, args...));
+}
+
+template<typename... Args>
+inline void fprintf (FILE *file, const char* fmt, const Args&... args)
+{
+    sync_output (file, Strutil::sprintf(fmt, args...));
+}
+
+template<typename... Args>
+inline void fprintf (std::ostream &file, const char* fmt, const Args&... args)
+{
+    sync_output (file, Strutil::sprintf(fmt, args...));
+}
+
+
+
+/// Strutil::print (fmt, ...)
+/// Strutil::print (FILE*, fmt, ...)
+/// Strutil::print (ostream& fmt, ...)
+///
+/// Output formatted strings to stdout, a FILE*, or a stream, respectively.
+/// All use "Python-like" formatting description (as {fmt} does, and some
+/// day, std::format), are type-safe, are thread-safe (the outputs are
+/// "atomic", at least versus other calls to Strutil::*printf), and
+/// automatically flush their outputs. They are all locale-independent by
+/// default (use {:n} for locale-aware formatting).
+
+template<typename... Args>
+inline void print (const char* fmt, const Args&... args)
+{
+    sync_output (stdout, Strutil::fmt::format(fmt, args...));
+}
+
+template<typename... Args>
+inline void print (FILE *file, const char* fmt, const Args&... args)
+{
+    sync_output (file, Strutil::fmt::format(fmt, args...));
+}
+
+template<typename... Args>
+inline void print (std::ostream &file, const char* fmt, const Args&... args)
+{
+    sync_output (file, Strutil::fmt::format(fmt, args...));
+}
+
+
+
 
 /// Return a std::string formatted from printf-like arguments -- passed
-/// already as a va_list.  Like vsprintf, this is not guaranteed
-/// type-safe and is not extensible like format().
+/// already as a va_list.  This is not guaranteed type-safe and is not
+/// extensible like format(). Use with caution!
+std::string OIIO_API vsprintf (const char *fmt, va_list ap)
+                                         OPENIMAGEIO_PRINTF_ARGS(1,0);
+
+/// Return a std::string formatted like Strutil::format, but passed
+/// already as a va_list.  This is not guaranteed type-safe and is not
+/// extensible like format(). Use with caution!
 std::string OIIO_API vformat (const char *fmt, va_list ap)
                                          OPENIMAGEIO_PRINTF_ARGS(1,0);
 
@@ -136,52 +313,27 @@ std::string OIIO_API escape_chars (string_view unescaped);
 /// and collapse them into the 'real' characters.
 std::string OIIO_API unescape_chars (string_view escaped);
 
-/// Word-wrap string 'src' to no more than columns width, splitting at
-/// space characters.  It assumes that 'prefix' characters are already
-/// printed, and furthermore, if it should need to wrap, it prefixes that
-/// number of spaces in front of subsequent lines.  By illustration, 
-/// wordwrap("0 1 2 3 4 5 6 7 8", 4, 10) should return:
-/// "0 1 2\n    3 4 5\n    6 7 8"
-std::string OIIO_API wordwrap (string_view src, int columns=80, int prefix=0);
+/// Word-wrap string `src` to no more than `columns` width, starting with an
+/// assumed position of `prefix` on the first line and intending by `prefix`
+/// blanks before all lines other than the first.
+///
+/// Words may be split AT any characters in `sep` or immediately AFTER any
+/// characters in `presep`. After the break, any extra `sep` characters will
+/// be deleted.
+///
+/// By illustration,
+///     wordwrap("0 1 2 3 4 5 6 7 8", 10, 4)
+/// should return:
+///     "0 1 2\n    3 4 5\n    6 7 8"
+std::string OIIO_API wordwrap (string_view src, int columns = 80,
+                               int prefix = 0, string_view sep = " ",
+                               string_view presep = "");
 
-/// Hash a string without pre-known length.  We use the Jenkins
-/// one-at-a-time hash (http://en.wikipedia.org/wiki/Jenkins_hash_function),
-/// which seems to be a good speed/quality/requirements compromise.
-inline size_t
-strhash (const char *s)
-{
-    if (! s) return 0;
-    unsigned int h = 0;
-    while (*s) {
-        h += (unsigned char)(*s);
-        h += h << 10;
-        h ^= h >> 6;
-        ++s;
-    }
-    h += h << 3;
-    h ^= h >> 11;
-    h += h << 15;
-    return h;
-}
-
-
-/// Hash a string_view.  We use the Jenkins
-/// one-at-a-time hash (http://en.wikipedia.org/wiki/Jenkins_hash_function),
-/// which seems to be a good speed/quality/requirements compromise.
+/// Hash a string_view.
 inline size_t
 strhash (string_view s)
 {
-    if (! s.length()) return 0;
-    unsigned int h = 0;
-    for (size_t i = 0;  i < s.length();  ++i) {
-        h += (unsigned char)(s[i]);
-        h += h << 10;
-        h ^= h >> 6;
-    }
-    h += h << 3;
-    h ^= h >> 11;
-    h += h << 15;
-    return h;
+    return s.length() ? farmhash::Hash (s) : 0;
 }
 
 
@@ -189,6 +341,10 @@ strhash (string_view s)
 /// Case-insensitive comparison of strings.  For speed, this always uses
 /// a static locale that doesn't require a mutex.
 bool OIIO_API iequals (string_view a, string_view b);
+
+/// Case-insensitive ordered comparison of strings.  For speed, this always
+/// uses a static locale that doesn't require a mutex.
+bool OIIO_API iless (string_view a, string_view b);
 
 /// Does 'a' start with the string 'b', with a case-sensitive comparison?
 bool OIIO_API starts_with (string_view a, string_view b);
@@ -219,6 +375,8 @@ void OIIO_API to_lower (std::string &a);
 /// a static locale that doesn't require a mutex lock.
 void OIIO_API to_upper (std::string &a);
 
+
+
 /// Return a reference to the section of str that has all consecutive
 /// characters in chars removed from the beginning and ending.  If chars is
 /// empty, it will be interpreted as " \t\n\r\f\v" (whitespace).
@@ -232,38 +390,167 @@ void OIIO_API split (string_view str, std::vector<string_view> &result,
 void OIIO_API split (string_view str, std::vector<std::string> &result,
                      string_view sep = string_view(), int maxsplit = -1);
 
+/// Split the contents of `str` using `sep` as the delimiter string (if
+/// `sep` is "", any whitespace string is a separator). If `maxsplit > -1`,
+/// at most `maxsplit` splits are performed. The result is returned as a
+/// vector of std::string (for `splits()`) or a vector of string_view (for
+/// `splitsv()`).
+OIIO_API std::vector<std::string>
+splits (string_view str, string_view sep = "", int maxsplit = -1);
+OIIO_API std::vector<string_view>
+splitsv (string_view str, string_view sep = "", int maxsplit = -1);
+
 /// Join all the strings in 'seq' into one big string, separated by the
-/// 'sep' string.
-std::string OIIO_API join (const std::vector<string_view> &seq,
-                           string_view sep = string_view());
-std::string OIIO_API join (const std::vector<std::string> &seq,
-                           string_view sep = string_view());
+/// 'sep' string. The Sequence can be any iterable collection of items that
+/// are able to convert to string via stream output. Examples include:
+/// std::vector<string_view>, std::vector<std::string>, std::set<ustring>,
+/// std::vector<int>, etc.
+template<class Sequence>
+std::string join (const Sequence& seq, string_view sep="")
+{
+    std::ostringstream out;
+    bool first = true;
+    for (auto&& s : seq) {
+        if (! first && sep.size())
+            out << sep;
+        out << s;
+        first = false;
+    }
+    return out.str();
+}
+
+/// Repeat a string formed by concatenating str n times.
+std::string OIIO_API repeat (string_view str, int n);
+
+/// Replace a pattern inside a string and return the result. If global is
+/// true, replace all instances of the pattern, otherwise just the first.
+std::string OIIO_API replace (string_view str, string_view pattern,
+                              string_view replacement, bool global=false);
+
+
+/// strtod/strtof equivalents that are "locale-independent", always using
+/// '.' as the decimal separator. This should be preferred for I/O and other
+/// situations where you want the same standard formatting regardless of
+/// locale.
+float OIIO_API strtof (const char *nptr, char **endptr = nullptr);
+double OIIO_API strtod (const char *nptr, char **endptr = nullptr);
+
+
+// stoi() returns the int conversion of text from a string.
+// No exceptions or errors -- parsing errors just return 0, over/underflow
+// gets clamped to int range. No locale consideration.
+OIIO_API int stoi (string_view s, size_t* pos=0, int base=10);
+
+// stoui() returns the unsigned int conversion of text from a string.
+// No exceptions or errors -- parsing errors just return 0. Negative
+// values are cast, overflow is clamped. No locale considerations.
+inline unsigned int stoui (string_view s, size_t* pos=0, int base=10) {
+    return static_cast<unsigned int>(stoi (s, pos, base));
+}
+
+/// stof() returns the float conversion of text from several string types.
+/// No exceptions or errors -- parsing errors just return 0.0. These always
+/// use '.' for the decimal mark (versus atof and std::strtof, which are
+/// locale-dependent).
+OIIO_API float stof (string_view s, size_t* pos=0);
+#define OIIO_STRUTIL_HAS_STOF 1  /* be able to test this */
+
+// Temporary fix: allow separate std::string and char* versions, to avoid
+// string_view allocation on some platforms. This will be deprecated once
+// we can count on all supported compilers using short string optimization.
+OIIO_API float stof (const std::string& s, size_t* pos=0);
+OIIO_API float stof (const char* s, size_t* pos=0);
+// N.B. For users of ustring, there's a stof(ustring) defined in ustring.h.
+
+OIIO_API double stod (string_view s, size_t* pos=0);
+OIIO_API double stod (const std::string& s, size_t* pos=0);
+OIIO_API double stod (const char* s, size_t* pos=0);
 
 
 
-// Helper template to convert from generic type to string
+/// Return true if the string is exactly (other than leading  and trailing
+/// whitespace) a valid int.
+OIIO_API bool string_is_int (string_view s);
+
+/// Return true if the string is exactly (other than leading or trailing
+/// whitespace) a valid float. This operations in a locale-independent
+/// manner, i.e., it assumes '.' as the decimal mark.
+OIIO_API bool string_is_float (string_view s);
+
+
+
+// Helper template to convert from generic type to string. Used when you
+// want stoX but you're in a template. Rigged to use "C" locale.
 template<typename T>
 inline T from_string (string_view s) {
     return T(s); // Generic: assume there is an explicit converter
 }
 // Special case for int
 template<> inline int from_string<int> (string_view s) {
-    return (int)strtol (s.c_str(), NULL, 10);
+    return Strutil::stoi(s);
 }
-// Special case for float
+// Special case for uint
+template<> inline unsigned int from_string<unsigned int> (string_view s) {
+    return Strutil::stoui(s);
+}
+// Special case for float -- note that by using Strutil::strtof, this
+// always treats '.' as the decimal mark.
 template<> inline float from_string<float> (string_view s) {
-    return (float)strtod (s.c_str(), NULL);
+    return Strutil::stof(s);
 }
 
 
 
-/// Given a string containing float values separated by a comma (or
-/// optionally another separator), extract the individual values,
-/// placing them into vals[] which is presumed to already contain
-/// defaults.  If only a single value was in the list, replace all
-/// elements of vals[] with the value. Otherwise, replace them in the
-/// same order.  A missing value will simply not be replaced. Return the
-/// number of values found in the list (including blank or malformed ones).
+// Template function to convert any type to a string. The default
+// implementation is just to use sprintf. The template can be
+// overloaded if there is a better method for particular types.
+// Eventually, we want this to use fmt::to_string, but for now that doesn't
+// work because {fmt} doesn't correctly support locale-independent
+// formatting of floating-point types.
+template<typename T>
+inline std::string to_string (const T& value) {
+    return Strutil::sprintf("%s",value);
+}
+
+template<> inline std::string to_string (const std::string& value) { return value; }
+template<> inline std::string to_string (const string_view& value) { return value; }
+inline std::string to_string (const char* value) { return value; }
+
+// Int types are SO much faster with fmt than tinyformat, specialize. Can't
+// do it for floats yet because of the locale-dependence.
+inline std::string to_string (int value) { return ::fmt::to_string(value); }
+inline std::string to_string (size_t value) { return ::fmt::to_string(value); }
+
+
+
+
+// Helper template to test if a string is a generic type. Used instead of
+// string_is_X, but when you're inside templated code.
+template<typename T>
+inline bool string_is (string_view /*s*/) {
+    return false; // Generic: assume there is an explicit specialization
+}
+// Special case for int
+template <> inline bool string_is<int> (string_view s) {
+    return string_is_int (s);
+}
+// Special case for float. Note that by using Strutil::stof, this always
+// treats '.' as the decimal character.
+template <> inline bool string_is<float> (string_view s) {
+    return string_is_float (s);
+}
+
+
+
+
+/// Given a string containing values separated by a comma (or optionally
+/// another separator), extract the individual values, placing them into
+/// vals[] which is presumed to already contain defaults.  If only a single
+/// value was in the list, replace all elements of vals[] with the value.
+/// Otherwise, replace them in the same order.  A missing value will simply
+/// not be replaced. Return the number of values found in the list
+/// (including blank or malformed ones). If the vals vector was empty
+/// initially, grow it as necessary.
 ///
 /// For example, if T=float, suppose initially, vals[] = {0, 1, 2}, then
 ///   "3.14"       results in vals[] = {3.14, 3.14, 3.14}
@@ -273,21 +560,59 @@ template<> inline float from_string<float> (string_view s) {
 /// an explicit constructor from a std::string.
 template<class T>
 int extract_from_list_string (std::vector<T> &vals,
-                               string_view list,
-                               string_view sep = string_view(",",1))
+                              string_view list,
+                              string_view sep = ",")
 {
     size_t nvals = vals.size();
     std::vector<string_view> valuestrings;
     Strutil::split (list, valuestrings, sep);
     for (size_t i = 0, e = valuestrings.size(); i < e; ++i) {
-        if (valuestrings[i].size())
-            vals[i] = from_string<T> (valuestrings[i]);
+        T v = from_string<T> (valuestrings[i]);
+        if (nvals == 0)
+            vals.push_back (v);
+        else if (valuestrings[i].size()) {
+            if (vals.size() > i)  // don't replace non-existnt entries
+                vals[i] = from_string<T> (valuestrings[i]);
+        }
+        /* Otherwise, empty space between commas, so leave default alone */
     }
-    if (valuestrings.size() == 1) {
+    if (valuestrings.size() == 1 && nvals > 0) {
         vals.resize (1);
         vals.resize (nvals, vals[0]);
     }
     return list.size() ? (int) valuestrings.size() : 0;
+}
+
+
+/// Given a string containing values separated by a comma (or optionally
+/// another separator), extract the individual values, returning them as a
+/// std::vector<T>. The vector will be initialized with `nvals` elements
+/// with default value `val`. If only a single value was in the list,
+/// replace all elements of vals[] with the value. Otherwise, replace them
+/// in the same order.  A missing value will simply not be replaced and
+/// will retain the initialized default value. If the string contains more
+/// then `nvals` values, they will append to grow the vector.
+///
+/// For example, if T=float,
+///   extract_from_list_string ("", 3, 42.0f)
+///       --> {42.0, 42.0, 42.0}
+///   extract_from_list_string ("3.14", 3, 42.0f)
+///       --> {3.14, 3.14, 3.14}
+///   extract_from_list_string ("3.14,,-2.0", 3, 42.0f)
+///       --> {3.14, 42.0, -2.0}
+///   extract_from_list_string ("1,2,3,4", 3, 42.0f)
+///       --> {1.0, 2.0, 3.0, 4.0}
+///
+/// This can work for type T = int, float, or any type for that has
+/// an explicit constructor from a std::string.
+template<class T>
+std::vector<T>
+extract_from_list_string (string_view list, size_t nvals=0, T val=T(),
+                          string_view sep = ",")
+{
+    std::vector<T> vals (nvals, val);
+    extract_from_list_string (vals, list, sep);
+    return vals;
 }
 
 
@@ -298,16 +623,10 @@ int extract_from_list_string (std::vector<T> &vals,
 /// StringEqual, to build an efficient hash map for char*'s or
 /// std::string's is as follows:
 /// \code
-///    boost::unordered_map <const char *, Key, Strutil::StringHash, Strutil::StringEqual>
+///    unordered_map <const char *, Key, Strutil::StringHash, Strutil::StringEqual>
 /// \endcode
 class StringHash {
 public:
-    size_t operator() (const char *s) const {
-        return (size_t)Strutil::strhash(s);
-    }
-    size_t operator() (const std::string &s) const {
-        return (size_t)Strutil::strhash(s.c_str());
-    }
     size_t operator() (string_view s) const {
         return (size_t)Strutil::strhash(s);
     }
@@ -315,17 +634,35 @@ public:
 
 
 
-/// C++ functor class for comparing two char*'s or std::string's for
-/// equality of their strings.
-class StringEqual {
-public:
-    bool operator() (const char *a, const char *b) const {
-        return strcmp (a, b) == 0;
-    }
-    bool operator() (string_view a, string_view b) const {
-        return a == b;
-    }
+/// C++ functor for comparing two strings for equality of their characters.
+struct OIIO_API StringEqual {
+    bool operator() (const char *a, const char *b) const { return strcmp (a, b) == 0; }
+    bool operator() (string_view a, string_view b) const { return a == b; }
 };
+
+
+/// C++ functor for comparing two strings for equality of their characters
+/// in a case-insensitive and locale-insensitive way.
+struct OIIO_API StringIEqual {
+    bool operator() (const char *a, const char *b) const;
+    bool operator() (string_view a, string_view b) const { return iequals (a, b); }
+};
+
+
+/// C++ functor for comparing the ordering of two strings.
+struct OIIO_API StringLess {
+    bool operator() (const char *a, const char *b) const { return strcmp (a, b) < 0; }
+    bool operator() (string_view a, string_view b) const { return a < b; }
+};
+
+
+/// C++ functor for comparing the ordering of two strings in a
+/// case-insensitive and locale-insensitive way.
+struct OIIO_API StringILess {
+    bool operator() (const char *a, const char *b) const;
+    bool operator() (string_view a, string_view b) const { return a < b; }
+};
+
 
 
 #ifdef _WIN32
@@ -370,14 +707,11 @@ std::string OIIO_API utf16_to_utf8(const std::wstring& utf16str);
 #endif
 
 
-/// Safe C string copy.  Basically strncpy but ensuring that there's a
-/// terminating 0 character at the end of the resulting string.
-OIIO_API char * safe_strcpy (char *dst, const char *src, size_t size);
-
-inline char * safe_strcpy (char *dst, const std::string &src, size_t size) {
-    return safe_strcpy (dst, src.length() ? src.c_str() : NULL, size);
-}
-
+/// Copy at most size characters (including terminating 0 character) from
+/// src into dst[], filling any remaining characters with 0 values. Returns
+/// dst. Note that this behavior is identical to strncpy, except that it
+/// guarantees that there will be a termining 0 character.
+OIIO_API char * safe_strcpy (char *dst, string_view src, size_t size);
 
 
 /// Modify str to trim any whitespace (space, tab, linefeed, cr) from the
@@ -418,13 +752,17 @@ bool OIIO_API parse_int (string_view &str, int &val, bool eat=true);
 /// str.
 bool OIIO_API parse_float (string_view &str, float &val, bool eat=true);
 
+enum QuoteBehavior { DeleteQuotes, KeepQuotes };
 /// If str's first non-whitespace characters form a valid string (either a
-/// single word weparated by whitespace or anything inside a double-quoted
-/// string (""), return true, place the string's value (not including
-/// surrounding double quotes) in val, and additionally modify str to skip
-/// over the parsed string if eat is also true. Otherwise, if no string is
-/// found at the beginning of str, return false and don't modify val or str.
-bool OIIO_API parse_string (string_view &str, string_view &val, bool eat=true);
+/// single word separated by whitespace or anything inside a double-quoted
+/// ("") or single-quoted ('') string, return true, place the string's value
+/// (not including surrounding double quotes) in val, and additionally
+/// modify str to skip over the parsed string if eat is also true.
+/// Otherwise, if no string is found at the beginning of str, return false
+/// and don't modify val or str. If keep_quotes is true, the surrounding
+/// double quotes (if present) will be kept in val.
+bool OIIO_API parse_string (string_view &str, string_view &val, bool eat=true,
+                            QuoteBehavior keep_quotes=DeleteQuotes);
 
 /// Return the first "word" (set of contiguous alphabetical characters) in
 /// str, and additionally modify str to skip over the parsed word if eat is
@@ -449,7 +787,13 @@ string_view OIIO_API parse_identifier (string_view &str, bool eat=true);
 /// containing dollar signs and colons as well as the usual alphanumeric and
 /// underscore characters.
 string_view OIIO_API parse_identifier (string_view &str,
-                                       string_view allowed, bool eat);
+                                       string_view allowed, bool eat = true);
+
+/// If the C-like identifier at the head of str exactly matches id,
+/// return true, and also advance str if eat is true. If it is not a match
+/// for id, return false and do not alter str.
+bool OIIO_API parse_identifier_if (string_view &str, string_view id,
+                                   bool eat=true);
 
 /// Return the characters until any character in sep is found, storing it in
 /// str, and additionally modify str to skip over the parsed section if eat
@@ -458,11 +802,49 @@ string_view OIIO_API parse_identifier (string_view &str,
 string_view OIIO_API parse_until (string_view &str,
                                   string_view sep=" \t\r\n", bool eat=true);
 
+/// Return the characters at the head of the string that match any in set,
+/// and additionally modify str to skip over the parsed section if eat is
+/// also true. Otherwise, if no `set` characters are found at the beginning
+/// of str, return an empty string_view and don't modify str.
+string_view OIIO_API parse_while (string_view &str,
+                                  string_view set, bool eat=true);
+
+/// Assuming the string str starts with either '(', '[', or '{', return the
+/// head, up to and including the corresponding closing character (')', ']',
+/// or '}', respectively), recognizing nesting structures. For example,
+/// parse_nested("(a(b)c)d") should return "(a(b)c)", NOT "(a(b)". Return an
+/// empty string if str doesn't start with one of those characters, or
+/// doesn't contain a correctly matching nested pair. If eat==true, str will
+/// be modified to trim off the part of the string that is returned as the
+/// match.
+string_view OIIO_API parse_nested (string_view &str, bool eat=true);
+
+
+/// Look within `str` for the pattern:
+///     head nonwhitespace_chars whitespace
+/// Remove that full pattern from `str` and return the nonwhitespace
+/// part that followed the head (or return the empty string and leave `str`
+/// unmodified, if the head was never found).
+OIIO_API std::string
+excise_string_after_head (std::string& str, string_view head);
+
+
+/// Converts utf-8 string to vector of unicode codepoints. This function
+/// will not stop on invalid sequences. It will let through some invalid
+/// utf-8 sequences like: 0xfdd0-0xfdef, 0x??fffe/0x??ffff. It does not
+/// support 5-6 bytes long utf-8 sequences. Will skip trailing character if
+/// there are not enough bytes for decoding a codepoint.
+///
+/// N.B. Following should probably return u32string instead of taking
+/// vector, but C++11 support is not yet stabilized across compilers.
+/// We will eventually add that and deprecate this one, after everybody
+/// is caught up to C++11.
+void OIIO_API utf8_to_unicode (string_view str, std::vector<uint32_t> &uvec);
+
+/// Encode the string in base64.
+/// https://en.wikipedia.org/wiki/Base64
+std::string OIIO_API base64_encode (string_view str);
 
 }  // namespace Strutil
 
-}
-OIIO_NAMESPACE_EXIT
-
-
-#endif // OPENIMAGEIO_STRUTIL_H
+OIIO_NAMESPACE_END

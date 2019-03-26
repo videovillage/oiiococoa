@@ -28,12 +28,11 @@
   (This is the Modified BSD License)
 */
 
+// clang-format off
 
 /// @file  filesystem.h
 ///
-/// @brief Utilities for dealing with file names and files.  We use
-/// boost::filesystem anywhere we can, but that doesn't cover everything
-/// we want to do.
+/// @brief Utilities for dealing with file names and files portably.
 ///
 /// Some helpful nomenclature:
 ///  -  "filename" - a file or directory name, relative or absolute
@@ -41,22 +40,46 @@
 ///
 
 
-#ifndef OPENIMAGEIO_FILESYSTEM_H
-#define OPENIMAGEIO_FILESYSTEM_H
+#pragma once
 
+#include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <fstream>
+#include <mutex>
 #include <string>
 #include <vector>
 
-#include "export.h"
-#include "oiioversion.h"
-#include "string_view.h"
+#include <span.h>
+#include <export.h>
+#include <oiioversion.h>
+#include <string_view.h>
+
+#if defined(_WIN32) && defined(__GLIBCXX__)
+#    define OIIO_FILESYSTEM_USE_STDIO_FILEBUF 1
+#    include <fstream_mingw.h>
+#endif
 
 
-OIIO_NAMESPACE_ENTER
-{
+// Define symbols that let client applications determine if newly added
+// features are supported.
+#define OIIO_FILESYSTEM_SUPPORTS_IOPROXY 1
+
+
+
+OIIO_NAMESPACE_BEGIN
+
+#if OIIO_FILESYSTEM_USE_STDIO_FILEBUF
+// MingW uses GCC to build, but does not support having a wchar_t* passed as argument
+// of ifstream::open or ofstream::open. To properly support UTF-8 encoding on MingW we must
+// use the __gnu_cxx::stdio_filebuf GNU extension that can be used with _wfsopen and returned
+// into a istream which share the same API as ifsteam. The same reasoning holds for ofstream.
+typedef basic_ifstream<char> ifstream;
+typedef basic_ofstream<char> ofstream;
+#else
+typedef std::ifstream ifstream;
+typedef std::ofstream ofstream;
+#endif
 
 /// @namespace Filesystem
 ///
@@ -72,7 +95,7 @@ OIIO_API std::string filename (const std::string &filepath);
 /// Return the file extension (including the last '.' if
 /// include_dot=true) of a filename or filepath.
 OIIO_API std::string extension (const std::string &filepath,
-                                 bool include_dot=true);
+                                bool include_dot=true);
 
 /// Return all but the last part of the path, for example,
 /// parent_path("foo/bar") returns "foo", and parent_path("foo")
@@ -83,7 +106,7 @@ OIIO_API std::string parent_path (const std::string &filepath);
 /// filepath, just returns a new string.  Note that the new_extension
 /// should contain a leading '.' dot.
 OIIO_API std::string replace_extension (const std::string &filepath, 
-                                         const std::string &new_extension);
+                                        const std::string &new_extension);
 
 /// Turn a searchpath (multiple directory paths separated by ':' or ';')
 /// into a vector<string> containing each individual directory.  If
@@ -91,8 +114,8 @@ OIIO_API std::string replace_extension (const std::string &filepath,
 /// up in the list.  N.B., the directory names will not have trailing
 /// slashes.
 OIIO_API void searchpath_split (const std::string &searchpath,
-                                 std::vector<std::string> &dirs,
-                                 bool validonly = false);
+                                std::vector<std::string> &dirs,
+                                bool validonly = false);
 
 /// Find the first instance of a filename existing in a vector of
 /// directories, returning the full path as a string.  If the file is
@@ -104,9 +127,9 @@ OIIO_API void searchpath_split (const std::string &searchpath,
 /// finding a matching file in any subdirectory of the directories
 /// listed in dirs; otherwise.
 OIIO_API std::string searchpath_find (const std::string &filename,
-                                       const std::vector<std::string> &dirs,
-                                       bool testcwd = true,
-                                       bool recursive = false);
+                                      const std::vector<std::string> &dirs,
+                                      bool testcwd = true,
+                                      bool recursive = false);
 
 /// Fill a vector-of-strings with the names of all files contained by
 /// directory dirname.  If recursive is true, it will return all files
@@ -123,7 +146,7 @@ OIIO_API bool get_directory_entries (const std::string &dirname,
 /// Return true if the path is an "absolute" (not relative) path.
 /// If 'dot_is_absolute' is true, consider "./foo" absolute.
 OIIO_API bool path_is_absolute (const std::string &path,
-                                 bool dot_is_absolute=false);
+                                bool dot_is_absolute=false);
 
 /// Return true if the file exists.
 ///
@@ -192,19 +215,32 @@ OIIO_API std::string unique_path (string_view model="%%%%-%%%%-%%%%-%%%%");
 ///
 OIIO_API FILE *fopen (string_view path, string_view mode);
 
+/// Return the current (".") directory path.
+///
+OIIO_API std::string current_path ();
+
 /// Version of std::ifstream.open that can handle UTF-8 paths
 ///
-OIIO_API void open (std::ifstream &stream, string_view path,
+OIIO_API void open (OIIO::ifstream &stream, string_view path,
                     std::ios_base::openmode mode = std::ios_base::in);
 
 /// Version of std::ofstream.open that can handle UTF-8 paths
 ///
-OIIO_API void open (std::ofstream &stream, string_view path,
+OIIO_API void open (OIIO::ofstream &stream, string_view path,
                     std::ios_base::openmode mode = std::ios_base::out);
+
 
 /// Read the entire contents of the named text file and place it in str,
 /// returning true on success, false on failure.
 OIIO_API bool read_text_file (string_view filename, std::string &str);
+
+/// Read a maximum of n bytes from the named file, starting at position pos
+/// (which defaults to the start of the file), storing results in
+/// buffer[0..n-1]. Return the number of bytes read, which will be n for
+/// full success, less than n if the file was fewer than n+pos bytes long,
+/// or 0 if the file did not exist or could not be read.
+OIIO_API size_t read_bytes (string_view path, void *buffer, size_t n,
+                            size_t pos=0);
 
 /// Get last modified time of file
 ///
@@ -213,6 +249,10 @@ OIIO_API std::time_t last_write_time (const std::string& path);
 /// Set last modified time on file
 ///
 OIIO_API void last_write_time (const std::string& path, std::time_t time);
+
+/// Return the size of the file (in bytes), or uint64_t(-1) if there is any
+/// error.
+OIIO_API uint64_t file_size (string_view path);
 
 /// Ensure command line arguments are UTF-8 everywhere
 ///
@@ -292,9 +332,143 @@ OIIO_API bool scan_for_matching_filenames (const std::string &pattern,
                                            std::vector<int> &numbers,
                                            std::vector<std::string> &filenames);
 
+
+
+/// Proxy class for I/O. This provides a simplified interface for file I/O
+/// that can have custom overrides.
+class OIIO_API IOProxy {
+public:
+    enum Mode { Closed = 0, Read = 'r', Write = 'w' };
+    IOProxy () {}
+    IOProxy (string_view filename, Mode mode)
+        : m_filename(filename), m_mode(mode) {}
+    virtual ~IOProxy () { }
+    virtual const char* proxytype () const = 0;
+    virtual void close () { }
+    virtual bool opened () const { return mode() != Closed; }
+    virtual int64_t tell () { return m_pos; }
+    virtual bool seek (int64_t offset) { m_pos = offset; return true; }
+    virtual size_t read (void *buf, size_t size) { return 0; }
+    virtual size_t write (const void *buf, size_t size) { return 0; }
+    // pread(), pwrite() are stateless, do not alter the current file
+    // position, and are thread-safe (against each other).
+    virtual size_t pread (void *buf, size_t size, int64_t offset) { return 0; }
+    virtual size_t pwrite (const void *buf, size_t size, int64_t offset) { return 0; }
+    virtual size_t size () const { return 0; }
+    virtual void flush () const { }
+
+    Mode mode () const { return m_mode; }
+    const std::string& filename () const { return m_filename; }
+    template<class T> size_t read (span<T> buf) {
+        return read (buf.data(), buf.size()*sizeof(T));
+    }
+    template<class T> size_t write (span<T> buf) {
+        return write (buf.data(), buf.size()*sizeof(T));
+    }
+    size_t write (string_view buf) {
+        return write (buf.data(), buf.size());
+    }
+    bool seek (int64_t offset, int origin) {
+        return seek ((origin == SEEK_SET ? offset : 0) +
+                     (origin == SEEK_CUR ? offset+tell() : 0) +
+                     (origin == SEEK_END ? size() : 0));
+    }
+protected:
+    std::string m_filename;
+    int64_t m_pos = 0;
+    Mode m_mode   = Closed;
+};
+
+
+/// IOProxy subclass for reading or writing (but not both) that wraps C
+/// stdio 'FILE'.
+class OIIO_API IOFile : public IOProxy {
+public:
+    // Construct from a filename, open, own the FILE*.
+    IOFile(string_view filename, Mode mode);
+    // Construct from an already-open FILE* that is owned by the caller.
+    // Caller is responsible for closing the FILE* after the proxy is gone.
+    IOFile(FILE* file, Mode mode);
+    virtual ~IOFile();
+    virtual const char* proxytype() const { return "file"; }
+    virtual void close();
+    virtual bool seek(int64_t offset);
+    virtual size_t read(void* buf, size_t size);
+    virtual size_t write(const void* buf, size_t size);
+    virtual size_t pread(void* buf, size_t size, int64_t offset);
+    virtual size_t pwrite(const void* buf, size_t size, int64_t offset);
+    virtual size_t size() const;
+    virtual void flush() const;
+
+    // Access the FILE*
+    FILE* handle() const { return m_file; }
+
+protected:
+    FILE* m_file      = nullptr;
+    size_t m_size     = 0;
+    bool m_auto_close = false;
+};
+
+
+/// IOProxy subclass for writing that wraps a std::vector<char> that will
+/// grow as we write.
+class OIIO_API IOVecOutput : public IOProxy {
+public:
+    // Construct, IOVecOutput owns its own vector.
+    IOVecOutput()
+        : IOProxy("", IOProxy::Write)
+        , m_buf(m_local_buf)
+    {
+    }
+    // Construct to wrap an existing vector.
+    IOVecOutput(std::vector<unsigned char>& buf)
+        : IOProxy("", Write)
+        , m_buf(buf)
+    {
+    }
+    virtual const char* proxytype() const { return "vecoutput"; }
+    virtual size_t write(const void* buf, size_t size);
+    virtual size_t pwrite(const void* buf, size_t size, int64_t offset);
+    virtual size_t size() const { return m_buf.size(); }
+
+    // Access the buffer
+    std::vector<unsigned char>& buffer() const { return m_buf; }
+
+protected:
+    std::vector<unsigned char>& m_buf;       // reference to buffer
+    std::vector<unsigned char> m_local_buf;  // our own buffer
+    std::mutex m_mutex;                      // protect the buffer
+};
+
+
+
+/// IOProxy subclass for reading that wraps an cspan<char>.
+class OIIO_API IOMemReader : public IOProxy {
+public:
+    IOMemReader(void* buf, size_t size)
+        : IOProxy("", Read)
+        , m_buf((const unsigned char*)buf, size)
+    {
+    }
+    IOMemReader(cspan<unsigned char> buf)
+        : IOProxy("", Read)
+        , m_buf(buf.data(), buf.size())
+    {
+    }
+    virtual const char* proxytype() const { return "memreader"; }
+    virtual bool seek(int64_t offset)
+    {
+        m_pos = offset;
+        return true;
+    }
+    virtual size_t read(void* buf, size_t size);
+    virtual size_t pread(void* buf, size_t size, int64_t offset);
+    virtual size_t size() const { return m_buf.size(); }
+
+protected:
+    cspan<unsigned char> m_buf;
+};
+
 };  // namespace Filesystem
 
-}
-OIIO_NAMESPACE_EXIT
-
-#endif // OPENIMAGEIO_FILESYSTEM_H
+OIIO_NAMESPACE_END

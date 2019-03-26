@@ -71,7 +71,7 @@ OIIO_NAMESPACE_USING
 }
 
 + (CGImageRef)newCGImageWithContentsOfURL:(NSURL *)url metadata:(NSDictionary **)metadata{
-	ImageInput *in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+	auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
 	if (!in) {
 		return nil;
 	}
@@ -82,7 +82,6 @@ OIIO_NAMESPACE_USING
     NSMutableData *pixelData = [NSMutableData dataWithLength:pixelCount*sizeof(unsigned short)];
 	
 	in->read_image (TypeDesc::UINT16, pixelData.mutableBytes);
-	in->close ();
 
     if (metadata) {
         NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
@@ -130,7 +129,6 @@ OIIO_NAMESPACE_USING
 	
 	CGColorSpaceRelease(colorspace);
 
-	delete in;
 	CGDataProviderRelease(provider);
 	
 	return image;
@@ -163,7 +161,7 @@ OIIO_NAMESPACE_USING
 
 -(BOOL)writeToURL:(NSURL *)url
      encodingType:(OIIOImageEncodingType)encodingType{
-    ImageOutput *output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto output = ImageOutput::create ([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
     ImageSpec selfspec = ImageSpec((int)self.pixelsWide, (int)self.pixelsHigh, (int)self.samplesPerPixel, [self.class typeDescForEncodingType:[self.class encodingTypeForBitsPerSample:(int)self.bitsPerSample]]);
 
@@ -187,13 +185,8 @@ OIIO_NAMESPACE_USING
     
     if([[NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding] length] > 0){
         NSLog(@"%@", [NSString stringWithCString:output->geterror().c_str() encoding:NSUTF8StringEncoding]);
-        output->close();
-        delete output;
         return NO;
     }
-    
-    output->close();
-    delete output;
     
     return YES;
 }

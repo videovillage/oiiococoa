@@ -29,11 +29,12 @@
 */
 
 
-#ifndef OPENIMAGEIO_DASSERT_H
-#define OPENIMAGEIO_DASSERT_H
+#pragma once
 
 #include <cstdio>
 #include <cstdlib>
+
+#include <platform.h>
 
 
 /// \file
@@ -47,6 +48,8 @@
 ///  - DASSERT is the same as ASSERT when NDEBUG is not defined but a
 ///            no-op when not in debug mode.
 ///  - DASSERT_MSG: like DASSERT, but takes printf-like extra arguments
+///  - OIIO_STATIC_ASSERT(cond) : static assertion
+///  - OIIO_STATIC_ASSERT_MSG(cond,msg) : static assertion + message
 ///
 /// The presumed usage is that you want ASSERT for dire conditions that
 /// must be checked at runtime even in an optimized build.  DASSERT is
@@ -65,23 +68,27 @@
 /// occurred and then aborts.
 
 #ifndef ASSERT
-# define ASSERT(x)                                              \
-    ((x) ? ((void)0)                                            \
-         : (fprintf (stderr, "%s:%u: failed assertion '%s'\n",  \
-                     __FILE__, __LINE__, #x), abort()))
+#    define ASSERT(x)                                                          \
+        (OIIO_LIKELY(x)                                                        \
+             ? ((void)0)                                                       \
+             : (std::fprintf(stderr, "%s:%u: failed assertion '%s'\n",         \
+                             __FILE__, __LINE__, #x),                          \
+                abort()))
 #endif
 
 /// ASSERT_MSG(condition,msg,...) is like ASSERT, but lets you add
 /// formatted output (a la printf) to the failure message.
 #ifndef ASSERT_MSG
-# define ASSERT_MSG(x,msg,...)                                      \
-    ((x) ? ((void)0)                                                \
-         : (fprintf (stderr, "%s:%u: failed assertion '%s': " msg "\n", \
-                    __FILE__, __LINE__, #x,  __VA_ARGS__), abort()))
+#    define ASSERT_MSG(x, msg, ...)                                             \
+        (OIIO_LIKELY(x)                                                         \
+             ? ((void)0)                                                        \
+             : (std::fprintf(stderr, "%s:%u: failed assertion '%s': " msg "\n", \
+                             __FILE__, __LINE__, #x, __VA_ARGS__),              \
+                abort()))
 #endif
 
 #ifndef ASSERTMSG
-#define ASSERTMSG ASSERT_MSG
+#    define ASSERTMSG ASSERT_MSG
 #endif
 
 
@@ -89,25 +96,35 @@
 /// functional in DEBUG mode, but does nothing when in a non-DEBUG
 /// (optimized, shipping) build.
 #ifndef NDEBUG
-# define DASSERT(x) ASSERT(x)
+#    define DASSERT(x) ASSERT(x)
 #else
- /* DASSERT does nothing when not debugging; sizeof trick prevents warnings */
-# define DASSERT(x) ((void)sizeof(x))
+/* DASSERT does nothing when not debugging; sizeof trick prevents warnings */
+#    define DASSERT(x) ((void)sizeof(x)) /*NOLINT*/
 #endif
 
 /// DASSERT_MSG(condition,msg,...) is just like ASSERT_MSG, except that it
 /// only is functional in DEBUG mode, but does nothing when in a
 /// non-DEBUG (optimized, shipping) build.
 #ifndef NDEBUG
-# define DASSERT_MSG ASSERT_MSG
+#    define DASSERT_MSG ASSERT_MSG
 #else
-# define DASSERT_MSG(x,...) ((void)sizeof(x)) /* does nothing when not debugging */
+/* does nothing when not debugging */
+#    define DASSERT_MSG(x, ...) ((void)sizeof(x)) /*NOLINT*/
 #endif
 
 #ifndef DASSERTMSG
-#define DASSERTMSG DASSERT_MSG
+#    define DASSERTMSG DASSERT_MSG
 #endif
 
 
 
-#endif // OPENIMAGEIO_DASSERT_H
+/// Define OIIO_STATIC_ASSERT and OIIO_STATIC_ASSERT_MSG as wrappers around
+/// static_assert and static_assert_msg, with appropriate fallbacks for
+/// older C++ standards.
+#if (__cplusplus >= 201700L) /* FIXME - guess the token, fix when C++17 */
+#    define OIIO_STATIC_ASSERT(cond) static_assert(cond)
+#    define OIIO_STATIC_ASSERT_MSG(cond, msg) static_assert(cond, msg)
+#else /* (__cplusplus >= 201103L) */
+#    define OIIO_STATIC_ASSERT(cond) static_assert(cond, "")
+#    define OIIO_STATIC_ASSERT_MSG(cond, msg) static_assert(cond, msg)
+#endif

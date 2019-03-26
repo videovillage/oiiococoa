@@ -1,7 +1,6 @@
 /*
   Copyright 2014 Larry Gritz and the other authors and contributors.
   All Rights Reserved.
-  Based on BSD-licensed software Copyright 2004 NVIDIA Corp.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
@@ -34,83 +33,131 @@
 
 #include <cstddef>
 
-#include "oiioversion.h"
+#include <oiioversion.h>
+#include <platform.h>
 
 
-OIIO_NAMESPACE_ENTER {
+OIIO_NAMESPACE_BEGIN
 
 
-/// strided_ptr<T> looks like a 'T*', but it incorporates a stride (in
-/// bytes) that may be different than sizeof(T).  Operators ++, --, [], and
-/// so on, take the stride into account when computing where each "array
-/// element" actually exists.  A strided_ptr<T> is mutable (the values
-/// pointed to may be modified), whereas an strided_ptr<const T> is not
-/// mutable.
-template <typename T>
-class strided_ptr {
+/// strided_ptr<T> looks like a 'T*', but it incorporates a stride, so
+/// it's not limited to adjacent elements.
+/// Operators ++, --, [], and so on, take the stride into account when
+/// computing where each "array element" actually exists.
+///
+/// A strided_ptr<T> is mutable (the values pointed to may be modified),
+/// whereas an strided_ptr<const T> is not mutable.
+///
+/// Fun trick: strided_ptr<T>(&my_value,0) makes a strided_pointer that
+/// is addressed like an array, but because the stride is 0, every
+/// accessed "element" actually will actually refer to the same value.
+///
+/// By default, if StrideUnits == sizeof(T), then the stride refers to
+/// multiples of the size of T. But every once in a while, you need a
+/// a byte-addressable stride, and in that case you use a StrideUnits
+/// of 1, like:   strided_ptr<T,1>.
+template<typename T, int StrideUnits = sizeof(T)> class strided_ptr {
 public:
-    strided_ptr (T* ptr=NULL, ptrdiff_t stride=sizeof(T))
-        : m_ptr(ptr), m_stride(stride) { }
-    strided_ptr (const strided_ptr &p)
-        : m_ptr(p.m_ptr), m_stride(p.m_stride) {}
-    const strided_ptr& operator= (const strided_ptr &p) {
-        m_ptr = p.m_ptr;
+    constexpr strided_ptr(T* ptr = nullptr, ptrdiff_t stride = 1) noexcept
+        : m_ptr(ptr)
+        , m_stride(stride)
+    {
+    }
+    constexpr strided_ptr(const strided_ptr& p) noexcept
+        : strided_ptr(p.data(), p.stride())
+    {
+    }
+
+    const strided_ptr& operator=(const strided_ptr& p) noexcept
+    {
+        m_ptr    = p.m_ptr;
         m_stride = p.m_stride;
         return *this;
     }
 
-    T& operator* () const { return *m_ptr; }
-    T& operator[] (ptrdiff_t pos) const { return get(pos); }
-    T* data() const { return m_ptr; }
-    ptrdiff_t stride () const { return m_stride; }
-    bool operator== (const T *p) const { return m_ptr == p; }
-    bool operator!= (const T *p) const { return m_ptr != p; }
+    // Assignment of a pointer sets the pointer and implies a stride of 1.
+    const strided_ptr& operator=(T* p) noexcept
+    {
+        m_ptr    = p;
+        m_stride = 1;
+        return *this;
+    }
 
-    const strided_ptr& operator++ () {   // prefix
+    constexpr T& operator*() const { return *m_ptr; }
+    constexpr T& operator[](ptrdiff_t pos) const { return get(pos); }
+    constexpr T* data() const { return m_ptr; }
+    constexpr ptrdiff_t stride() const { return m_stride; }
+
+    // Careful: == and != only compare the pointer
+    constexpr bool operator==(const T* p) const { return m_ptr == p; }
+    constexpr bool operator!=(const T* p) const { return m_ptr != p; }
+
+    // Increment and decrement moves the pointer to the next element
+    // one stride length away.
+    const strided_ptr& operator++()
+    {  // prefix
         m_ptr = getptr(1);
         return *this;
     }
-    strided_ptr operator++(int) {  // postfix
-        strided_ptr r;
+    const strided_ptr operator++(int)
+    {  // postfix
+        strided_ptr r(*this);
         ++(*this);
         return r;
     }
-    const strided_ptr& operator-- () {   // prefix
+    const strided_ptr& operator--()
+    {  // prefix
         m_ptr = getptr(-1);
         return *this;
     }
-    strided_ptr operator--(int) {  // postfix
-        strided_ptr r;
+    const strided_ptr operator--(int)
+    {  // postfix
+        strided_ptr r(*this);
         --(*this);
         return r;
     }
 
-    strided_ptr operator+ (int d) const {
-        return strided_ptr (getptr(d), m_stride);
+    // Addition and subtraction returns new strided pointers that are
+    // the given number of strides away.
+    constexpr strided_ptr operator+(ptrdiff_t d) const noexcept
+    {
+        return strided_ptr(getptr(d), m_stride);
     }
-    const strided_ptr& operator+= (int d) {
+    constexpr strided_ptr operator-(ptrdiff_t d) const noexcept
+    {
+        return strided_ptr(getptr(-d), m_stride);
+    }
+    const strided_ptr& operator+=(ptrdiff_t d) noexcept
+    {
         m_ptr = getptr(d);
         return *this;
     }
-    strided_ptr operator- (int d) const {
-        return strided_ptr (getptr(-d), m_stride);
-    }
-    const strided_ptr& operator-= (int d) {
+    const strided_ptr& operator-=(ptrdiff_t d)
+    {
         m_ptr = getptr(-d);
         return *this;
     }
 
 private:
-    T *        m_ptr;
-    ptrdiff_t  m_stride;
-    inline T* getptr (ptrdiff_t pos=0) const {
-        return (T*)((char *)m_ptr + pos*m_stride);
+    // The implementation of a strided_ptr is just the pointer and a stride.
+    // Note that when computing addressing, the stride is implicitly
+    // multiplied by the StrideUnits, which defaults to sizeof(T), but when
+    // StrideUnits==1 means that your stride value is measured in bytes.
+    T* m_ptr           = nullptr;
+    ptrdiff_t m_stride = 1;
+
+    // getptr is the real brains of the operation, computing the pointer
+    // for a given element, with strides taken into consideration.
+    constexpr inline T* getptr(ptrdiff_t pos = 0) const noexcept
+    {
+        return (T*)((char*)m_ptr + pos * m_stride * StrideUnits);
     }
-    inline T& get (ptrdiff_t pos=0) const {
+    constexpr inline T& get(ptrdiff_t pos = 0) const noexcept
+    {
         return *getptr(pos);
     }
 };
 
 
 
-} OIIO_NAMESPACE_EXIT
+OIIO_NAMESPACE_END
