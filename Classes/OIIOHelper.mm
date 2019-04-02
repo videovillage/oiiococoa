@@ -261,6 +261,8 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
+    
+    return true;
 }
 
 + (bool)RGBA16UBitmapFromURL:(NSURL *)url
@@ -285,6 +287,8 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         
         vImageOverwriteChannelsWithPixel_ARGB16U(fill, &src, &src, 0x1, kvImageNoFlags);
     }
+    
+    return true;
 }
 
 + (bool)RGBA8UBitmapFromURL:(NSURL *)url
