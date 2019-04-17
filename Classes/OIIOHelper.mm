@@ -496,7 +496,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     NSInteger bitdepth = dpxReader.header.BitDepth(0);
     NSInteger byteOffset = dpxReader.header.DataOffset(0);
     dpx::Packing packing = dpxReader.header.ImagePacking(0);
-    bool requiresByteSwap = dpxReader.header.RequiresByteSwap();
+    bool requiresByteSwap = !dpxReader.header.RequiresByteSwap();
     
     NSInteger width = dpxReader.header.Width();
     NSInteger height = dpxReader.header.Height();
@@ -530,7 +530,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     uint32_t *pixels = (uint32_t *)pixelData;
     uint32_t pixelOffset = 0;
     if(packing == dpx::kFilledMethodA){
-        if(!requiresByteSwap){
+        if(requiresByteSwap){
             for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
                 pixelOffset = y / 4;
                 for(NSInteger x = 0; x < width; x++){
@@ -540,10 +540,10 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         }
     }
     else if(packing == dpx::kFilledMethodB){
-        if(!requiresByteSwap){
+        if(requiresByteSwap){
             for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
                 pixelOffset = y / 4;
-                for(NSInteger x = 0; x < pixelCount; x++){
+                for(NSInteger x = 0; x < width; x++){
                     pixels[x + pixelOffset] = CFSwapInt32(rotr32(pixels[x + pixelOffset], 2));
                 }
             }
@@ -551,7 +551,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         else{
             for(NSInteger y = 0; y < height * bytesPerRow; y += bytesPerRow) {
                 pixelOffset = y / 4;
-                for(NSInteger x = 0; x < pixelCount; x++){
+                for(NSInteger x = 0; x < width; x++){
                     pixels[x + pixelOffset] = CFSwapInt32(rotr32(CFSwapInt32(pixels[x + pixelOffset]), 2));
                 }
             }
