@@ -276,7 +276,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
     
-    if(spec.nchannels == 3){
+    if(@available(macOS 10.14, *) && spec.nchannels == 3){
         vImage_Buffer src;
         src.height = spec.height;
         src.width = spec.width;
