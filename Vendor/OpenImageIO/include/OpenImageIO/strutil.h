@@ -45,11 +45,11 @@
 #include <string>
 #include <vector>
 
-#include <OpenImageIO/export.h>
-#include <OpenImageIO/hash.h>
-#include <OpenImageIO/oiioversion.h>
-#include <OpenImageIO/platform.h>
-#include <OpenImageIO/string_view.h>
+#include <export.h>
+#include <hash.h>
+#include <oiioversion.h>
+#include <platform.h>
+#include <string_view.h>
 
 // For now, let a prior set of OIIO_USE_FMT=0 cause us to fall back to
 // tinyformat.
@@ -87,7 +87,7 @@
 #ifndef TINYFORMAT_USE_VARIADIC_TEMPLATES
 #    define TINYFORMAT_USE_VARIADIC_TEMPLATES
 #endif
-#include <OpenImageIO/tinyformat.h>
+#include <tinyformat.h>
 
 #ifndef OPENIMAGEIO_PRINTF_ARGS
 #   ifndef __GNUC__

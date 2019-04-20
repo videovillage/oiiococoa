@@ -40,9 +40,9 @@
 
 #include <vector>
 
-#include <OpenImageIO/export.h>
-#include <OpenImageIO/typedesc.h>
-#include <OpenImageIO/ustring.h>
+#include <export.h>
+#include <typedesc.h>
+#include <ustring.h>
 
 
 OIIO_NAMESPACE_BEGIN

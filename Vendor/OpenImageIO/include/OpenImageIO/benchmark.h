@@ -34,10 +34,10 @@
 #include <iostream>
 #include <vector>
 
-#include <OpenImageIO/function_view.h>
-#include <OpenImageIO/string_view.h>
-#include <OpenImageIO/strutil.h>
-#include <OpenImageIO/timer.h>
+#include <function_view.h>
+#include <string_view.h>
+#include <strutil.h>
+#include <timer.h>
 
 
 OIIO_NAMESPACE_BEGIN

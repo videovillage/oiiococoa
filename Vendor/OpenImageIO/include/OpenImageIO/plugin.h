@@ -42,8 +42,8 @@
 
 #include <string>
 
-#include <OpenImageIO/export.h>
-#include <OpenImageIO/oiioversion.h>
+#include <export.h>
+#include <oiioversion.h>
 
 
 OIIO_NAMESPACE_BEGIN

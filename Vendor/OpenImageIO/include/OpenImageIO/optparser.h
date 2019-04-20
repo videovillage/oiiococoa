@@ -38,7 +38,7 @@
 
 #pragma once
 
-#include <OpenImageIO/strutil.h>
+#include <strutil.h>
 #include <string>
 
 OIIO_NAMESPACE_BEGIN

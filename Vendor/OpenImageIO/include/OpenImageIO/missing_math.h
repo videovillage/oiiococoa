@@ -40,7 +40,7 @@
 
 #include <cmath>
 
-#include <OpenImageIO/oiioversion.h>
+#include <oiioversion.h>
 
 
 #ifndef M_PI

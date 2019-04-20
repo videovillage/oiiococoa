@@ -50,14 +50,14 @@
 #include <string>
 #include <vector>
 
-#include <OpenImageIO/span.h>
-#include <OpenImageIO/export.h>
-#include <OpenImageIO/oiioversion.h>
-#include <OpenImageIO/string_view.h>
+#include <span.h>
+#include <export.h>
+#include <oiioversion.h>
+#include <string_view.h>
 
 #if defined(_WIN32) && defined(__GLIBCXX__)
 #    define OIIO_FILESYSTEM_USE_STDIO_FILEBUF 1
-#    include <OpenImageIO/fstream_mingw.h>
+#    include <fstream_mingw.h>
 #endif
 
 

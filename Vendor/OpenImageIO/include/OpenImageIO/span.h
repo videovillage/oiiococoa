@@ -15,9 +15,9 @@
 #include <type_traits>
 #include <vector>
 
-#include <OpenImageIO/dassert.h>
-#include <OpenImageIO/oiioversion.h>
-#include <OpenImageIO/platform.h>
+#include <dassert.h>
+#include <oiioversion.h>
+#include <platform.h>
 
 OIIO_NAMESPACE_BEGIN
 

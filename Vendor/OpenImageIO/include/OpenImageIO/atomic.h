@@ -37,8 +37,8 @@
 
 #pragma once
 
-#include <OpenImageIO/oiioversion.h>
-#include <OpenImageIO/platform.h>
+#include <oiioversion.h>
+#include <platform.h>
 
 #include <atomic>
 #define OIIO_USE_STDATOMIC 1

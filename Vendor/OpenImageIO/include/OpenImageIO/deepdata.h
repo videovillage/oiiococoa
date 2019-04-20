@@ -30,10 +30,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <OpenImageIO/export.h>
-#include <OpenImageIO/oiioversion.h>
-#include <OpenImageIO/span.h>
-#include <OpenImageIO/string_view.h>
+#include <export.h>
+#include <oiioversion.h>
+#include <span.h>
+#include <string_view.h>
 
 OIIO_NAMESPACE_BEGIN
 

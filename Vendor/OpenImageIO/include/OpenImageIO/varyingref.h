@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenImageIO/oiioversion.h>
+#include <oiioversion.h>
 
 OIIO_NAMESPACE_BEGIN
 

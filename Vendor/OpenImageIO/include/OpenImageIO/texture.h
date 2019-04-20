@@ -36,11 +36,11 @@
 
 #pragma once
 
-#include <OpenImageIO/imageio.h>
-#include <OpenImageIO/ustring.h>
-#include <OpenImageIO/varyingref.h>
+#include <imageio.h>
+#include <ustring.h>
+#include <varyingref.h>
 
-#include <OpenEXR/ImathVec.h> /* because we need V3f */
+#include <ImathVec.h> /* because we need V3f */
 
 
 // Define symbols that let client applications determine if newly added

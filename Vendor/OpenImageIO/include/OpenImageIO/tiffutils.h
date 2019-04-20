@@ -45,7 +45,7 @@ extern "C" {
 #include "tiff.h"
 }
 
-#include <OpenImageIO/imageio.h>
+#include <imageio.h>
 
 
 #ifdef TIFF_VERSION_BIG

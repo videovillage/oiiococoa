@@ -33,8 +33,8 @@
 
 #include <cstddef>
 
-#include <OpenImageIO/oiioversion.h>
-#include <OpenImageIO/platform.h>
+#include <oiioversion.h>
+#include <platform.h>
 
 
 OIIO_NAMESPACE_BEGIN

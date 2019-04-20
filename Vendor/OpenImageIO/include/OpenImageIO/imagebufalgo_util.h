@@ -34,8 +34,8 @@
 
 #include <functional>
 
-#include <OpenImageIO/parallel.h>
-#include <OpenImageIO/imagebufalgo.h>
+#include <parallel.h>
+#include <imagebufalgo.h>
 
 
 

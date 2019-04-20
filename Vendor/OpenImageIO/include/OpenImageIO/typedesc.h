@@ -48,10 +48,10 @@
 #include <iostream>
 #include <limits>
 
-#include <OpenImageIO/dassert.h>
-#include <OpenImageIO/export.h>
-#include <OpenImageIO/oiioversion.h>
-#include <OpenImageIO/string_view.h>
+#include <dassert.h>
+#include <export.h>
+#include <oiioversion.h>
+#include <string_view.h>
 
 
 OIIO_NAMESPACE_BEGIN

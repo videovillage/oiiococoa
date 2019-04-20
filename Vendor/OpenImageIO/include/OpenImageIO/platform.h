@@ -72,7 +72,7 @@
 #    include <intrin.h>
 #endif
 
-#include <OpenImageIO/oiioversion.h>
+#include <oiioversion.h>
 
 // Detect which C++ standard we're using, and handy macros.
 //

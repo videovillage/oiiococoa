@@ -37,8 +37,8 @@
 
 #pragma once
 
-#include <OpenImageIO/imageio.h>
-#include <OpenImageIO/ustring.h>
+#include <imageio.h>
+#include <ustring.h>
 
 
 // Define symbols that let client applications determine if newly added

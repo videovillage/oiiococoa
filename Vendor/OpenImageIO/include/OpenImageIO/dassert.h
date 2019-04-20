@@ -34,7 +34,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <OpenImageIO/platform.h>
+#include <platform.h>
 
 
 /// \file
