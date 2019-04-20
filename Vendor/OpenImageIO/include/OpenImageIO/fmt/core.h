@@ -1448,7 +1448,7 @@ inline std::basic_string<Char> vformat(
 
   **Example**::
 
-    #include <core.h>
+    #include <fmt/core.h>
     std::string message = fmt::format("The answer is {}", 42);
   \endrst
 */

@@ -59,12 +59,12 @@
 #include <limits>
 #include <typeinfo>
 
-#include <span.h>
-#include <dassert.h>
-#include <missing_math.h>
-#include <oiioversion.h>
-#include <platform.h>
-#include <simd.h>
+#include <OpenImageIO/span.h>
+#include <OpenImageIO/dassert.h>
+#include <OpenImageIO/missing_math.h>
+#include <OpenImageIO/oiioversion.h>
+#include <OpenImageIO/platform.h>
+#include <OpenImageIO/simd.h>
 
 
 OIIO_NAMESPACE_BEGIN

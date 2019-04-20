@@ -45,11 +45,11 @@
 #include <string>
 #include <vector>
 
-#include <export.h>
-#include <hash.h>
-#include <oiioversion.h>
-#include <platform.h>
-#include <string_view.h>
+#include <OpenImageIO/export.h>
+#include <OpenImageIO/hash.h>
+#include <OpenImageIO/oiioversion.h>
+#include <OpenImageIO/platform.h>
+#include <OpenImageIO/string_view.h>
 
 // For now, let a prior set of OIIO_USE_FMT=0 cause us to fall back to
 // tinyformat.
@@ -64,9 +64,9 @@
 #ifndef FMT_HEADER_ONLY
 #    define FMT_HEADER_ONLY
 #endif
-#include "ostream.h"
-#include "format.h"
-#include "printf.h"
+#include "fmt/ostream.h"
+#include "fmt/format.h"
+#include "fmt/printf.h"
 #if OIIO_GNUC_VERSION >= 70000
 #    pragma GCC diagnostic pop
 #endif
@@ -87,7 +87,7 @@
 #ifndef TINYFORMAT_USE_VARIADIC_TEMPLATES
 #    define TINYFORMAT_USE_VARIADIC_TEMPLATES
 #endif
-#include <tinyformat.h>
+#include <OpenImageIO/tinyformat.h>
 
 #ifndef OPENIMAGEIO_PRINTF_ARGS
 #   ifndef __GNUC__

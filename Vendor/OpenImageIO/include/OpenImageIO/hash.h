@@ -46,11 +46,11 @@
 #include <utility>
 #include <vector>
 
-#include <span.h>
-#include <export.h>
-#include <fmath.h>
-#include <oiioversion.h>
-#include <string_view.h>
+#include <OpenImageIO/span.h>
+#include <OpenImageIO/export.h>
+#include <OpenImageIO/fmath.h>
+#include <OpenImageIO/oiioversion.h>
+#include <OpenImageIO/string_view.h>
 
 
 

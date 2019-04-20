@@ -40,14 +40,14 @@
 #  pragma warning (disable : 4251)
 #endif
 
-#include <imageio.h>
-#include <imagebuf.h>
-#include <fmath.h>
-#include <color.h>
-#include <parallel.h>
-#include <span.h>
+#include <OpenImageIO/imageio.h>
+#include <OpenImageIO/imagebuf.h>
+#include <OpenImageIO/fmath.h>
+#include <OpenImageIO/color.h>
+#include <OpenImageIO/parallel.h>
+#include <OpenImageIO/span.h>
 
-#include <ImathMatrix.h>       /* because we need M33f */
+#include <OpenEXR/ImathMatrix.h>       /* because we need M33f */
 
 #include <limits>
 

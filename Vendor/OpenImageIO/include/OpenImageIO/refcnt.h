@@ -40,7 +40,7 @@
 
 #include <memory>
 
-#include <atomic.h>
+#include <OpenImageIO/atomic.h>
 
 
 OIIO_NAMESPACE_BEGIN

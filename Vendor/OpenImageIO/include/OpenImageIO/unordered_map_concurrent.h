@@ -31,9 +31,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <dassert.h>
-#include <hash.h>
-#include <thread.h>
+#include <OpenImageIO/dassert.h>
+#include <OpenImageIO/hash.h>
+#include <OpenImageIO/thread.h>
 
 OIIO_NAMESPACE_BEGIN
 

@@ -130,11 +130,11 @@
 #    pragma warning(disable : 4251 4996)
 #endif
 
-#include <dassert.h>
-#include <export.h>
-#include <oiioversion.h>
-#include <string_view.h>
-#include <strutil.h>
+#include <OpenImageIO/dassert.h>
+#include <OpenImageIO/export.h>
+#include <OpenImageIO/oiioversion.h>
+#include <OpenImageIO/string_view.h>
+#include <OpenImageIO/strutil.h>
 #include <cstring>
 #include <iostream>
 #include <string>

@@ -31,7 +31,7 @@
 
 #pragma once
 
-#include <span.h>
+#include <OpenImageIO/span.h>
 
 OIIO_NAMESPACE_BEGIN
 

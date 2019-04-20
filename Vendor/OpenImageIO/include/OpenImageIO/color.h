@@ -32,12 +32,12 @@
 
 #include <memory>
 
-#include <export.h>
-#include <fmath.h>
-#include <imageio.h>
-#include <oiioversion.h>
-#include <typedesc.h>
-#include <ustring.h>
+#include <OpenImageIO/export.h>
+#include <OpenImageIO/fmath.h>
+#include <OpenImageIO/imageio.h>
+#include <OpenImageIO/oiioversion.h>
+#include <OpenImageIO/typedesc.h>
+#include <OpenImageIO/ustring.h>
 
 
 OIIO_NAMESPACE_BEGIN

@@ -40,8 +40,8 @@
 #include <thread>
 #include <vector>
 
-#include <strutil.h>
-#include <thread.h>
+#include <OpenImageIO/strutil.h>
+#include <OpenImageIO/thread.h>
 
 
 OIIO_NAMESPACE_BEGIN

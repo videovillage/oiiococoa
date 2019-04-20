@@ -50,11 +50,11 @@
 #include <thread>
 #include <vector>
 
-#include <atomic.h>
-#include <dassert.h>
-#include <export.h>
-#include <oiioversion.h>
-#include <platform.h>
+#include <OpenImageIO/atomic.h>
+#include <OpenImageIO/dassert.h>
+#include <OpenImageIO/export.h>
+#include <OpenImageIO/oiioversion.h>
+#include <OpenImageIO/platform.h>
 
 
 

@@ -35,8 +35,8 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <strutil.h>
-#include <sysutil.h>
+#include <OpenImageIO/strutil.h>
+#include <OpenImageIO/sysutil.h>
 
 
 OIIO_NAMESPACE_BEGIN

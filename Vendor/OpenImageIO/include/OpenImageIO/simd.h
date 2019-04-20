@@ -49,11 +49,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <dassert.h>
-#include <missing_math.h>
-#include <platform.h>
-#include <ImathVec.h>
-#include <ImathMatrix.h>
+#include <OpenImageIO/dassert.h>
+#include <OpenImageIO/missing_math.h>
+#include <OpenImageIO/platform.h>
+#include <OpenEXR/ImathVec.h>
+#include <OpenEXR/ImathMatrix.h>
 #include <algorithm>
 #include <cstring>
 
