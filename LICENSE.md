@@ -24,34 +24,16 @@ SOFTWARE.
 
 # OpenImageIO
 
-OpenImageIO and all code, documentation, and other materials contained
-therein are:
+OpenImageIO and all code, documentation, and other materials contained therein are:
 
-Copyright 2008-2014 Larry Gritz et al. All Rights Reserved.
+Copyright 2008-2018 Larry Gritz et al. All Rights Reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-* Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-* Neither the name of the software's owners nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-  
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+Neither the name of the software's owners nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (This is the Modified BSD License)
 
@@ -194,116 +176,36 @@ We are required to state that
 
 # libpng
 
-This copy of the libpng notices is provided for your convenience.  In case of
-any discrepancy between this copy and the notices in the file png.h that is
-included in the libpng distribution, the latter shall prevail.
+* Copyright (c) 1995-2019 The PNG Reference Library Authors.
+* Copyright (c) 2018-2019 Cosmin Truta.
+* Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.
+* Copyright (c) 1996-1997 Andreas Dilger.
+* Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
 
-COPYRIGHT NOTICE, DISCLAIMER, and LICENSE:
+The software is supplied "as is", without warranty of any kind,
+express or implied, including, without limitation, the warranties
+of merchantability, fitness for a particular purpose, title, and
+non-infringement.  In no event shall the Copyright owners, or
+anyone distributing the software, be liable for any damages or
+other liability, whether in contract, tort or otherwise, arising
+from, out of, or in connection with the software, or the use or
+other dealings in the software, even if advised of the possibility
+of such damage.
 
-If you modify libpng you may insert additional notices immediately following
-this sentence.
+Permission is hereby granted to use, copy, modify, and distribute
+this software, or portions hereof, for any purpose, without fee,
+subject to the following restrictions:
 
-This code is released under the libpng license.
+1. The origin of this software must not be misrepresented; you
+must not claim that you wrote the original software.  If you
+use this software in a product, an acknowledgment in the product
+documentation would be appreciated, but is not required.
 
-libpng versions 1.2.6, August 15, 2004, through 1.5.18, February 6, 2014, are
-Copyright (c) 2004, 2006-2014 Glenn Randers-Pehrson, and are
-distributed according to the same disclaimer and license as libpng-1.2.5
-with the following individual added to the list of Contributing Authors
-
-   Cosmin Truta
-
-libpng versions 1.0.7, July 1, 2000, through 1.2.5 - October 3, 2002, are
-Copyright (c) 2000-2002 Glenn Randers-Pehrson, and are
-distributed according to the same disclaimer and license as libpng-1.0.6
-with the following individuals added to the list of Contributing Authors
-
-   Simon-Pierre Cadieux
-   Eric S. Raymond
-   Gilles Vollant
-
-and with the following additions to the disclaimer:
-
-   There is no warranty against interference with your enjoyment of the
-   library or against infringement.  There is no warranty that our
-   efforts or the library will fulfill any of your particular purposes
-   or needs.  This library is provided with all faults, and the entire
-   risk of satisfactory quality, performance, accuracy, and effort is with
-   the user.
-
-libpng versions 0.97, January 1998, through 1.0.6, March 20, 2000, are
-Copyright (c) 1998, 1999 Glenn Randers-Pehrson, and are
-distributed according to the same disclaimer and license as libpng-0.96,
-with the following individuals added to the list of Contributing Authors:
-
-   Tom Lane
-   Glenn Randers-Pehrson
-   Willem van Schaik
-
-libpng versions 0.89, June 1996, through 0.96, May 1997, are
-Copyright (c) 1996, 1997 Andreas Dilger
-Distributed according to the same disclaimer and license as libpng-0.88,
-with the following individuals added to the list of Contributing Authors:
-
-   John Bowler
-   Kevin Bracey
-   Sam Bushell
-   Magnus Holmgren
-   Greg Roelofs
-   Tom Tanner
-
-libpng versions 0.5, May 1995, through 0.88, January 1996, are
-Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.
-
-For the purposes of this copyright and license, "Contributing Authors"
-is defined as the following set of individuals:
-
-   Andreas Dilger
-   Dave Martindale
-   Guy Eric Schalnat
-   Paul Schmidt
-   Tim Wegner
-
-The PNG Reference Library is supplied "AS IS".  The Contributing Authors
-and Group 42, Inc. disclaim all warranties, expressed or implied,
-including, without limitation, the warranties of merchantability and of
-fitness for any purpose.  The Contributing Authors and Group 42, Inc.
-assume no liability for direct, indirect, incidental, special, exemplary,
-or consequential damages, which may result from the use of the PNG
-Reference Library, even if advised of the possibility of such damage.
-
-Permission is hereby granted to use, copy, modify, and distribute this
-source code, or portions hereof, for any purpose, without fee, subject
-to the following restrictions:
-
-1. The origin of this source code must not be misrepresented.
-
-2. Altered versions must be plainly marked as such and must not
-   be misrepresented as being the original source.
+2. Altered source versions must be plainly marked as such, and must
+not be misrepresented as being the original software.
 
 3. This Copyright notice may not be removed or altered from any
-   source or altered source distribution.
-
-The Contributing Authors and Group 42, Inc. specifically permit, without
-fee, and encourage the use of this source code as a component to
-supporting the PNG file format in commercial products.  If you use this
-source code in a product, acknowledgment is not required but would be
-appreciated.
-
-
-A "png_get_copyright" function is available, for convenient use in "about"
-boxes and the like:
-
-   printf("%s",png_get_copyright(NULL));
-
-Also, the PNG logo (in PNG format, of course) is supplied in the
-files "pngbar.png" and "pngbar.jpg (88x31) and "pngnow.png" (98x31).
-
-Libpng is OSI Certified Open Source Software.  OSI Certified Open Source is a
-certification mark of the Open Source Initiative.
-
-Glenn Randers-Pehrson
-glennrp at users.sourceforge.net
-February 6, 2014
+source or altered source distribution.
 
 # libtiff
 
@@ -364,68 +266,3 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-# XZ Utils (liblzma)
-
-Different licenses apply to different files in this package. Here
-is a rough summary of which licenses apply to which parts of this
-package (but check the individual files to be sure!):
-
-  - liblzma is in the public domain.
-
-  - xz, xzdec, and lzmadec command line tools are in the public
-    domain unless GNU getopt_long had to be compiled and linked
-    in from the lib directory. The getopt_long code is under
-    GNU LGPLv2.1+.
-
-  - The scripts to grep, diff, and view compressed files have been
-    adapted from gzip. These scripts and their documentation are
-    under GNU GPLv2+.
-
-  - All the documentation in the doc directory and most of the
-    XZ Utils specific documentation files in other directories
-    are in the public domain.
-
-  - Translated messages are in the public domain.
-
-  - The build system contains public domain files, and files that
-    are under GNU GPLv2+ or GNU GPLv3+. None of these files end up
-    in the binaries being built.
-
-  - Test files and test code in the tests directory, and debugging
-    utilities in the debug directory are in the public domain.
-
-  - The extra directory may contain public domain files, and files
-    that are under various free software licenses.
-
-You can do whatever you want with the files that have been put into
-the public domain. If you find public domain legally problematic,
-take the previous sentence as a license grant. If you still find
-the lack of copyright legally problematic, you have too many
-lawyers.
-
-As usual, this software is provided "as is", without any warranty.
-
-If you copy significant amounts of public domain code from XZ Utils
-into your project, acknowledging this somewhere in your software is
-polite (especially if it is proprietary, non-free software), but
-naturally it is not legally required. Here is an example of a good
-notice to put into "about box" or into documentation:
-
-    This software includes code from XZ Utils <http://tukaani.org/xz/>.
-
-The following license texts are included in the following files:
-
-  - COPYING.LGPLv2.1: GNU Lesser General Public License version 2.1
-  - COPYING.GPLv2: GNU General Public License version 2
-  - COPYING.GPLv3: GNU General Public License version 3
-
-Note that the toolchain (compiler, linker etc.) may add some code
-pieces that are copyrighted. Thus, it is possible that e.g. liblzma
-binary wouldn't actually be in the public domain in its entirety
-even though it contains no copyrighted code from the XZ Utils source
-package.
-
-If you have questions, don't hesitate to ask the author(s) for more
-information.
-
