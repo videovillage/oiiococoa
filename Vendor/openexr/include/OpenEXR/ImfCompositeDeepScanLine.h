@@ -66,22 +66,18 @@
 
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
-class CompositeDeepScanLine
+class IMF_EXPORT CompositeDeepScanLine
 {
     public:
-        IMF_EXPORT
         CompositeDeepScanLine();
-        IMF_EXPORT
-        virtual ~CompositeDeepScanLine();
+       virtual ~CompositeDeepScanLine();
         
         /// set the source data as a part
         ///@note all parts must remain valid until after last interaction with DeepComp
-        IMF_EXPORT
         void addSource(DeepScanLineInputPart * part);
         
         /// set the source data as a file
         ///@note all file must remain valid until after last interaction with DeepComp
-        IMF_EXPORT
         void addSource(DeepScanLineInputFile * file);
         
         
@@ -92,7 +88,6 @@ class CompositeDeepScanLine
         // to handle the dataWindow() 
         //
         /////////////////////////////////////////
-        IMF_EXPORT
         void setFrameBuffer(const FrameBuffer & fr);
         
         
@@ -102,7 +97,6 @@ class CompositeDeepScanLine
         // retrieve frameBuffer
         //
         ////////////////////////////////////////
-        IMF_EXPORT
         const FrameBuffer & frameBuffer() const;
         
         
@@ -113,10 +107,8 @@ class CompositeDeepScanLine
         //
         //////////////////////////////////////////////////
         
-        IMF_EXPORT
         void readPixels(int start,int end);
         
-        IMF_EXPORT
         int sources() const; // return number of sources
         
         /////////////////////////////////////////////////
@@ -127,7 +119,6 @@ class CompositeDeepScanLine
         //
         ////////////////////////////////////////////////
         
-        IMF_EXPORT
         const IMATH_NAMESPACE::Box2i & dataWindow() const;
         
  
@@ -136,7 +127,6 @@ class CompositeDeepScanLine
         // (otherwise an instance of the base class will be used)
         //
         
-        IMF_EXPORT
         void setCompositing(DeepCompositing *);
         
       struct Data; 

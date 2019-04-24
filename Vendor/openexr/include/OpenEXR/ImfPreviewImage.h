@@ -52,7 +52,7 @@
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
 
-struct PreviewRgba
+struct IMF_EXPORT PreviewRgba
 {
     unsigned char	r;	// Red, green and blue components of
     unsigned char	g;	// the pixel's color; intensity is
@@ -70,7 +70,7 @@ struct PreviewRgba
 };
 
 
-class PreviewImage
+class IMF_EXPORT PreviewImage
 {
   public:
 
@@ -87,7 +87,6 @@ class PreviewImage
     //
     //--------------------------------------------------------------------
    
-    IMF_EXPORT
      PreviewImage (unsigned int width = 0,
 		   unsigned int height = 0,
 		   const PreviewRgba pixels[] = 0);
@@ -96,12 +95,9 @@ class PreviewImage
     // Copy constructor, destructor and assignment operator
     //-----------------------------------------------------
 
-    IMF_EXPORT
      PreviewImage (const PreviewImage &other);
-    IMF_EXPORT
     ~PreviewImage ();
 
-    IMF_EXPORT
     PreviewImage &	operator = (const PreviewImage &other);
 
 
@@ -109,14 +105,10 @@ class PreviewImage
     // Access to width, height and to the pixel array
     //-----------------------------------------------
 
-    IMF_EXPORT
     unsigned int	width () const	{return _width;}
-    IMF_EXPORT
     unsigned int	height () const	{return _height;}
 
-    IMF_EXPORT
     PreviewRgba *	pixels ()	{return _pixels;}
-    IMF_EXPORT
     const PreviewRgba *	pixels () const	{return _pixels;}
 
 
@@ -124,11 +116,9 @@ class PreviewImage
     // Access to individual pixels
     //----------------------------
 
-    IMF_EXPORT
     PreviewRgba &	pixel (unsigned int x, unsigned int y)
     					{return _pixels[y * _width + x];}
 
-    IMF_EXPORT
     const PreviewRgba &	pixel (unsigned int x, unsigned int y) const
     					{return _pixels[y * _width + x];}
 

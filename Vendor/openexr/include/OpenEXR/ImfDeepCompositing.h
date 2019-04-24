@@ -50,12 +50,10 @@
 
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
-class DeepCompositing
+class IMF_EXPORT DeepCompositing
 {
     public:
-        IMF_EXPORT
         DeepCompositing();
-        IMF_EXPORT
         virtual ~DeepCompositing();
         
         
@@ -92,7 +90,6 @@ class DeepCompositing
         ///
         ///
         //////////////////////////////////////////////
-        IMF_EXPORT
         virtual void composite_pixel(float outputs[],
                                      const float * inputs[],
                                      const char * channel_names[],
@@ -122,7 +119,6 @@ class DeepCompositing
        ///
        ///////////////////////////////////////////////////////////////
                                      
-       IMF_EXPORT
        virtual void sort(int order[],
                          const float * inputs[],
                          const char * channel_names[],

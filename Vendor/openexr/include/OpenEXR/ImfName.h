@@ -46,7 +46,6 @@
 
 #include <string.h>
 #include "ImfNamespace.h"
-#include "ImfExport.h"
 
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
@@ -59,9 +58,7 @@ class Name
     // Constructors
     //-------------
 
-    IMF_EXPORT
     Name ();
-    IMF_EXPORT
     Name (const char text[]);
 
 
@@ -69,7 +66,6 @@ class Name
     // Assignment operator
     //--------------------
 
-    IMF_EXPORT
     Name &		operator = (const char text[]);
 
 
@@ -77,9 +73,7 @@ class Name
     // Access to the string
     //---------------------
 
-    IMF_EXPORT
     const char *	text () const		{return _text;}
-    IMF_EXPORT
     const char *	operator * () const	{return _text;}
 
     //---------------
@@ -95,11 +89,8 @@ class Name
 };
 
 
-IMF_EXPORT
 bool operator == (const Name &x, const Name &y);
-IMF_EXPORT
 bool operator != (const Name &x, const Name &y);
-IMF_EXPORT
 bool operator < (const Name &x, const Name &y);
 
 

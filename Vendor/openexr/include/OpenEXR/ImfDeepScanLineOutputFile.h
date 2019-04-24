@@ -56,7 +56,7 @@ OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
 struct PreviewRgba;
 
-class DeepScanLineOutputFile : public GenericOutputFile
+class IMF_EXPORT DeepScanLineOutputFile : public GenericOutputFile
 {
   public:
 
@@ -71,7 +71,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // used to write the file (see ImfThreading.h).
     //-----------------------------------------------------------
 
-    IMF_EXPORT
     DeepScanLineOutputFile (const char fileName[], const Header &header,
                 int numThreads = globalThreadCount());
 
@@ -88,7 +87,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // used to write the file (see ImfThreading.h).
     //------------------------------------------------------------
 
-    IMF_EXPORT
     DeepScanLineOutputFile (OPENEXR_IMF_INTERNAL_NAMESPACE::OStream &os, const Header &header,
                 int numThreads = globalThreadCount());
 
@@ -101,7 +99,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // window results in an incomplete file.
     //-------------------------------------------------
 
-    IMF_EXPORT
     virtual ~DeepScanLineOutputFile ();
 
 
@@ -109,7 +106,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // Access to the file name
     //------------------------
 
-    IMF_EXPORT
     const char *        fileName () const;
 
 
@@ -117,7 +113,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // Access to the file header
     //--------------------------
 
-    IMF_EXPORT
     const Header &      header () const;
 
 
@@ -132,7 +127,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // after each call to writePixels.
     //-------------------------------------------------------
 
-    IMF_EXPORT
     void                setFrameBuffer (const DeepFrameBuffer &frameBuffer);
 
 
@@ -140,7 +134,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // Access to the current frame buffer
     //-----------------------------------
 
-    IMF_EXPORT
     const DeepFrameBuffer & frameBuffer () const;
 
 
@@ -157,7 +150,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // header().dataWindow().max.y - header().dataWindow().min.y + 1.
     //-------------------------------------------------------------------
 
-    IMF_EXPORT
     void                writePixels (int numScanLines = 1);
 
 
@@ -182,7 +174,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     //
     //------------------------------------------------------------------
 
-    IMF_EXPORT
     int                 currentScanLine () const;
 
 
@@ -194,13 +185,11 @@ class DeepScanLineOutputFile : public GenericOutputFile
     // "lineOrder" and "channels" attributes must be the same.
     //--------------------------------------------------------------
 
-    IMF_EXPORT
     void                copyPixels (DeepScanLineInputFile &in);
     
     // --------------------------------------------------------------
     // Shortcut to copy pixels from a given part of a multipart file
     // --------------------------------------------------------------
-    IMF_EXPORT
     void                copyPixels (DeepScanLineInputPart &in);
 
 
@@ -222,7 +211,6 @@ class DeepScanLineOutputFile : public GenericOutputFile
     //
     //--------------------------------------------------------------
 
-    IMF_EXPORT
     void                updatePreviewImage (const PreviewRgba newPixels[]);
 
 

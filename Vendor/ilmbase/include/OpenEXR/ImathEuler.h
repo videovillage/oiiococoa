@@ -848,11 +848,10 @@ template <class T>
 float
 Euler<T>::angleMod (T angle)
 {
-    const T pi = static_cast<T>(M_PI);
-    angle = fmod(T (angle), T (2 * pi));
+    angle = fmod(T (angle), T (2 * M_PI));
 
-    if (angle < -pi)	angle += 2 * pi;
-    if (angle > +pi)	angle -= 2 * pi;
+    if (angle < -M_PI)	angle += 2 * M_PI;
+    if (angle > +M_PI)	angle -= 2 * M_PI;
 
     return angle;
 }

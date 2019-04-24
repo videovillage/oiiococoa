@@ -54,7 +54,7 @@
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
 
-class OutputFile : public GenericOutputFile
+class IMF_EXPORT OutputFile : public GenericOutputFile
 {
   public:
 
@@ -69,7 +69,6 @@ class OutputFile : public GenericOutputFile
     // used to write the file (see ImfThreading.h).
     //-----------------------------------------------------------
 
-    IMF_EXPORT
     OutputFile (const char fileName[], const Header &header,
                 int numThreads = globalThreadCount());
 
@@ -86,7 +85,6 @@ class OutputFile : public GenericOutputFile
     // used to write the file (see ImfThreading.h).
     //------------------------------------------------------------
 
-    IMF_EXPORT
     OutputFile (OPENEXR_IMF_INTERNAL_NAMESPACE::OStream &os, const Header &header,
                 int numThreads = globalThreadCount());
 
@@ -99,7 +97,6 @@ class OutputFile : public GenericOutputFile
     // an incomplete file.
     //-------------------------------------------------
 
-    IMF_EXPORT
     virtual ~OutputFile ();
 
 
@@ -107,7 +104,6 @@ class OutputFile : public GenericOutputFile
     // Access to the file name
     //------------------------
 
-    IMF_EXPORT
     const char *	fileName () const;
 
 
@@ -115,7 +111,6 @@ class OutputFile : public GenericOutputFile
     // Access to the file header
     //--------------------------
 
-    IMF_EXPORT
     const Header &	header () const;
 
 
@@ -130,7 +125,6 @@ class OutputFile : public GenericOutputFile
     // after each call to writePixels.
     //-------------------------------------------------------
 
-    IMF_EXPORT
     void		setFrameBuffer (const FrameBuffer &frameBuffer);
 
 
@@ -138,7 +132,6 @@ class OutputFile : public GenericOutputFile
     // Access to the current frame buffer
     //-----------------------------------
 
-    IMF_EXPORT
     const FrameBuffer &	frameBuffer () const;
 
 
@@ -155,7 +148,6 @@ class OutputFile : public GenericOutputFile
     // header().dataWindow().max.y - header().dataWindow().min.y + 1.
     //-------------------------------------------------------------------
 
-    IMF_EXPORT
     void		writePixels (int numScanLines = 1);
 
 
@@ -180,7 +172,6 @@ class OutputFile : public GenericOutputFile
     //
     //------------------------------------------------------------------
 
-    IMF_EXPORT
     int			currentScanLine () const;
 
 
@@ -192,7 +183,6 @@ class OutputFile : public GenericOutputFile
     // "lineOrder" and "channels" attributes must be the same.
     //--------------------------------------------------------------
 
-    IMF_EXPORT
     void		copyPixels (InputFile &in);
     
     //-------------------------------------------------------------
@@ -200,7 +190,6 @@ class OutputFile : public GenericOutputFile
     // - equivalent to copyPixel(InputFile &in) but for multipart files
     //---------------------------------------------------------------
     
-    IMF_EXPORT
     void                copyPixels (InputPart &in);
         
 
@@ -223,7 +212,6 @@ class OutputFile : public GenericOutputFile
     //
     //--------------------------------------------------------------
 
-    IMF_EXPORT
     void		updatePreviewImage (const PreviewRgba newPixels[]);
 
 
@@ -241,7 +229,6 @@ class OutputFile : public GenericOutputFile
     //
     //---------------------------------------------------------
 
-    IMF_EXPORT
     void		breakScanLine  (int y, int offset, int length, char c);
 
 

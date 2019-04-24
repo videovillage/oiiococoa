@@ -55,7 +55,7 @@ OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 // class IStream -- an abstract base class for input streams.
 //-----------------------------------------------------------
 
-class IStream
+class IMF_EXPORT IStream
 {
   public:
 
@@ -63,7 +63,6 @@ class IStream
     // Destructor
     //-----------
 
-    IMF_EXPORT
     virtual ~IStream ();
     
     
@@ -76,7 +75,6 @@ class IStream
     // into a buffer supplied by the caller.
     //-------------------------------------------------
 
-    IMF_EXPORT
     virtual bool        isMemoryMapped () const;
 
 
@@ -104,7 +102,6 @@ class IStream
     // mapped, readMemoryMapped(n) throws an exception.  
     //---------------------------------------------------
 
-    IMF_EXPORT
     virtual char *	readMemoryMapped (int n);
 
 
@@ -129,7 +126,6 @@ class IStream
     // Clear error conditions after an operation has failed.
     //------------------------------------------------------
 
-    IMF_EXPORT
     virtual void	clear ();
 
 
@@ -137,12 +133,10 @@ class IStream
     // Get the name of the file associated with this stream.
     //------------------------------------------------------
 
-    IMF_EXPORT
     const char *	fileName () const;
 
   protected:
 
-    IMF_EXPORT
     IStream (const char fileName[]);
 
   private:
@@ -158,7 +152,7 @@ class IStream
 // class OStream -- an abstract base class for output streams
 //-----------------------------------------------------------
 
-class OStream
+class IMF_EXPORT OStream
 {
   public:
 
@@ -166,7 +160,6 @@ class OStream
     // Destructor
     //-----------
 
-    IMF_EXPORT
     virtual ~OStream ();
   
 
@@ -203,12 +196,10 @@ class OStream
     // Get the name of the file associated with this stream.
     //------------------------------------------------------
 
-    IMF_EXPORT
     const char *	fileName () const;
 
   protected:
 
-    IMF_EXPORT
     OStream (const char fileName[]);
 
   private:

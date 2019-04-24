@@ -52,7 +52,7 @@
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
    
-struct Chromaticities
+struct IMF_EXPORT Chromaticities
 {
     //-----------------------------------------------
     // The CIE x and y coordinates of the RGB triples
@@ -69,7 +69,6 @@ struct Chromaticities
     // according to Rec. ITU-R BT.709-3
     //--------------------------------------------
 
-    IMF_EXPORT
     Chromaticities (const IMATH_NAMESPACE::V2f &red   = IMATH_NAMESPACE::V2f (0.6400f, 0.3300f),
 		    const IMATH_NAMESPACE::V2f &green = IMATH_NAMESPACE::V2f (0.3000f, 0.6000f),
 		    const IMATH_NAMESPACE::V2f &blue  = IMATH_NAMESPACE::V2f (0.1500f, 0.0600f),
@@ -80,9 +79,7 @@ struct Chromaticities
     // Equality
     //---------
     
-    IMF_EXPORT
     bool		operator == (const Chromaticities &v) const;    
-    IMF_EXPORT
     bool		operator != (const Chromaticities &v) const;
 };
 

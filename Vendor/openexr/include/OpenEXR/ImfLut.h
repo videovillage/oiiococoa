@@ -58,7 +58,7 @@ OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 // Lookup table for individual half channels.
 //
 
-class HalfLut
+class IMF_EXPORT HalfLut
 {
   public:
 
@@ -74,7 +74,6 @@ class HalfLut
     // Apply the table to data[0], data[stride] ... data[(nData-1) * stride]
     //----------------------------------------------------------------------
 
-    IMF_EXPORT
     void apply (half *data,
 		int nData,
 		int stride = 1) const;
@@ -84,7 +83,6 @@ class HalfLut
     // Apply the table to a frame buffer slice (see ImfFrameBuffer.h)
     //---------------------------------------------------------------
 
-    IMF_EXPORT
     void apply (const Slice &data,
 		const IMATH_NAMESPACE::Box2i &dataWindow) const;
 
@@ -98,7 +96,7 @@ class HalfLut
 // Lookup table for combined RGBA data.
 //
 
-class RgbaLut
+class IMF_EXPORT RgbaLut
 {
   public:
 
@@ -114,7 +112,6 @@ class RgbaLut
     // Apply the table to data[0], data[stride] ... data[(nData-1) * stride]
     //----------------------------------------------------------------------
 
-    IMF_EXPORT
     void apply (Rgba *data,
 		int nData,
 		int stride = 1) const;
@@ -124,7 +121,6 @@ class RgbaLut
     // Apply the table to a frame buffer (see RgbaOutpuFile.setFrameBuffer())
     //-----------------------------------------------------------------------
 
-    IMF_EXPORT
     void apply (Rgba *base,
 		int xStride,
 		int yStride,

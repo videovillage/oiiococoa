@@ -56,7 +56,7 @@
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
 
-class Rational
+class IMF_EXPORT Rational
 {
   public:
 
@@ -82,7 +82,6 @@ class Rational
     // Constructor, approximates x
     //----------------------------
 
-    IMF_EXPORT
     explicit Rational (double x);
 
 

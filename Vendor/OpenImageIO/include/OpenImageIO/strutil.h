@@ -64,9 +64,9 @@
 #ifndef FMT_HEADER_ONLY
 #    define FMT_HEADER_ONLY
 #endif
-#include "fmt/ostream.h"
-#include "fmt/format.h"
-#include "fmt/printf.h"
+#include "ostream.h"
+#include "format.h"
+#include "printf.h"
 #if OIIO_GNUC_VERSION >= 70000
 #    pragma GCC diagnostic pop
 #endif

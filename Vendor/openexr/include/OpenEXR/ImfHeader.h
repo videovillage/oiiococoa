@@ -66,7 +66,7 @@ OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 using std::string;
 
 
-class Header
+class IMF_EXPORT Header
 {
   public:
     
@@ -75,7 +75,6 @@ class Header
     // are both set to Box2i (V2i (0, 0), V2i (width-1, height-1).
     //----------------------------------------------------------------
 
-    IMF_EXPORT
     Header (int width = 64,
 	    int height = 64,
 	    float pixelAspectRatio = 1,
@@ -90,7 +89,6 @@ class Header
     // window is set to Box2i (V2i (0, 0), V2i (width-1, height-1).
     //--------------------------------------------------------------------
 
-    IMF_EXPORT
     Header (int width,
 	    int height,
 	    const IMATH_NAMESPACE::Box2i &dataWindow,
@@ -106,7 +104,6 @@ class Header
     // both specified explicitly.
     //----------------------------------------------------------
 
-    IMF_EXPORT
     Header (const IMATH_NAMESPACE::Box2i &displayWindow,
 	    const IMATH_NAMESPACE::Box2i &dataWindow,
 	    float pixelAspectRatio = 1,
@@ -120,7 +117,6 @@ class Header
     // Copy constructor
     //-----------------
 
-    IMF_EXPORT
     Header (const Header &other);
 
 
@@ -128,7 +124,6 @@ class Header
     // Destructor
     //-----------
 
-    IMF_EXPORT
     ~Header ();
 
 
@@ -136,7 +131,6 @@ class Header
     // Assignment
     //-----------
 
-    IMF_EXPORT
     Header &			operator = (const Header &other);
 
 
@@ -158,11 +152,9 @@ class Header
     //
     //---------------------------------------------------------------
 
-    IMF_EXPORT
     void			insert (const char name[],
 				        const Attribute &attribute);
 
-    IMF_EXPORT
     void			insert (const std::string &name,
 				        const Attribute &attribute);
 
@@ -176,10 +168,7 @@ class Header
     //                 functions becomes a 'no-op'
     //
     //---------------------------------------------------------------
-
-    IMF_EXPORT
     void                        erase (const char name[]);
-    IMF_EXPORT
     void                        erase (const std::string &name);
 
     
@@ -204,14 +193,10 @@ class Header
     //
     //------------------------------------------------------------------
 
-    IMF_EXPORT
     Attribute &			operator [] (const char name[]);
-    IMF_EXPORT
     const Attribute &		operator [] (const char name[]) const;
 
-    IMF_EXPORT
     Attribute &			operator [] (const std::string &name);
-    IMF_EXPORT
     const Attribute &		operator [] (const std::string &name) const;
 
     template <class T> T&	typedAttribute (const char name[]);
@@ -236,24 +221,16 @@ class Header
     class Iterator;
     class ConstIterator;
 
-    IMF_EXPORT
     Iterator			begin ();
-    IMF_EXPORT
     ConstIterator		begin () const;
 
-    IMF_EXPORT
     Iterator			end ();
-    IMF_EXPORT
     ConstIterator		end () const;
 
-    IMF_EXPORT
     Iterator			find (const char name[]);
-    IMF_EXPORT
     ConstIterator		find (const char name[]) const;
 
-    IMF_EXPORT
     Iterator			find (const std::string &name);
-    IMF_EXPORT
     ConstIterator		find (const std::string &name) const;
 
 
@@ -261,44 +238,28 @@ class Header
     // Access to predefined attributes
     //--------------------------------
 
-    IMF_EXPORT
     IMATH_NAMESPACE::Box2i &		displayWindow ();
-    IMF_EXPORT
     const IMATH_NAMESPACE::Box2i &	displayWindow () const;
 
-    IMF_EXPORT
     IMATH_NAMESPACE::Box2i &		dataWindow ();
-    IMF_EXPORT
     const IMATH_NAMESPACE::Box2i &	dataWindow () const;
 
-    IMF_EXPORT
     float &			pixelAspectRatio ();
-    IMF_EXPORT
     const float &		pixelAspectRatio () const;
 
-    IMF_EXPORT
     IMATH_NAMESPACE::V2f &		screenWindowCenter ();
-    IMF_EXPORT
     const IMATH_NAMESPACE::V2f &		screenWindowCenter () const;
 
-    IMF_EXPORT
     float &			screenWindowWidth ();
-    IMF_EXPORT
     const float &		screenWindowWidth () const;
 
-    IMF_EXPORT
     ChannelList &		channels ();
-    IMF_EXPORT
     const ChannelList &		channels () const;
 
-    IMF_EXPORT
     LineOrder &			lineOrder ();
-    IMF_EXPORT
     const LineOrder &		lineOrder () const;
 
-    IMF_EXPORT
     Compression &		compression ();
-    IMF_EXPORT
     const Compression &		compression () const;
 
 
@@ -307,50 +268,34 @@ class Header
     // They are optional to non-multipart files and mandatory
     // for multipart files.
     //-----------------------------------------------------
-    IMF_EXPORT
     void                        setName (const string& name);
 
-    IMF_EXPORT
     string&                     name();
-    IMF_EXPORT
     const string&               name() const;
 
-    IMF_EXPORT
     bool                        hasName() const;
 
-    IMF_EXPORT
     void                        setType (const string& Type);
 
-    IMF_EXPORT
     string&                     type();
-    IMF_EXPORT
     const string&               type() const;
 
-    IMF_EXPORT
     bool                        hasType() const;
 
-    IMF_EXPORT
     void                        setVersion (const int version);
 
-    IMF_EXPORT
     int&                        version();
-    IMF_EXPORT
     const int&                  version() const;
 
-    IMF_EXPORT
     bool                        hasVersion() const;
 
     //
     // the chunkCount attribute is set automatically when a file is written.
     // There is no need to set it manually
     //
-    IMF_EXPORT
     void                        setChunkCount(int chunks);
-    IMF_EXPORT
     bool                        hasChunkCount() const;
-    IMF_EXPORT
     const int &                 chunkCount() const;
-    IMF_EXPORT
     int &                       chunkCount();
 
     
@@ -358,13 +303,9 @@ class Header
     // for multipart files, return whether the file has a view string attribute
     // (for the deprecated single part multiview format EXR, see ImfMultiView.h)
     //
-    IMF_EXPORT
     void                       setView(const string & view);
-    IMF_EXPORT
     bool                       hasView() const;
-    IMF_EXPORT
     string &                   view();
-    IMF_EXPORT
     const string &             view() const;
     
 
@@ -389,15 +330,11 @@ class Header
     //
     //----------------------------------------------------------------------
 
-    IMF_EXPORT
     void			setTileDescription (const TileDescription & td);
 
-    IMF_EXPORT
     TileDescription &		tileDescription ();
-    IMF_EXPORT
     const TileDescription &	tileDescription () const;
 
-    IMF_EXPORT
     bool			hasTileDescription() const;
 
 
@@ -422,15 +359,11 @@ class Header
     //
     //----------------------------------------------------------------------
 
-    IMF_EXPORT
     void			setPreviewImage (const PreviewImage &p);
 
-    IMF_EXPORT
     PreviewImage &		previewImage ();
-    IMF_EXPORT
     const PreviewImage &	previewImage () const;
 
-    IMF_EXPORT
     bool			hasPreviewImage () const;
 
 
@@ -443,7 +376,6 @@ class Header
     // header
     //-------------------------------------------------------------
 
-    IMF_EXPORT
     void			sanityCheck (bool isTiled = false,
         			             bool isMultipartFile = false) const;
 
@@ -464,15 +396,12 @@ class Header
     // a damaged image file.
     //----------------------------------------------------------------
 
-    IMF_EXPORT
     static void			setMaxImageSize (int maxWidth, int maxHeight);
-    IMF_EXPORT
     static void			setMaxTileSize (int maxWidth, int maxHeight);
 
     //
     // Check if the header reads nothing.
     //
-    IMF_EXPORT
     bool                        readsNothing();
 
 
@@ -487,11 +416,9 @@ class Header
     //------------------------------------------------------------------
 
 
-    IMF_EXPORT
     Int64			writeTo (OPENEXR_IMF_INTERNAL_NAMESPACE::OStream &os,
 					 bool isTiled = false) const;
 
-    IMF_EXPORT
     void			readFrom (OPENEXR_IMF_INTERNAL_NAMESPACE::IStream &is,
         			          int &version);
     
@@ -512,19 +439,13 @@ class Header::Iterator
 {
   public:
 
-    IMF_EXPORT
     Iterator ();
-    IMF_EXPORT
     Iterator (const Header::AttributeMap::iterator &i);
 
-    IMF_EXPORT
     Iterator &			operator ++ ();
-    IMF_EXPORT
     Iterator 			operator ++ (int);
 
-    IMF_EXPORT
     const char *		name () const;
-    IMF_EXPORT
     Attribute &			attribute () const;
 
   private:
@@ -539,21 +460,14 @@ class Header::ConstIterator
 {
   public:
 
-    IMF_EXPORT
     ConstIterator ();
-    IMF_EXPORT
     ConstIterator (const Header::AttributeMap::const_iterator &i);
-    IMF_EXPORT
     ConstIterator (const Header::Iterator &other);
 
-    IMF_EXPORT
     ConstIterator &		operator ++ ();
-    IMF_EXPORT
     ConstIterator 		operator ++ (int);
 
-    IMF_EXPORT
     const char *		name () const;
-    IMF_EXPORT
     const Attribute &		attribute () const;
 
   private:
@@ -579,7 +493,7 @@ class Header::ConstIterator
 //
 //------------------------------------------------------------------------
 
-void IMF_EXPORT staticInitialize ();
+void staticInitialize ();
 
 
 //-----------------

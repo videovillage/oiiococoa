@@ -34,7 +34,7 @@
 // Define if we can support GCC style inline asm with AVX instructions
 //
 
-/* #undef OPENEXR_IMF_HAVE_GCC_INLINE_ASM_AVX */
+#define OPENEXR_IMF_HAVE_GCC_INLINE_ASM_AVX 1
 
 //
 // Define if we can use sysconf(_SC_NPROCESSORS_ONLN) to get CPU count
@@ -46,7 +46,7 @@
 // Current internal library namepace name
 //
 #define OPENEXR_IMF_INTERNAL_NAMESPACE_CUSTOM 1
-#define OPENEXR_IMF_INTERNAL_NAMESPACE Imf_2_3
+#define OPENEXR_IMF_INTERNAL_NAMESPACE Imf_2_2
 
 //
 // Current public user namepace name
@@ -59,11 +59,11 @@
 // Version string for runtime access
 //
 
-#define OPENEXR_VERSION_STRING "2.3.0"
-#define OPENEXR_PACKAGE_STRING "OpenEXR 2.3.0"
+#define OPENEXR_VERSION_STRING "2.2.0"
+#define OPENEXR_PACKAGE_STRING "OpenEXR 2.2.0"
 
 #define OPENEXR_VERSION_MAJOR 2
-#define OPENEXR_VERSION_MINOR 3
+#define OPENEXR_VERSION_MINOR 2
 #define OPENEXR_VERSION_PATCH 0
 
 // Version as a single hex number, e.g. 0x01000300 == 1.0.3

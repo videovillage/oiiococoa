@@ -59,7 +59,7 @@ OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 struct PreviewRgba;
 
 
-class TiledOutputFile : public GenericOutputFile
+class IMF_EXPORT TiledOutputFile : public GenericOutputFile
 {
   public:
 
@@ -85,7 +85,6 @@ class TiledOutputFile : public GenericOutputFile
     // below).
     //-------------------------------------------------------------------
     
-    IMF_EXPORT
     TiledOutputFile (const char fileName[],
 		     const Header &header,
                      int numThreads = globalThreadCount ());
@@ -98,7 +97,6 @@ class TiledOutputFile : public GenericOutputFile
     // close the corresponding files.
     // ----------------------------------------------------------------
 
-    IMF_EXPORT
     TiledOutputFile (OPENEXR_IMF_INTERNAL_NAMESPACE::OStream &os,
 		     const Header &header,
                      int numThreads = globalThreadCount ());
@@ -111,7 +109,6 @@ class TiledOutputFile : public GenericOutputFile
     // have been written results in an incomplete file.
     //-----------------------------------------------------
     
-    IMF_EXPORT
     virtual ~TiledOutputFile ();
 
 
@@ -119,7 +116,6 @@ class TiledOutputFile : public GenericOutputFile
     // Access to the file name
     //------------------------
     
-    IMF_EXPORT
     const char *	fileName () const;
 
 
@@ -127,7 +123,6 @@ class TiledOutputFile : public GenericOutputFile
     // Access to the file header
     //--------------------------
     
-    IMF_EXPORT
     const Header &	header () const;
 
 
@@ -142,7 +137,6 @@ class TiledOutputFile : public GenericOutputFile
     // after each call to writeTile().
     //-------------------------------------------------------
     
-    IMF_EXPORT
     void		setFrameBuffer (const FrameBuffer &frameBuffer);
 
 
@@ -150,7 +144,6 @@ class TiledOutputFile : public GenericOutputFile
     // Access to the current frame buffer
     //-----------------------------------
     
-    IMF_EXPORT
     const FrameBuffer &	frameBuffer () const;
 
 
@@ -164,13 +157,9 @@ class TiledOutputFile : public GenericOutputFile
     // fields of the file header's TileDescriptionAttribute.
     //---------------------------------------------------------
 
-    IMF_EXPORT
     unsigned int	tileXSize () const;
-    IMF_EXPORT
     unsigned int	tileYSize () const;
-    IMF_EXPORT
     LevelMode		levelMode () const;
-    IMF_EXPORT
     LevelRoundingMode	levelRoundingMode () const;
 
 
@@ -217,13 +206,9 @@ class TiledOutputFile : public GenericOutputFile
     //
     //--------------------------------------------------------------------
 
-    IMF_EXPORT
     int			numLevels () const;
-    IMF_EXPORT
     int			numXLevels () const;
-    IMF_EXPORT
     int			numYLevels () const;
-    IMF_EXPORT
     bool		isValidLevel (int lx, int ly) const;
 
 
@@ -245,9 +230,7 @@ class TiledOutputFile : public GenericOutputFile
     //
     //---------------------------------------------------------
 
-    IMF_EXPORT
     int			levelWidth  (int lx) const;
-    IMF_EXPORT
     int			levelHeight (int ly) const;
 
 
@@ -271,9 +254,7 @@ class TiledOutputFile : public GenericOutputFile
     //
     //----------------------------------------------------------
 
-    IMF_EXPORT
     int			numXTiles (int lx = 0) const;
-    IMF_EXPORT
     int			numYTiles (int ly = 0) const;
 
 
@@ -297,9 +278,7 @@ class TiledOutputFile : public GenericOutputFile
     //
     //---------------------------------------------------------
 
-    IMF_EXPORT
     IMATH_NAMESPACE::Box2i	dataWindowForLevel (int l = 0) const;
-    IMF_EXPORT
     IMATH_NAMESPACE::Box2i	dataWindowForLevel (int lx, int ly) const;
 
 
@@ -324,11 +303,9 @@ class TiledOutputFile : public GenericOutputFile
     //
     //-------------------------------------------------------------------
 
-    IMF_EXPORT
     IMATH_NAMESPACE::Box2i	dataWindowForTile (int dx, int dy,
 					   int l = 0) const;
 
-    IMF_EXPORT
     IMATH_NAMESPACE::Box2i	dataWindowForTile (int dx, int dy,
 					   int lx, int ly) const;
 
@@ -404,16 +381,12 @@ class TiledOutputFile : public GenericOutputFile
     //
     //------------------------------------------------------------------
 
-    IMF_EXPORT
     void		writeTile  (int dx, int dy, int l = 0);
-    IMF_EXPORT
     void		writeTile  (int dx, int dy, int lx, int ly);
 
-    IMF_EXPORT
     void		writeTiles (int dx1, int dx2, int dy1, int dy2,
                                     int lx, int ly);
 
-    IMF_EXPORT
     void		writeTiles (int dx1, int dx2, int dy1, int dy2,
                                     int l = 0);
 
@@ -426,10 +399,8 @@ class TiledOutputFile : public GenericOutputFile
     // "lineOrder", "channels", and "tiles" attributes must be the same.
     //------------------------------------------------------------------
     
-    IMF_EXPORT
     void		copyPixels (TiledInputFile &in);
-    IMF_EXPORT
-    void        copyPixels (TiledInputPart &in);
+    void                copyPixels (TiledInputPart &in);
     
     
     //------------------------------------------------------------------
@@ -442,10 +413,8 @@ class TiledOutputFile : public GenericOutputFile
     // To use this function, the InputFile must be tiled.
     //------------------------------------------------------------------
     
-    IMF_EXPORT
     void		copyPixels (InputFile &in);
-    IMF_EXPORT
-    void        copyPixels (InputPart &in);
+    void                copyPixels (InputPart &in);
 
     
 
@@ -467,7 +436,6 @@ class TiledOutputFile : public GenericOutputFile
     //
     //--------------------------------------------------------------
 
-    IMF_EXPORT
     void		updatePreviewImage (const PreviewRgba newPixels[]);
 
 
@@ -485,7 +453,6 @@ class TiledOutputFile : public GenericOutputFile
     //
     //-------------------------------------------------------------
 
-    IMF_EXPORT
     void		breakTile  (int dx, int dy,
 				    int lx, int ly,
 				    int offset,

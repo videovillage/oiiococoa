@@ -44,18 +44,16 @@
 
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
-class DeepScanLineInputPart
+class IMF_EXPORT DeepScanLineInputPart
 {
   public:
 
-    IMF_EXPORT
     DeepScanLineInputPart(MultiPartInputFile& file, int partNumber);
 
     //------------------------
     // Access to the file name
     //------------------------
 
-    IMF_EXPORT
     const char *        fileName () const;
 
 
@@ -63,7 +61,6 @@ class DeepScanLineInputPart
     // Access to the file header
     //--------------------------
 
-    IMF_EXPORT
     const Header &      header () const;
 
 
@@ -71,7 +68,6 @@ class DeepScanLineInputPart
     // Access to the file format version
     //----------------------------------
 
-    IMF_EXPORT
     int                 version () const;
 
 
@@ -86,7 +82,6 @@ class DeepScanLineInputPart
     // to readPixels().
     //-----------------------------------------------------------
 
-    IMF_EXPORT
     void                setFrameBuffer (const DeepFrameBuffer &frameBuffer);
 
 
@@ -94,7 +89,6 @@ class DeepScanLineInputPart
     // Access to the current frame buffer
     //-----------------------------------
 
-    IMF_EXPORT
     const DeepFrameBuffer & frameBuffer () const;
 
 
@@ -107,7 +101,6 @@ class DeepScanLineInputPart
     // writing may have been aborted prematurely.)
     //---------------------------------------------------------------
 
-    IMF_EXPORT
     bool                isComplete () const;
 
 
@@ -133,11 +126,8 @@ class DeepScanLineInputPart
     //
     //---------------------------------------------------------------
 
-    IMF_EXPORT
     void                readPixels (int scanLine1, int scanLine2);
-    IMF_EXPORT
     void                readPixels (int scanLine);
-    IMF_EXPORT
     void                readPixels (const char * rawPixelData,const DeepFrameBuffer & frameBuffer,
                                     int scanLine1,int scanLine2) const;
 
@@ -147,7 +137,6 @@ class DeepScanLineInputPart
     // used to implement OutputFile::copyPixels()).
     //----------------------------------------------
 
-    IMF_EXPORT
     void                rawPixelData (int firstScanLine,
                                       char * pixelData,
                                       Int64 &pixelDataSize);
@@ -167,19 +156,14 @@ class DeepScanLineInputPart
     // readPixelSampleCounts(s) calls readPixelSampleCounts(s,s).
     //-----------------------------------------------------------
 
-    IMF_EXPORT
     void                readPixelSampleCounts(int scanline1,
                                               int scanline2);
-    IMF_EXPORT
     void                readPixelSampleCounts(int scanline);
     
-    IMF_EXPORT
     void                readPixelSampleCounts( const char * rawdata , const DeepFrameBuffer & frameBuffer,
                                                int scanLine1 , int scanLine2) const;
                                                
-    IMF_EXPORT
     int                 firstScanLineInChunk(int y) const;
-    IMF_EXPORT
     int                 lastScanLineInChunk (int y) const;
   private:
     DeepScanLineInputFile *file;

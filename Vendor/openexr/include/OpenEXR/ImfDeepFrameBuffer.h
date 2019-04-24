@@ -45,7 +45,7 @@ OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 // Description of a single deep slice of the frame buffer:
 //--------------------------------------------------------
 
-struct DeepSlice : public Slice
+struct IMF_EXPORT DeepSlice : public Slice
 {
     //---------------------------------------------------------------------
     // The stride for each sample in this slice.
@@ -74,7 +74,6 @@ struct DeepSlice : public Slice
     //------------
     // Constructor
     //------------
-    IMF_EXPORT
     DeepSlice (PixelType type = HALF,
                char * base = 0,
                size_t xStride = 0,
@@ -91,7 +90,7 @@ struct DeepSlice : public Slice
 // DeepFrameBuffer.
 //-----------------
 
-class DeepFrameBuffer
+class IMF_EXPORT DeepFrameBuffer
 {
   public:
 
@@ -100,11 +99,9 @@ class DeepFrameBuffer
     // Add a slice
     //------------
 
-    IMF_EXPORT
     void                        insert (const char name[],
                                         const DeepSlice &slice);
 
-    IMF_EXPORT
     void                        insert (const std::string &name,
                                         const DeepSlice &slice);
 
@@ -120,24 +117,16 @@ class DeepFrameBuffer
     //
     //----------------------------------------------------------------
 
-    IMF_EXPORT
     DeepSlice &                 operator [] (const char name[]);
-    IMF_EXPORT
     const DeepSlice &           operator [] (const char name[]) const;
 
-    IMF_EXPORT
     DeepSlice &                 operator [] (const std::string &name);
-    IMF_EXPORT
     const DeepSlice &           operator [] (const std::string &name) const;
 
-    IMF_EXPORT
     DeepSlice *                 findSlice (const char name[]);
-    IMF_EXPORT
     const DeepSlice *           findSlice (const char name[]) const;
 
-    IMF_EXPORT
     DeepSlice *                 findSlice (const std::string &name);
-    IMF_EXPORT
     const DeepSlice *           findSlice (const std::string &name) const;
 
 
@@ -150,33 +139,23 @@ class DeepFrameBuffer
     class Iterator;
     class ConstIterator;
 
-    IMF_EXPORT
     Iterator                    begin ();
-    IMF_EXPORT
     ConstIterator               begin () const;
 
-    IMF_EXPORT
     Iterator                    end ();
-    IMF_EXPORT
     ConstIterator               end () const;
 
-    IMF_EXPORT
     Iterator                    find (const char name[]);
-    IMF_EXPORT
     ConstIterator               find (const char name[]) const;
 
-    IMF_EXPORT
     Iterator                    find (const std::string &name);
-    IMF_EXPORT
     ConstIterator               find (const std::string &name) const;
 
     //----------------------------------------------------
     // Public function for accessing a sample count slice.
     //----------------------------------------------------
 
-    IMF_EXPORT
     void                        insertSampleCountSlice(const Slice & slice);
-    IMF_EXPORT
     const Slice &               getSampleCountSlice() const;
 
   private:
@@ -193,19 +172,13 @@ class DeepFrameBuffer::Iterator
 {
   public:
 
-    IMF_EXPORT
     Iterator ();
-    IMF_EXPORT
     Iterator (const DeepFrameBuffer::SliceMap::iterator &i);
 
-    IMF_EXPORT
     Iterator &                  operator ++ ();
-    IMF_EXPORT
     Iterator                    operator ++ (int);
 
-    IMF_EXPORT
     const char *                name () const;
-    IMF_EXPORT
     DeepSlice &                 slice () const;
 
   private:
@@ -220,21 +193,14 @@ class DeepFrameBuffer::ConstIterator
 {
   public:
 
-    IMF_EXPORT
     ConstIterator ();
-    IMF_EXPORT
     ConstIterator (const DeepFrameBuffer::SliceMap::const_iterator &i);
-    IMF_EXPORT
     ConstIterator (const DeepFrameBuffer::Iterator &other);
 
-    IMF_EXPORT
     ConstIterator &             operator ++ ();
-    IMF_EXPORT
     ConstIterator               operator ++ (int);
 
-    IMF_EXPORT
     const char *                name () const;
-    IMF_EXPORT
     const DeepSlice &           slice () const;
 
   private:

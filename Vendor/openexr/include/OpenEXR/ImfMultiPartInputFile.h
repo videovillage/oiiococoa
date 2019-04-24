@@ -44,26 +44,22 @@
 OPENEXR_IMF_INTERNAL_NAMESPACE_HEADER_ENTER
 
 
-class MultiPartInputFile : public GenericInputFile
+class IMF_EXPORT MultiPartInputFile : public GenericInputFile
 {
   public:
-    IMF_EXPORT
     MultiPartInputFile(const char fileName[],
                        int numThreads = globalThreadCount(),
                        bool reconstructChunkOffsetTable = true);
 
-    IMF_EXPORT
     MultiPartInputFile(IStream& is,
                        int numThreads = globalThreadCount(),
                        bool reconstructChunkOffsetTable = true);
 
-    IMF_EXPORT
     virtual ~MultiPartInputFile();
 
     // ----------------------
     // Count of number of parts in file
     // ---------------------
-    IMF_EXPORT
     int parts() const;
     
     
@@ -71,7 +67,6 @@ class MultiPartInputFile : public GenericInputFile
     // Access to the headers
     //----------------------
 
-    IMF_EXPORT
     const Header &  header(int n) const;
     
 
@@ -79,7 +74,6 @@ class MultiPartInputFile : public GenericInputFile
     // Access to the file format version
     //----------------------------------
 
-    IMF_EXPORT
     int			    version () const;
 
 
@@ -87,8 +81,8 @@ class MultiPartInputFile : public GenericInputFile
     // Check whether the entire chunk offset
     // table for the part is written correctly
     // -----------------------------------------
-    IMF_EXPORT
     bool partComplete(int part) const;
+
 
 
     struct Data;

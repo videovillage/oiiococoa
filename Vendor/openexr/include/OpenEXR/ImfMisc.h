@@ -95,26 +95,14 @@ size_t	bytesPerLineTable (const Header &header,
 // pointer, xStride and yStride.
 //
 
-inline
+IMF_EXPORT
 int&
-sampleCount(char* base, int xStride, int yStride, int x, int y)
-{
-    char* ptr = base + y * yStride + x * xStride;
-    int* intPtr = (int*) ptr;
-
-    return *intPtr;
-}
+sampleCount(char* base, int xStride, int yStride, int x, int y);
 
 
-inline
+IMF_EXPORT
 const int&
-sampleCount(const char* base, int xStride, int yStride, int x, int y)
-{
-    const char* ptr = base + y * yStride + x * xStride;
-    int* intPtr = (int*) ptr;
-    
-    return *intPtr;
-}
+sampleCount(const char* base, int xStride, int yStride, int x, int y);
 
 //
 // Build a table that lists, for each scanline in a DEEP file's
