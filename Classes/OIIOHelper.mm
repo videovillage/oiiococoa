@@ -108,7 +108,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
         attributes[@"oiiococoa:ImageEncodingType"] = @([self encodingTypeFromSpec:&spec]);
         for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
-            
             const ParamValue &p (spec.extra_attribs[i]);
             NSString *name = [NSString stringWithCString:p.name().c_str() encoding:NSUTF8StringEncoding];
             id value = [NSNull null];
@@ -136,8 +135,12 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                 }
                 value = @(timecode);
             }
-            else{
-                value = [NSString stringWithCString:tostring(p.type(), p.data()).c_str() encoding:NSUTF8StringEncoding];
+            else {
+                if ([name isEqualToString:@"ICCProfile"]){
+                    value = [NSData dataWithBytes:(void *)p.data() length:p.datasize()];
+                } else {
+                    value = [NSString stringWithCString:tostring(p.type(), p.data()).c_str() encoding:NSUTF8StringEncoding];
+                }
             }
             
             attributes[name] = value;
