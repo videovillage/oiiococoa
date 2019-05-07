@@ -55,6 +55,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                outHeight:(NSInteger *)outHeight
              outChannels:(NSInteger *)outChannels
           outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
+           outImageCount:(NSInteger *)outImageCount
             outFramerate:(double *)outFramerate
              outTimecode:(NSInteger *)outTimecode
              outMetadata:(NSDictionary **)metadata {
@@ -149,6 +150,13 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
         
         *metadata = [NSDictionary dictionaryWithDictionary: attributes];
     }
+    
+    NSInteger numSubImages = 0;
+    while(in->seek_subimage(numSubImages, 0)) {
+        numSubImages++;
+    }
+    
+    *outImageCount = numSubImages;
     
     return YES;
 }

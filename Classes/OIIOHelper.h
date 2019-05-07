@@ -43,6 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
                outHeight:(NSInteger *)outHeight
              outChannels:(NSInteger *)outChannels
           outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
+           outImageCount:(NSInteger *)outImageCount
             outFramerate:(double *)outFramerate
              outTimecode:(NSInteger *)outTimecode
              outMetadata:(NSDictionary **)metadata;
