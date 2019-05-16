@@ -183,6 +183,10 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     NSInteger bytesPerRow = 0;
     
     switch (pixelFormat) {
+        case OIIOImagePixelFormatGray8U:
+            dataSize = width * height * 1;
+            bytesPerRow = width * 1;
+            break;
         case OIIOImagePixelFormatRGB8U:
             dataSize = width * height * 3 * 1;
             bytesPerRow = width * 3 * 1;
@@ -251,6 +255,8 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                       bytesPerRow:(NSInteger)bytesPerRow
                          subImage:(NSInteger)subImage{
     switch (pixelFormat) {
+        case OIIOImagePixelFormatGray8U:
+            return [self gray8UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow subImage:subImage];
         case OIIOImagePixelFormatRGB8U:
             return [self RGB8UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow subImage: subImage];
         case OIIOImagePixelFormatRGBA8U:
@@ -292,6 +298,29 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
+    
+    return true;
+}
+
++ (bool)gray8UBitmapFromURL:(NSURL *)url
+                     inData:(void *)pixelData
+                bytesPerRow:(NSInteger)bytesPerRow {
+    return [self gray8UBitmapFromURL:url inData:pixelData bytesPerRow:bytesPerRow subImage:0];
+}
+
++ (bool)gray8UBitmapFromURL:(NSURL *)url
+                    inData:(void *)pixelData
+               bytesPerRow:(NSInteger)bytesPerRow
+                  subImage:(NSInteger)subImage{
+    auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
+    
+    if (!in || !in->seek_subimage(subImage, 0)) {
+        return false;
+    }
+    
+    const ImageSpec &spec = in->spec();
+    
+    in->read_image(TypeDesc::UINT8, pixelData, 1, bytesPerRow);
     
     return true;
 }
