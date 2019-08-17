@@ -54,11 +54,11 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                 outWidth:(NSInteger *)outWidth
                outHeight:(NSInteger *)outHeight
              outChannels:(NSInteger *)outChannels
-          outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
+         outEncodingType:(OIIOImageEncodingType *)encodingType
            outImageCount:(NSInteger *)outImageCount
             outFramerate:(double *)outFramerate
              outTimecode:(NSInteger *)outTimecode
-             outMetadata:(NSDictionary **)metadata {
+             outMetadata:(NSDictionary * _Nullable *)metadata {
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     if (!in) {
         return NO;
@@ -85,7 +85,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     *outWidth = spec.width;
     *outHeight = spec.height;
     *outChannels = spec.nchannels;
-    *outPixelFormat = [self encodingTypeFromSpec:&spec];
+    *encodingType = [self encodingTypeFromSpec:&spec];
     
     const ParamValue *fr = spec.find_attribute("dpx:FrameRate");
     if(!fr){

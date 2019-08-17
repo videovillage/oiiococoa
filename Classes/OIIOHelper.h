@@ -43,11 +43,11 @@ NS_ASSUME_NONNULL_BEGIN
                 outWidth:(NSInteger *)outWidth
                outHeight:(NSInteger *)outHeight
              outChannels:(NSInteger *)outChannels
-          outPixelFormat:(OIIOImageEncodingType *)outPixelFormat
+          outEncodingType:(OIIOImageEncodingType *)outPixelFormat
            outImageCount:(NSInteger *)outImageCount
             outFramerate:(double *)outFramerate
              outTimecode:(NSInteger *)outTimecode
-             outMetadata:(NSDictionary **)metadata;
+             outMetadata:( NSDictionary * _Nullable *)metadata;
 
 + (nullable NSData*)bitmapDataFromURL:(NSURL *)url
                           pixelFormat:(OIIOImagePixelFormat)pixelFormat
