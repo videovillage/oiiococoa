@@ -107,6 +107,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     if (metadata) {
         NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+        attributes[@"oiiococoa:Format"] = [NSString stringWithUTF8String:in->format_name()];
         attributes[@"oiiococoa:ImageEncodingType"] = @([self encodingTypeFromSpec:&spec]);
         for (size_t i = 0;  i < spec.extra_attribs.size();  ++i) {
             const ParamValue &p (spec.extra_attribs[i]);
