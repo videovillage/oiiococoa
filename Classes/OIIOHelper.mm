@@ -41,9 +41,9 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
 }
 
 + (BOOL)canRead:(NSURL *)url {
-    auto in = ImageInput::open([url.path cStringUsingEncoding:NSUTF8StringEncoding]);
+    auto in = ImageInput::create([url.path cStringUsingEncoding:NSUTF8StringEncoding]);
     if(in) {
-        return YES;
+        return in->valid_file([url.path cStringUsingEncoding:NSUTF8StringEncoding]);
     }
     else{
         return NO;
