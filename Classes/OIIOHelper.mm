@@ -40,6 +40,40 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     //remove with [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
 }
 
++ (NSArray<NSString *>*)readableFileExtensions {
+    NSArray<NSString *> *inputFormats = [[NSString stringWithCString:get_string_attribute("input_format_list").c_str() encoding:NSUTF8StringEncoding] componentsSeparatedByString:@","];
+    NSArray<NSString *> *formatsWithExtensions = [[NSString stringWithCString:get_string_attribute("extension_list").c_str() encoding:NSUTF8StringEncoding] componentsSeparatedByString:@";"];
+    
+    NSMutableArray<NSString *> *allExtensions = [NSMutableArray array];
+    
+    for (NSString *formatWithExtension in formatsWithExtensions) {
+        NSArray<NSString *> *split = [formatWithExtension componentsSeparatedByString:@":"];
+        
+        if ([inputFormats containsObject:split[0]]) {
+            [allExtensions addObjectsFromArray:[split[1] componentsSeparatedByString:@","]];
+        }
+    }
+    
+    return allExtensions;
+}
+
++ (NSArray<NSString *>*)writeableFileExtensions {
+    NSArray<NSString *> *outputFormats = [[NSString stringWithCString:get_string_attribute("output_format_list").c_str() encoding:NSUTF8StringEncoding] componentsSeparatedByString:@","];
+    NSArray<NSString *> *formatsWithExtensions = [[NSString stringWithCString:get_string_attribute("extension_list").c_str() encoding:NSUTF8StringEncoding] componentsSeparatedByString:@";"];
+    
+    NSMutableArray<NSString *> *allExtensions = [NSMutableArray array];
+    
+    for (NSString *formatWithExtension in formatsWithExtensions) {
+        NSArray<NSString *> *split = [formatWithExtension componentsSeparatedByString:@":"];
+        
+        if ([outputFormats containsObject:split[0]]) {
+            [allExtensions addObjectsFromArray:[split[1] componentsSeparatedByString:@","]];
+        }
+    }
+    
+    return allExtensions;
+}
+
 + (BOOL)canRead:(NSURL *)url {
     auto in = ImageInput::create([url.path cStringUsingEncoding:NSUTF8StringEncoding]);
     if(in) {
