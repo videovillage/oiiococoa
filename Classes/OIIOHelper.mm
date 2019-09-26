@@ -408,16 +408,26 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
     
-    if(@available(macOS 10.14, *) && spec.nchannels == 3){
-        vImage_Buffer src;
-        src.height = spec.height;
-        src.width = spec.width;
-        src.rowBytes = bytesPerRow;
-        src.data = pixelData;
-        
-        const uint16_t fill[4] = {0, 0, 0, 65535};
-        
-        vImageOverwriteChannelsWithPixel_ARGB16U(fill, &src, &src, 0x1, kvImageNoFlags);
+    if(spec.nchannels == 3){
+        if (@available(macOS 10.14, *)) {
+            vImage_Buffer src;
+            src.height = spec.height;
+            src.width = spec.width;
+            src.rowBytes = bytesPerRow;
+            src.data = pixelData;
+            
+            const uint16_t fill[4] = {0, 0, 0, 65535};
+            
+            vImageOverwriteChannelsWithPixel_ARGB16U(fill, &src, &src, 0x1, kvImageNoFlags);
+        } else {
+            auto pixels = (uint16_t *)pixelData;
+            for(int x = 0; x < spec.width; x++) {
+                for(int y = 0; y < spec.height; y++) {
+                    auto currentPixelStart = (x * 4 + (y * bytesPerRow / 2));
+                    pixels[currentPixelStart + 3] = 65535;
+                }
+            }
+        }
     }
     
     return true;
