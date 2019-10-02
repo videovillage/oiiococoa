@@ -421,9 +421,10 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
             vImageOverwriteChannelsWithPixel_ARGB16U(fill, &src, &src, 0x1, kvImageNoFlags);
         } else {
             auto pixels = (uint16_t *)pixelData;
-            for(int x = 0; x < spec.width; x++) {
-                for(int y = 0; y < spec.height; y++) {
-                    auto currentPixelStart = (x * 4 + (y * bytesPerRow / 2));
+            for(int y = 0; y < spec.height; y++) {
+                auto lineStartByte = y * bytesPerRow;
+                for(int x = 0; x < spec.width; x++) {
+                    auto currentPixelStart = (lineStartByte + x * 8) / 2;
                     pixels[currentPixelStart + 3] = 65535;
                 }
             }
@@ -743,15 +744,26 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     in->read_image (TypeDesc::HALF, pixelData, 8, bytesPerRow);
     
     if(spec.nchannels == 3) {
-        vImage_Buffer src;
-        src.height = spec.height;
-        src.width = spec.width;
-        src.rowBytes = bytesPerRow;
-        src.data = pixelData;
-        
-        const uint16_t pixel[4] = {0, 0, 0, 15360};
-        
-        vImageOverwriteChannelsWithPixel_ARGB16U(pixel, &src, &src, 0x1, kvImageNoFlags);
+        if (@available(macOS 10.14, *)) {
+            vImage_Buffer src;
+            src.height = spec.height;
+            src.width = spec.width;
+            src.rowBytes = bytesPerRow;
+            src.data = pixelData;
+    
+            const uint16_t fill[4] = {0, 0, 0, 15360};
+            
+            vImageOverwriteChannelsWithPixel_ARGB16U(fill, &src, &src, 0x1, kvImageNoFlags);
+        } else {
+            auto pixels = (uint16_t *)pixelData;
+            for(int y = 0; y < spec.height; y++) {
+                auto lineStartByte = y * bytesPerRow;
+                for(int x = 0; x < spec.width; x++) {
+                    auto currentPixelStart = (lineStartByte + x * 8) / 2;
+                    pixels[currentPixelStart + 3] = 15360;
+                }
+            }
+        }
     }
     
     return true;
