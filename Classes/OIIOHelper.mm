@@ -127,6 +127,9 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     if(!fr){
         fr = spec.find_attribute("FramesPerSecond");
     }
+    if(!fr) {
+        fr = spec.find_attribute("arnold/fps");
+    }
     
     if(fr) {
         float framerate = fr->get_float();
