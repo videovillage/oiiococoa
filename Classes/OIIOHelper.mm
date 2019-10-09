@@ -123,10 +123,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     std::vector<TypeDesc> *formats;
     
-    for(int i = 0; i < spec.nchannels; i++) {
-        NSLog(@"%s", spec.channel_name(i).c_str());
-    }
-    
     const ParamValue *fr = spec.find_attribute("dpx:FrameRate");
     if(!fr){
         fr = spec.find_attribute("FramesPerSecond");
