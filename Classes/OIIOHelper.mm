@@ -121,6 +121,12 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     *outChannels = spec.nchannels;
     *encodingType = [self encodingTypeFromSpec:&spec];
     
+    std::vector<TypeDesc> *formats;
+    
+    for(int i = 0; i < spec.nchannels; i++) {
+        NSLog(@"%s", spec.channel_name(i).c_str());
+    }
+    
     const ParamValue *fr = spec.find_attribute("dpx:FrameRate");
     if(!fr){
         fr = spec.find_attribute("FramesPerSecond");
@@ -332,15 +338,13 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                   subImage:(NSInteger)subImage{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
     
-    in->read_image(TypeDesc::UINT8, pixelData, 3, bytesPerRow);
-    
-    return true;
+    return in->read_image(subImage, 0, 0, 3, TypeDesc::UINT8, pixelData, 3, bytesPerRow);
 }
 
 + (bool)gray8UBitmapFromURL:(NSURL *)url
@@ -355,15 +359,13 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                   subImage:(NSInteger)subImage{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
     
-    in->read_image(TypeDesc::UINT8, pixelData, 1, bytesPerRow);
-    
-    return true;
+    return in->read_image(subImage, 0, 0, 1, TypeDesc::UINT8, pixelData, 1, bytesPerRow);
 }
 
 + (bool)gray16UBitmapFromURL:(NSURL *)url
@@ -378,15 +380,15 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                    subImage:(NSInteger)subImage{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
     
-    in->read_image(TypeDesc::UINT16, pixelData, 2, bytesPerRow);
     
-    return true;
+    
+    return in->read_image(subImage, 0, 0, 1, TypeDesc::UINT16, pixelData, 2, bytesPerRow);
 }
 
 + (bool)RGBA16UBitmapFromURL:(NSURL *)url
@@ -401,12 +403,16 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                     subImage:(NSInteger)subImage{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
-    in->read_image(TypeDesc::UINT16, pixelData, 8, bytesPerRow);
+    BOOL readSuccess = in->read_image(subImage, 0, 0, 4, TypeDesc::UINT16, pixelData, 8, bytesPerRow);
+    
+    if (!readSuccess) {
+        return false;
+    }
     
     if(spec.nchannels == 3){
         if (@available(macOS 10.14, *)) {
@@ -446,13 +452,17 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                    subImage:(NSInteger)subImage{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
     
-    in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+    BOOL readSuccess = in->read_image(subImage, 0, 0, 4, TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+    
+    if (!readSuccess) {
+        return false;
+    }
     
     if(spec.nchannels == 3){
         vImage_Buffer src;
@@ -479,13 +489,17 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                    subImage:(NSInteger)subImage{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
     
-    in->read_image(TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+    BOOL readSuccess = in->read_image(subImage, 0, 0, 4, TypeDesc::UINT8, pixelData, 4, bytesPerRow);
+    
+    if (!readSuccess) {
+        return false;
+    }
     
     vImage_Buffer src;
     src.height = spec.height;
@@ -735,13 +749,17 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding], configSpec);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
     
-    in->read_image (TypeDesc::HALF, pixelData, 8, bytesPerRow);
+    BOOL readSuccess = in->read_image (subImage, 0, 0, 4, TypeDesc::HALF, pixelData, 8, bytesPerRow);
+    
+    if (!readSuccess) {
+        return false;
+    }
     
     if(spec.nchannels == 3) {
         if (@available(macOS 10.14, *)) {
@@ -781,13 +799,17 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
                   subImage:(NSInteger)subImage{
     auto in = ImageInput::open([[url path] cStringUsingEncoding:NSUTF8StringEncoding]);
     
-    if (!in || !in->seek_subimage(subImage, 0)) {
+    if (!in) {
         return false;
     }
     
     const ImageSpec &spec = in->spec();
     
-    in->read_image (TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
+    BOOL readSuccess = in->read_image (subImage, 0, 0, 4, TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
+    
+    if (!readSuccess) {
+        return false;
+    }
     
     if(spec.nchannels == 3) {
         vImage_Buffer src;
