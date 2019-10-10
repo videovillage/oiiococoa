@@ -198,8 +198,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     *outImageCount = numSubImages;
     
-    in->close();
-    
     return YES;
 }
 
@@ -214,8 +212,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     }
     
     const ImageSpec &spec = in->spec();
-    
-    in->close();
     
     NSInteger width = spec.width;
     NSInteger height = spec.height;
@@ -347,11 +343,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     const ImageSpec &spec = in->spec();
     
-    BOOL readSuccess = in->read_image(subImage, 0, 0, 3, TypeDesc::UINT8, pixelData, 3, bytesPerRow);
-    
-    in->close();
-    
-    return readSuccess;
+    return in->read_image(subImage, 0, 0, 3, TypeDesc::UINT8, pixelData, 3, bytesPerRow);
 }
 
 + (bool)gray8UBitmapFromURL:(NSURL *)url
@@ -372,11 +364,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     const ImageSpec &spec = in->spec();
     
-    BOOL readSuccess = in->read_image(subImage, 0, 0, 1, TypeDesc::UINT8, pixelData, 1, bytesPerRow);
-    
-    in->close();
-    
-    return readSuccess;
+    return in->read_image(subImage, 0, 0, 1, TypeDesc::UINT8, pixelData, 1, bytesPerRow);
 }
 
 + (bool)gray16UBitmapFromURL:(NSURL *)url
@@ -399,11 +387,7 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     
     
-    BOOL readSuccess = in->read_image(subImage, 0, 0, 1, TypeDesc::UINT16, pixelData, 2, bytesPerRow);
-    
-    in->close();
-    
-    return readSuccess;
+    return in->read_image(subImage, 0, 0, 1, TypeDesc::UINT16, pixelData, 2, bytesPerRow);
 }
 
 + (bool)RGBA16UBitmapFromURL:(NSURL *)url
@@ -424,8 +408,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     const ImageSpec &spec = in->spec();
     BOOL readSuccess = in->read_image(subImage, 0, 0, 4, TypeDesc::UINT16, pixelData, 8, bytesPerRow);
-    
-    in->close();
     
     if (!readSuccess) {
         return false;
@@ -477,8 +459,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     BOOL readSuccess = in->read_image(subImage, 0, 0, 4, TypeDesc::UINT8, pixelData, 4, bytesPerRow);
     
-    in->close();
-    
     if (!readSuccess) {
         return false;
     }
@@ -515,8 +495,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     BOOL readSuccess = in->read_image(subImage, 0, 0, 4, TypeDesc::UINT8, pixelData, 4, bytesPerRow);
-    
-    in->close();
     
     if (!readSuccess) {
         return false;
@@ -778,8 +756,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     BOOL readSuccess = in->read_image (subImage, 0, 0, 4, TypeDesc::HALF, pixelData, 8, bytesPerRow);
     
-    in->close();
-    
     if (!readSuccess) {
         return false;
     }
@@ -829,8 +805,6 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     const ImageSpec &spec = in->spec();
     
     BOOL readSuccess = in->read_image (subImage, 0, 0, 4, TypeDesc::FLOAT, pixelData, 16, bytesPerRow);
-    
-    in->close();
     
     if (!readSuccess) {
         return false;
