@@ -1212,7 +1212,7 @@ inline OIIO_HOSTDEVICE float fast_sin (float x) {
     // Results on: [-2pi,2pi]
     // Examined 2173837240 values of sin: 0.00662760244 avg ulp diff, 2 max ulp, 1.19209e-07 max error
     int q = fast_rint (x * float(M_1_PI));
-    float qf = q;
+    float qf = float(q);
     x = madd(qf, -0.78515625f*4, x);
     x = madd(qf, -0.00024187564849853515625f*4, x);
     x = madd(qf, -3.7747668102383613586e-08f*4, x);
@@ -1242,7 +1242,7 @@ inline OIIO_HOSTDEVICE float fast_cos (float x) {
 #ifndef __CUDA_ARCH__
     // same argument reduction as fast_sin
     int q = fast_rint (x * float(M_1_PI));
-    float qf = q;
+    float qf = float(q);
     x = madd(qf, -0.78515625f*4, x);
     x = madd(qf, -0.00024187564849853515625f*4, x);
     x = madd(qf, -3.7747668102383613586e-08f*4, x);
@@ -1270,7 +1270,7 @@ inline OIIO_HOSTDEVICE void fast_sincos (float x, float* sine, float* cosine) {
 #ifndef __CUDA_ARCH__
     // same argument reduction as fast_sin
     int q = fast_rint (x * float(M_1_PI));
-    float qf = q;
+    float qf = float(q);
     x = madd(qf, -0.78515625f*4, x);
     x = madd(qf, -0.00024187564849853515625f*4, x);
     x = madd(qf, -3.7747668102383613586e-08f*4, x);
@@ -1308,7 +1308,7 @@ inline OIIO_HOSTDEVICE float fast_tan (float x) {
     // note that we cannot apply the "denormal crush" trick everywhere because
     // we sometimes need to take the reciprocal of the polynomial
     int q = fast_rint (x * float(2 * M_1_PI));
-    float qf = q;
+    float qf = float(q);
     x = madd(qf, -0.78515625f*2, x);
     x = madd(qf, -0.00024187564849853515625f*2, x);
     x = madd(qf, -3.7747668102383613586e-08f*2, x);
@@ -1866,7 +1866,7 @@ inline OIIO_HOSTDEVICE float fast_ierf (float x)
 /// on that interval or if there are multiple roots in the interval (it
 /// may not converge, or may converge to any of the roots without
 /// telling you that there are more than one).
-template<class T, class Func>
+template<class T, class Func> OIIO_HOSTDEVICE
 T invert (Func &func, T y, T xmin=0.0, T xmax=1.0,
           int maxiters=32, T eps=1.0e-6, bool *brack=0)
 {

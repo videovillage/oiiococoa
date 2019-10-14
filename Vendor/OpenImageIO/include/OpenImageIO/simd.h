@@ -87,7 +87,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // OIIO_SIMD_HAS_SIMD8 : nonzero if vfloat8, vint8, vbool8 are defined
 // OIIO_SIMD_HAS_SIMD16 : nonzero if vfloat16, vint16, vbool16 are defined
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 #  include <intrin.h>
 #elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
 #  include <x86intrin.h>
@@ -250,6 +250,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "missing_math.h"
+
+
+// Embarrassing hack: Xlib.h #define's True and False!
+#ifdef True
+#    undef True
+#endif
+#ifdef False
+#    undef False
+#endif
+
 
 
 OIIO_NAMESPACE_BEGIN
@@ -4091,7 +4101,7 @@ OIIO_FORCEINLINE void vint4::load_mask (int mask, const value_t *values) {
 #elif OIIO_SIMD_AVX >= 2
     m_simd = _mm_maskload_epi32 (values, _mm_castps_si128(vbool_t::from_bitmask(mask)));
 #else
-    SIMD_CONSTRUCT ((mask>>i) & 1 ? values[i] : 0.0f);
+    SIMD_CONSTRUCT ((mask>>i) & 1 ? values[i] : 0);
 #endif
 }
 
@@ -4102,7 +4112,7 @@ OIIO_FORCEINLINE void vint4::load_mask (const vbool_t& mask, const value_t *valu
 #elif OIIO_SIMD_AVX >= 2
     m_simd = _mm_maskload_epi32 (values, _mm_castps_si128(mask));
 #else
-    SIMD_CONSTRUCT (mask[i] ? values[i] : 0.0f);
+    SIMD_CONSTRUCT (mask[i] ? values[i] : 0);
 #endif
 }
 
@@ -4890,7 +4900,7 @@ OIIO_FORCEINLINE void vint8::load_mask (int mask, const int *values) {
 #elif OIIO_SIMD_AVX >= 2
     m_simd = _mm256_maskload_epi32 (values, _mm256_castps_si256(vbool8::from_bitmask(mask)));
 #else
-    SIMD_CONSTRUCT ((mask>>i) & 1 ? values[i] : 0.0f);
+    SIMD_CONSTRUCT ((mask>>i) & 1 ? values[i] : 0);
 #endif
 }
 
@@ -4901,7 +4911,7 @@ OIIO_FORCEINLINE void vint8::load_mask (const vbool8& mask, const int *values) {
 #elif OIIO_SIMD_AVX >= 2
     m_simd = _mm256_maskload_epi32 (values, _mm256_castps_si256(mask));
 #else
-    SIMD_CONSTRUCT (mask[i] ? values[i] : 0.0f);
+    SIMD_CONSTRUCT (mask[i] ? values[i] : 0);
 #endif
 }
 
