@@ -1,38 +1,15 @@
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
+
 /*
-  Copyright 2008-2014 Larry Gritz and the other authors and contributors.
-  All Rights Reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of the software's owners nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  (This is the Modified BSD License)
-
   A few bits here are based upon code from NVIDIA that was also released
-  under the same modified BSD license, and marked as:
+  under the same 3-Clause BSD license, and marked as:
      Copyright 2004 NVIDIA Corporation. All Rights Reserved.
 
   Some parts of this file were first open-sourced in Open Shading Language,
-  then later moved here. The original copyright notice was:
+  also 3-Clause BSD licesne, then later moved here. The original copyright
+  notice was:
      Copyright (c) 2009-2014 Sony Pictures Imageworks Inc., et al.
 
   Many of the math functions were copied from or inspired by other
@@ -58,10 +35,10 @@
 #include <cstring>
 #include <limits>
 #include <typeinfo>
+#include <type_traits>
 
 #include <span.h>
 #include <dassert.h>
-#include <missing_math.h>
 #include <oiioversion.h>
 #include <platform.h>
 #include <simd.h>
@@ -70,10 +47,58 @@
 OIIO_NAMESPACE_BEGIN
 
 
-/// Helper template to let us tell if two types are the same.
-template<typename T, typename U> struct is_same { static const bool value = false; };
-template<typename T> struct is_same<T,T> { static const bool value = true; };
+// Helper template to let us tell if two types are the same.
+// C++11 defines this, keep in OIIO namespace for back compat.
+// DEPRECATED(2.0) -- clients should switch OIIO::is_same -> std::is_same.
+using std::is_same;
 
+
+// For back compatibility: expose these in the OIIO namespace.
+// DEPRECATED(2.0) -- clients should switch OIIO:: -> std:: for these.
+using std::isfinite;
+using std::isinf;
+using std::isnan;
+
+
+// Define math constants just in case they aren't included (Windows is a
+// little finicky about this, only defining these if _USE_MATH_DEFINES is
+// defined before <cmath> is included, which is hard to control).
+#ifndef M_PI
+#    define M_PI 3.14159265358979323846264338327950288
+#endif
+#ifndef M_PI_2
+#    define M_PI_2 1.57079632679489661923132169163975144
+#endif
+#ifndef M_PI_4
+#    define M_PI_4 0.785398163397448309615660845819875721
+#endif
+#ifndef M_TWO_PI
+#    define M_TWO_PI (M_PI * 2.0)
+#endif
+#ifndef M_1_PI
+#    define M_1_PI 0.318309886183790671537767526745028724
+#endif
+#ifndef M_2_PI
+#    define M_2_PI 0.636619772367581343075535053490057448
+#endif
+#ifndef M_SQRT2
+#    define M_SQRT2 1.41421356237309504880168872420969808
+#endif
+#ifndef M_SQRT1_2
+#    define M_SQRT1_2 0.707106781186547524400844362104849039
+#endif
+#ifndef M_LN2
+#    define M_LN2 0.69314718055994530941723212145817656
+#endif
+#ifndef M_LN10
+#    define M_LN10 2.30258509299404568401799145468436421
+#endif
+#ifndef M_E
+#    define M_E 2.71828182845904523536028747135266250
+#endif
+#ifndef M_LOG2E
+#    define M_LOG2E 1.44269504088896340735992468100189214
+#endif
 
 
 
@@ -195,7 +220,40 @@ clamped_mult64(uint64_t a, uint64_t b)
 
 
 
-/// Bitwise circular rotation left by k bits (for 32 bit unsigned integers)
+/// Bitwise circular rotation left by `s` bits (for any unsigned integer
+/// type).  For info on the C++20 std::rotl(), see
+/// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0553r4.html
+// FIXME: this should be constexpr, but we're leaving that out for now
+// because the Cuda specialization uses an intrinsic that isn't constexpr.
+// Come back to this later when more of the Cuda library is properly
+// constexpr.
+template<class T>
+OIIO_NODISCARD OIIO_FORCEINLINE OIIO_HOSTDEVICE
+// constexpr
+T rotl(T x, int s) noexcept
+{
+    static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value,
+                  "rotl only works for unsigned integer types");
+    return (x << s) | (x >> ((sizeof(T) * 8) - s));
+}
+
+
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 320
+// Cuda has an intrinsic for 32 bit unsigned int rotation
+// FIXME: This should be constexpr, but __funnelshift_lc seems not to be
+// marked as such.
+template<>
+OIIO_NODISCARD OIIO_FORCEINLINE OIIO_HOSTDEVICE
+// constexpr
+uint32_t rotl(uint32_t x, int s) noexcept
+{
+    return __funnelshift_lc(x, x, s);
+}
+#endif
+
+
+
+// Old names -- DEPRECATED(2.1)
 OIIO_FORCEINLINE OIIO_HOSTDEVICE uint32_t
 rotl32(uint32_t x, int k)
 {
@@ -206,7 +264,6 @@ rotl32(uint32_t x, int k)
 #endif
 }
 
-/// Bitwise circular rotation left by k bits (for 64 bit unsigned integers)
 OIIO_FORCEINLINE OIIO_HOSTDEVICE uint64_t
 rotl64(uint64_t x, int k)
 {
@@ -658,7 +715,7 @@ scaled_conversion(const S& src, F scale, F min, F max)
 template<typename S, typename D>
 void convert_type (const S *src, D *dst, size_t n, D _min, D _max)
 {
-    if (is_same<S,D>::value) {
+    if (std::is_same<S,D>::value) {
         // They must be the same type.  Just memcpy.
         memcpy (dst, src, n*sizeof(D));
         return;
@@ -871,7 +928,7 @@ template<typename S, typename D>
 inline D
 convert_type (const S &src)
 {
-    if (is_same<S,D>::value) {
+    if (std::is_same<S,D>::value) {
         // They must be the same type.  Just return it.
         return (D)src;
     }
@@ -926,6 +983,126 @@ bit_range_convert(unsigned int in, unsigned int FROM_BITS, unsigned int TO_BITS)
         out |= in << shift;
     out |= in >> -shift;
     return out;
+}
+
+
+
+/// Append the `n` LSB bits of `val` into a bit sting `T out[]`, where the
+/// `filled` MSB bits of `*out` are already filled in. Incremennt `out` and
+/// adjust `filled` as required. Type `T` should be uint8_t, uint16_t, or
+/// uint32_t.
+template<typename T>
+inline void
+bitstring_add_n_bits (T* &out, int& filled, uint32_t val, int n)
+{
+    static_assert(std::is_same<T,uint8_t>::value ||
+                  std::is_same<T,uint16_t>::value ||
+                  std::is_same<T,uint32_t>::value,
+                  "bitstring_add_n_bits must be unsigned int 8/16/32");
+    const int Tbits = sizeof(T) * 8;
+    // val:         | don't care     | copy me    |
+    //                                <- n bits ->
+    //
+    // *out:        | don't touch |   fill in here       |
+    //               <- filled  -> <- (Tbits - filled) ->
+    while (n > 0) {
+        // Make sure val doesn't have any cruft in bits > n
+        val &= ~(0xffffffff << n);
+        // Initialize any new byte we're filling in
+        if (filled == 0)
+            *out = 0;
+        // How many bits can we fill in `*out` without having to increment
+        // to the next byte?
+        int bits_left_in_out = Tbits - filled;
+        int b = 0;   // bit pattern to 'or' with *out
+        int nb = 0;  // number of bits to add
+        if (n <= bits_left_in_out) { // can fit completely in this byte
+            b = val << (bits_left_in_out - n);
+            nb = n;
+        } else { // n > bits_left_in_out, will spill to next byte
+            b = val >> (n - bits_left_in_out);
+            nb = bits_left_in_out;
+        }
+        *out |= b;
+        filled += nb;
+        DASSERT (filled <= Tbits);
+        n -= nb;
+        if (filled == Tbits) {
+            ++out;
+            filled = 0;
+        }
+    }
+}
+
+
+
+/// Pack values from `T in[0..n-1]` (where `T` is expected to be a uint8,
+/// uint16, or uint32, into successive raw outbits-bit pieces of `out[]`,
+/// where outbits is expected to be less than the number of bits in a `T`.
+template<typename T>
+inline void
+bit_pack(cspan<T> data, void* out, int outbits)
+{
+    static_assert(std::is_same<T,uint8_t>::value ||
+                  std::is_same<T,uint16_t>::value ||
+                  std::is_same<T,uint32_t>::value,
+                  "bit_pack must be unsigned int 8/16/32");
+    unsigned char* outbuffer = (unsigned char*)out;
+    int filled = 0;
+    for (size_t i = 0, e = data.size(); i < e; ++i)
+        bitstring_add_n_bits (outbuffer, filled, data[i], outbits);
+}
+
+
+
+/// Decode n packed inbits-bits values from in[...] into normal uint8,
+/// uint16, or uint32 representation of `T out[0..n-1]`. In other words,
+/// each successive `inbits` of `in` (allowing spanning of byte boundaries)
+/// will be stored in a successive out[i].
+template<typename T>
+inline void
+bit_unpack(int n, const unsigned char* in, int inbits, T* out)
+{
+    static_assert(std::is_same<T,uint8_t>::value ||
+                  std::is_same<T,uint16_t>::value ||
+                  std::is_same<T,uint32_t>::value,
+                  "bit_unpack must be unsigned int 8/16/32");
+    DASSERT(inbits >= 1 && inbits < 32);  // surely bugs if not
+    // int highest = (1 << inbits) - 1;
+    int B = 0, b = 0;
+    // Invariant:
+    // So far, we have used in[0..B-1] and the high b bits of in[B].
+    for (int i = 0; i < n; ++i) {
+        long long val = 0;
+        int valbits   = 0;  // bits so far we've accumulated in val
+        while (valbits < inbits) {
+            // Invariant: we have already accumulated valbits of the next
+            // needed value (of a total of inbits), living in the valbits
+            // low bits of val.
+            int out_left = inbits - valbits;  // How much more we still need
+            int in_left  = 8 - b;             // Bits still available in in[B].
+            if (in_left <= out_left) {
+                // Eat the rest of this byte:
+                //   |---------|--------|
+                //        b      in_left
+                val <<= in_left;
+                val |= in[B] & ~(0xffffffff << in_left);
+                ++B;
+                b = 0;
+                valbits += in_left;
+            } else {
+                // Eat just the bits we need:
+                //   |--|---------|-----|
+                //    b  out_left  extra
+                val <<= out_left;
+                int extra = 8 - b - out_left;
+                val |= (in[B] >> extra) & ~(0xffffffff << out_left);
+                b += out_left;
+                valbits = inbits;
+            }
+        }
+        out[i] = val; //T((val * 0xff) / highest);
+    }
 }
 
 
@@ -1002,11 +1179,11 @@ private:
 template <class T=float>
 class EightBitConverter {
 public:
-    EightBitConverter () { init(); }
-    T operator() (unsigned char c) const { return val[c]; }
+    EightBitConverter () noexcept { init(); }
+    T operator() (unsigned char c) const noexcept { return val[c]; }
 private:
     T val[256];
-    void init () {
+    void init () noexcept {
         float scale = 1.0f / 255.0f;
         if (std::numeric_limits<T>::is_integer)
             scale *= (float)std::numeric_limits<T>::max();

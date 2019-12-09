@@ -1,31 +1,6 @@
-/*
-  Copyright 2017 Larry Gritz et al. All Rights Reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of the software's owners nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  (This is the Modified BSD License)
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 // clang-format off
 
@@ -188,8 +163,12 @@ OIIO_API bool decode_exif (cspan<uint8_t> exif, ImageSpec &spec);
 OIIO_API bool decode_exif (string_view exif, ImageSpec &spec);
 OIIO_API bool decode_exif (const void *exif, int length, ImageSpec &spec); // DEPRECATED (1.8)
 
-/// Construct an Exif data block from the ImageSpec, appending the Exif 
-/// data as a big blob to the char vector.
+/// Construct an Exif data block from the ImageSpec, appending the Exif
+/// data as a big blob to the char vector. Endianness can be specified with
+/// endianreq, defaulting to the native endianness of the running platform.
+OIIO_API void encode_exif (const ImageSpec &spec, std::vector<char> &blob,
+                           OIIO::endian endianreq /* = endian::native*/);
+// DEPRECATED(2.1)
 OIIO_API void encode_exif (const ImageSpec &spec, std::vector<char> &blob);
 
 /// Helper: For the given OIIO metadata attribute name, look up the Exif tag
@@ -221,7 +200,12 @@ OIIO_API void encode_iptc_iim (const ImageSpec &spec, std::vector<char> &iptc);
 /// utility function to make it easy for multiple format plugins to
 /// support embedding XMP metadata without having to duplicate
 /// functionality within each plugin.
-OIIO_API bool decode_xmp (const std::string &xml, ImageSpec &spec);
+OIIO_API bool decode_xmp (cspan<uint8_t> xml, ImageSpec &spec);
+OIIO_API bool decode_xmp (string_view xml, ImageSpec &spec);
+// DEPRECATED(2.1):
+OIIO_API bool decode_xmp (const char* xml, ImageSpec &spec);
+OIIO_API bool decode_xmp (const std::string& xml, ImageSpec &spec);
+
 
 /// Find all the relavant metadata (IPTC, Exif, etc.) in spec and
 /// assemble it into an XMP XML string.  This is a utility function to
@@ -240,7 +224,7 @@ struct TagInfo {
                                 bool swapendian, int offset_adjustment);
 
     TagInfo (int tag, const char *name, TIFFDataType type,
-             int count, HandlerFunc handler = nullptr)
+             int count, HandlerFunc handler = nullptr) noexcept
         : tifftag(tag), name(name), tifftype(type), tiffcount(count),
           handler(handler) {}
 

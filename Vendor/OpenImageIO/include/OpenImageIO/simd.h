@@ -1,30 +1,6 @@
-/*
-Copyright (c) 2014 Larry Gritz et al.
-All Rights Reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-* Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-* Neither the name of Sony Pictures Imageworks nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 /// @file  simd.h
 ///
@@ -49,13 +25,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <dassert.h>
-#include <missing_math.h>
-#include <platform.h>
-#include <ImathVec.h>
-#include <ImathMatrix.h>
 #include <algorithm>
 #include <cstring>
+
+#include <ImathVec.h>
+#include <ImathMatrix.h>
+
+#include <dassert.h>
+#include <platform.h>
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -247,9 +224,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define OIIO_SIMD_HAS_FLOAT8 1   /* DEPRECATED(1.8) */
 #define OIIO_SIMD_HAS_SIMD8 1    /* vfloat8, vint8, vbool8 defined */
 #define OIIO_SIMD_HAS_SIMD16 1   /* vfloat16, vint16, vbool16 defined */
-
-
-#include "missing_math.h"
 
 
 // Embarrassing hack: Xlib.h #define's True and False!
@@ -489,11 +463,16 @@ public:
 
     explicit vbool4 (const bool *a);
 
-    /// Construct from 4 values
+    /// Construct from 4 bool values
     vbool4 (bool a, bool b, bool c, bool d) { load (a, b, c, d); }
 
     /// Copy construct from another vbool4
     vbool4 (const vbool4 &other) { m_simd = other.m_simd; }
+
+    /// Construct from 4 int values
+    vbool4 (int a, int b, int c, int d) {
+        load (bool(a), bool(b), bool(c), bool(d));
+    }
 
     /// Construct from a SIMD int (is each element nonzero?)
     vbool4 (const vint4 &i);
@@ -623,11 +602,14 @@ public:
 
     explicit vbool8 (const bool *values);
 
-    /// Construct from 8 values
+    /// Construct from 8 bool values
     vbool8 (bool a, bool b, bool c, bool d, bool e, bool f, bool g, bool h);
 
     /// Copy construct from another vbool8
     vbool8 (const vbool8 &other) { m_simd = other.m_simd; }
+
+    /// Construct from 8 int values
+    vbool8 (int a, int b, int c, int d, int e, int f, int g, int h);
 
     /// Construct from a SIMD int (is each element nonzero?)
     vbool8 (const vint8 &i);
@@ -769,12 +751,16 @@ public:
 
     explicit vbool16 (const bool *values);
 
-    /// Construct from 16 values
+    /// Construct from 16 bool values
     vbool16 (bool v0, bool v1, bool v2, bool v3, bool v4, bool v5, bool v6, bool v7,
             bool v8, bool v9, bool v10, bool v11, bool v12, bool v13, bool v14, bool v15);
 
     /// Copy construct from another vbool16
     vbool16 (const vbool16 &other) { m_simd = other.m_simd; }
+
+    /// Construct from 16 int values
+    vbool16 (int v0, int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+             int v8, int v9, int v10, int v11, int v12, int v13, int v14, int v15);
 
     /// Construct from a SIMD int (is each element nonzero?)
     vbool16 (const vint16 &i);
@@ -1148,7 +1134,9 @@ vint4 abs (const vint4& a);
 vint4 min (const vint4& a, const vint4& b);
 vint4 max (const vint4& a, const vint4& b);
 
-// Circular bit rotate by k bits, for N values at once.
+/// Circular bit rotate by s bits, for N values at once.
+vint4 rotl (const vint4& x, const int s);
+// DEPRECATED(2.1)
 vint4 rotl32 (const vint4& x, const unsigned int k);
 
 /// andnot(a,b) returns ((~a) & b)
@@ -1446,7 +1434,9 @@ vint8 abs (const vint8& a);
 vint8 min (const vint8& a, const vint8& b);
 vint8 max (const vint8& a, const vint8& b);
 
-// Circular bit rotate by k bits, for N values at once.
+/// Circular bit rotate by s bits, for N values at once.
+vint8 rotl (const vint8& x, const int s);
+// DEPRECATED(2.1)
 vint8 rotl32 (const vint8& x, const unsigned int k);
 
 /// andnot(a,b) returns ((~a) & b)
@@ -1751,7 +1741,9 @@ vint16 abs (const vint16& a);
 vint16 min (const vint16& a, const vint16& b);
 vint16 max (const vint16& a, const vint16& b);
 
-// Circular bit rotate by k bits, for N values at once.
+/// Circular bit rotate by s bits, for N values at once.
+vint16 rotl (const vint16& x, const int s);
+// DEPRECATED(2.1)
 vint16 rotl32 (const vint16& x, const unsigned int k);
 
 /// andnot(a,b) returns ((~a) & b)
@@ -3440,6 +3432,12 @@ OIIO_FORCEINLINE vbool8::vbool8 (bool a, bool b, bool c, bool d,
     load (a, b, c, d, e, f, g, h);
 }
 
+OIIO_FORCEINLINE vbool8::vbool8 (int a, int b, int c, int d,
+                                 int e, int f, int g, int h) {
+    load (bool(a), bool(b), bool(c), bool(d),
+          bool(e), bool(f), bool(g), bool(h));
+}
+
 OIIO_FORCEINLINE vbool8::vbool8 (const bool *a) {
     load (a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 }
@@ -3747,6 +3745,16 @@ OIIO_FORCEINLINE vbool16::vbool16 (bool v0, bool v1, bool v2, bool v3,
                                  bool v8, bool v9, bool v10, bool v11,
                                  bool v12, bool v13, bool v14, bool v15) {
     load (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+}
+
+OIIO_FORCEINLINE vbool16::vbool16 (int v0, int v1, int v2, int v3,
+                                   int v4, int v5, int v6, int v7,
+                                   int v8, int v9, int v10, int v11,
+                                   int v12, int v13, int v14, int v15) {
+    load (bool(v0), bool(v1), bool(v2), bool(v3),
+          bool(v4), bool(v5), bool(v6), bool(v7),
+          bool(v8), bool(v9), bool(v10), bool(v11),
+          bool(v12), bool(v13), bool(v14), bool(v15));
 }
 
 OIIO_FORCEINLINE vbool16::vbool16 (const vbool8& a, const vbool8& b) {
@@ -4709,8 +4717,21 @@ OIIO_FORCEINLINE vint4 max (const vint4& a, const vint4& b) {
 }
 
 
+OIIO_FORCEINLINE vint4 rotl(const vint4& x, int s) {
+#if OIIO_SIMD_AVX >= 512 && OIIO_AVX512VL_ENABLED
+    // return _mm_rol_epi32 (x, s);
+    // We want to do this ^^^ but this intrinsic only takes an *immediate*
+    // argument for s, and there isn't a way to express in C++ that a
+    // parameter must be an immediate/literal value from the caller.
+    return (x<<s) | srl(x,32-s);
+#else
+    return (x<<s) | srl(x,32-s);
+#endif
+}
+
+// DEPRECATED (2.1)
 OIIO_FORCEINLINE vint4 rotl32 (const vint4& x, const unsigned int k) {
-    return (x<<k) | srl(x,32-k);
+    return rotl(x, k);
 }
 
 
@@ -5493,8 +5514,21 @@ OIIO_FORCEINLINE vint8 max (const vint8& a, const vint8& b) {
 }
 
 
+OIIO_FORCEINLINE vint8 rotl(const vint8& x, int s) {
+#if OIIO_SIMD_AVX >= 512 && OIIO_AVX512VL_ENABLED
+    // return _mm256_rol_epi32 (x, s);
+    // We want to do this ^^^ but this intrinsic only takes an *immediate*
+    // argument for s, and there isn't a way to express in C++ that a
+    // parameter must be an immediate/literal value from the caller.
+    return (x<<s) | srl(x,32-s);
+#else
+    return (x<<s) | srl(x,32-s);
+#endif
+}
+
+// DEPRECATED (2.1)
 OIIO_FORCEINLINE vint8 rotl32 (const vint8& x, const unsigned int k) {
-    return (x<<k) | srl(x,32-k);
+    return rotl(x, k);
 }
 
 
@@ -6282,8 +6316,21 @@ OIIO_FORCEINLINE vint16 max (const vint16& a, const vint16& b) {
 }
 
 
+OIIO_FORCEINLINE vint16 rotl(const vint16& x, int s) {
+#if OIIO_SIMD_AVX >= 512 && OIIO_AVX512VL_ENABLED
+    // return _mm512_rol_epi32 (x, s);
+    // We want to do this ^^^ but this intrinsic only takes an *immediate*
+    // argument for s, and there isn't a way to express in C++ that a
+    // parameter must be an immediate/literal value from the caller.
+    return (x<<s) | srl(x,32-s);
+#else
+    return (x<<s) | srl(x,32-s);
+#endif
+}
+
+// DEPRECATED (2.1)
 OIIO_FORCEINLINE vint16 rotl32 (const vint16& x, const unsigned int k) {
-    return (x<<k) | srl(x,32-k);
+    return rotl(x, k);
 }
 
 

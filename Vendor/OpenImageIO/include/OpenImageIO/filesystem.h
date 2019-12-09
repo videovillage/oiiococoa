@@ -1,32 +1,6 @@
-/*
-  Copyright 2008 Larry Gritz and the other authors and contributors.
-  All Rights Reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of the software's owners nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  (This is the Modified BSD License)
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 // clang-format off
 
@@ -57,7 +31,7 @@
 
 #if defined(_WIN32) && defined(__GLIBCXX__)
 #    define OIIO_FILESYSTEM_USE_STDIO_FILEBUF 1
-#    include <fstream_mingw.h>
+#    include <OpenImageIO/fstream_mingw.h>
 #endif
 
 
@@ -90,23 +64,23 @@ namespace Filesystem {
 
 /// Return the filename (excluding any directories, but including the
 /// file extension, if any) of a filepath.
-OIIO_API std::string filename (const std::string &filepath);
+OIIO_API std::string filename (const std::string &filepath) noexcept;
 
 /// Return the file extension (including the last '.' if
 /// include_dot=true) of a filename or filepath.
 OIIO_API std::string extension (const std::string &filepath,
-                                bool include_dot=true);
+                                bool include_dot=true) noexcept;
 
 /// Return all but the last part of the path, for example,
 /// parent_path("foo/bar") returns "foo", and parent_path("foo")
 /// returns "".
-OIIO_API std::string parent_path (const std::string &filepath);
+OIIO_API std::string parent_path (const std::string &filepath) noexcept;
 
 /// Replace the file extension of a filename or filepath. Does not alter
 /// filepath, just returns a new string.  Note that the new_extension
 /// should contain a leading '.' dot.
 OIIO_API std::string replace_extension (const std::string &filepath, 
-                                        const std::string &new_extension);
+                                        const std::string &new_extension) noexcept;
 
 /// Turn a searchpath (multiple directory paths separated by ':' or ';')
 /// into a vector<string> containing each individual directory.  If
@@ -145,21 +119,21 @@ OIIO_API bool get_directory_entries (const std::string &dirname,
 
 /// Return true if the path is an "absolute" (not relative) path.
 /// If 'dot_is_absolute' is true, consider "./foo" absolute.
-OIIO_API bool path_is_absolute (const std::string &path,
+OIIO_API bool path_is_absolute (string_view path,
                                 bool dot_is_absolute=false);
 
 /// Return true if the file exists.
 ///
-OIIO_API bool exists (const std::string &path);
+OIIO_API bool exists (string_view path) noexcept;
 
 
 /// Return true if the file exists and is a directory.
 ///
-OIIO_API bool is_directory (const std::string &path);
+OIIO_API bool is_directory (string_view path) noexcept;
 
 /// Return true if the file exists and is a regular file.
 ///
-OIIO_API bool is_regular (const std::string &path);
+OIIO_API bool is_regular (string_view path) noexcept;
 
 /// Create the directory. Return true for success, false for failure and
 /// place an error message in err.
@@ -215,6 +189,12 @@ OIIO_API std::string unique_path (string_view model="%%%%-%%%%-%%%%-%%%%");
 ///
 OIIO_API FILE *fopen (string_view path, string_view mode);
 
+/// Version of fseek that works with 64 bit offsets on all systems.
+OIIO_API int fseek (FILE *file, int64_t offset, int whence);
+
+/// Version of ftell that works with 64 bit offsets on all systems.
+OIIO_API int64_t ftell (FILE *file);
+
 /// Return the current (".") directory path.
 ///
 OIIO_API std::string current_path ();
@@ -244,15 +224,15 @@ OIIO_API size_t read_bytes (string_view path, void *buffer, size_t n,
 
 /// Get last modified time of file
 ///
-OIIO_API std::time_t last_write_time (const std::string& path);
+OIIO_API std::time_t last_write_time (string_view path) noexcept;
 
 /// Set last modified time on file
 ///
-OIIO_API void last_write_time (const std::string& path, std::time_t time);
+OIIO_API void last_write_time (string_view path, std::time_t time) noexcept;
 
 /// Return the size of the file (in bytes), or uint64_t(-1) if there is any
 /// error.
-OIIO_API uint64_t file_size (string_view path);
+OIIO_API uint64_t file_size (string_view path) noexcept;
 
 /// Ensure command line arguments are UTF-8 everywhere
 ///

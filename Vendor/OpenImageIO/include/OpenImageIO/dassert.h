@@ -1,89 +1,91 @@
-/*
-  Copyright 2008 Larry Gritz and the other authors and contributors.
-  All Rights Reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of the software's owners nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  (This is the Modified BSD License)
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 
 #pragma once
 
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 
 #include <platform.h>
 
 
-/// \file
-///
-/// Handy macros for debugging assertions.
-///
-///  - ASSERT (if not already defined) is defined to check if a condition
-///            is met, and if not, calls ABORT with an error message
-///            indicating the module and line where it occurred.
-///  - ASSERT_MSG: like ASSERT, but takes printf-like extra arguments
-///  - DASSERT is the same as ASSERT when NDEBUG is not defined but a
-///            no-op when not in debug mode.
-///  - DASSERT_MSG: like DASSERT, but takes printf-like extra arguments
-///  - OIIO_STATIC_ASSERT(cond) : static assertion
-///  - OIIO_STATIC_ASSERT_MSG(cond,msg) : static assertion + message
-///
-/// The presumed usage is that you want ASSERT for dire conditions that
-/// must be checked at runtime even in an optimized build.  DASSERT is
-/// for checks we should do for debugging, but that we don't want to
-/// bother with in a shipping optimized build.
-///
-/// In both cases, these are NOT a substitute for actual error checking
-/// and recovery!  Never ASSERT or DASSERT to check invalid user input,
-/// for example.  They should be used only to verify that there aren't
-/// errors in the *code* that are so severe that there is no point even
-/// trying to recover gracefully.
+/// OIIO_ABORT_IF_DEBUG is a call to abort() for debug builds, but does
+/// nothing for release builds.
+#ifndef NDEBUG
+#    define OIIO_ABORT_IF_DEBUG abort()
+#else
+#    define OIIO_ABORT_IF_DEBUG (void)0
+#endif
 
 
-/// ASSERT(condition) checks if the condition is met, and if not, prints
-/// an error message indicating the module and line where the error
-/// occurred and then aborts.
+/// OIIO_ASSERT(condition) checks if the condition is met, and if not,
+/// prints an error message indicating the module and line where the error
+/// occurred, and additionally aborts if in debug mode. When in release
+/// mode, it prints the error message if the condition fails, but does not
+/// abort.
+///
+/// OIIO_ASSERT_MSG(condition,msg,...) lets you add formatted output (a la
+/// printf) to the failure message.
+#define OIIO_ASSERT(x)                                                         \
+    (OIIO_LIKELY(x)                                                            \
+         ? ((void)0)                                                           \
+         : (std::fprintf(stderr, "%s:%u: %s: Assertion '%s' failed.\n",        \
+                         __FILE__, __LINE__, OIIO_PRETTY_FUNCTION, #x),        \
+            OIIO_ABORT_IF_DEBUG))
+#define OIIO_ASSERT_MSG(x, msg, ...)                                            \
+    (OIIO_LIKELY(x)                                                             \
+         ? ((void)0)                                                            \
+         : (std::fprintf(stderr, "%s:%u: %s: Assertion '%s' failed: " msg "\n", \
+                         __FILE__, __LINE__, OIIO_PRETTY_FUNCTION, #x,          \
+                         __VA_ARGS__),                                          \
+            OIIO_ABORT_IF_DEBUG))
 
+
+/// OIIO_DASSERT and OIIO_DASSERT_MSG are the same as OIIO_ASSERT for debug
+/// builds (test, print error, abort), but do nothing at all in release
+/// builds (not even perform the test). This is similar to C/C++ assert(),
+/// but gives us flexibility in improving our error messages. It is also ok
+/// to use regular assert() for this purpose if you need to eliminate the
+/// dependency on this header from a particular place (and don't mind that
+/// assert won't format identically on all platforms).
+#ifndef NDEBUG
+#    define OIIO_DASSERT OIIO_ASSERT
+#    define OIIO_DASSERT_MSG OIIO_ASSERT_MSG
+#else
+#    define OIIO_DASSERT(x) ((void)sizeof(x))          /*NOLINT*/
+#    define OIIO_DASSERT_MSG(x, ...) ((void)sizeof(x)) /*NOLINT*/
+#endif
+
+
+/// ASSERT and ASSERT_MSG (and, ugh, ASSERTMSG) are deprecated assertion
+/// macros. They are deprecated for two reasons: (1) terrible names pollute
+/// the global namespace and might conflict with other packages; and (2)
+/// the fully unconditional nature of aborting even for release builds is
+/// unkind to applications. Consider these all to be deprecated and avoid
+/// using these macros.
+///
+/// DASSERT and DASSERT_MSG also are considered deprecated for the namespace
+/// reasons.
 #ifndef ASSERT
 #    define ASSERT(x)                                                          \
         (OIIO_LIKELY(x)                                                        \
              ? ((void)0)                                                       \
-             : (std::fprintf(stderr, "%s:%u: failed assertion '%s'\n",         \
-                             __FILE__, __LINE__, #x),                          \
+             : (std::fprintf(stderr, "%s:%u: %s: Assertion '%s' failed.\n",    \
+                             __FILE__, __LINE__, OIIO_PRETTY_FUNCTION, #x),    \
                 abort()))
 #endif
 
-/// ASSERT_MSG(condition,msg,...) is like ASSERT, but lets you add
-/// formatted output (a la printf) to the failure message.
 #ifndef ASSERT_MSG
-#    define ASSERT_MSG(x, msg, ...)                                             \
-        (OIIO_LIKELY(x)                                                         \
-             ? ((void)0)                                                        \
-             : (std::fprintf(stderr, "%s:%u: failed assertion '%s': " msg "\n", \
-                             __FILE__, __LINE__, #x, __VA_ARGS__),              \
+#    define ASSERT_MSG(x, msg, ...)                                            \
+        (OIIO_LIKELY(x)                                                        \
+             ? ((void)0)                                                       \
+             : (std::fprintf(stderr,                                           \
+                             "%s:%u: %s: Assertion '%s' failed: " msg "\n",    \
+                             __FILE__, __LINE__, OIIO_PRETTY_FUNCTION, #x,     \
+                             __VA_ARGS__),                                     \
                 abort()))
 #endif
 
@@ -92,11 +94,10 @@
 #endif
 
 
-/// DASSERT(condition) is just like ASSERT, except that it only is
-/// functional in DEBUG mode, but does nothing when in a non-DEBUG
-/// (optimized, shipping) build.
+/// DASSERT(condition) is just an alias for the usual assert() macro.
+/// It does nothing when in a non-DEBUG (optimized, shipping) build.
 #ifndef NDEBUG
-#    define DASSERT(x) ASSERT(x)
+#    define DASSERT(x) assert(x)
 #else
 /* DASSERT does nothing when not debugging; sizeof trick prevents warnings */
 #    define DASSERT(x) ((void)sizeof(x)) /*NOLINT*/
@@ -117,14 +118,13 @@
 #endif
 
 
-
-/// Define OIIO_STATIC_ASSERT and OIIO_STATIC_ASSERT_MSG as wrappers around
-/// static_assert and static_assert_msg, with appropriate fallbacks for
-/// older C++ standards.
+/// Define OIIO_STATIC_ASSERT(cond) as a wrapper around static_assert(cond),
+/// with appropriate fallbacks for older C++ standards.
 #if (__cplusplus >= 201700L) /* FIXME - guess the token, fix when C++17 */
 #    define OIIO_STATIC_ASSERT(cond) static_assert(cond)
-#    define OIIO_STATIC_ASSERT_MSG(cond, msg) static_assert(cond, msg)
 #else /* (__cplusplus >= 201103L) */
 #    define OIIO_STATIC_ASSERT(cond) static_assert(cond, "")
-#    define OIIO_STATIC_ASSERT_MSG(cond, msg) static_assert(cond, msg)
 #endif
+
+/// Deprecated synonym:
+#define OIIO_STATIC_ASSERT_MSG(cond, msg) static_assert(cond, msg)

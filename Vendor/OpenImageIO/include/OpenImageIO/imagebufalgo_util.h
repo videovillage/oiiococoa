@@ -1,32 +1,6 @@
-/*
-  Copyright 2013 Larry Gritz and the other authors and contributors.
-  All Rights Reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of the software's owners nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  (This is the Modified BSD License)
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 // clang-format off
 
@@ -181,6 +155,7 @@ enum IBAprep_flags {
     IBAprep_DST_FLOAT_PIXELS = 1<<13,   // If dst is uninit, make it float
     IBAprep_MINIMIZE_NCHANNELS = 1<<14, // Multi-inputs get min(nchannels)
     IBAprep_REQUIRE_MATCHING_CHANNELS = 1<<15, // Channel names must match
+    IBAprep_MERGE_METADATA = 1 << 16,   // Merge all inputs' metadata
 };
 
 
@@ -228,7 +203,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
     case TypeDesc::DOUBLE:                                              \
         ret = func<double> (R, __VA_ARGS__); break;                     \
     default:                                                            \
-        (R).error ("%s: Unsupported pixel data format '%s'", name, type); \
+        (R).errorf("%s: Unsupported pixel data format '%s'", name, type); \
         ret = false;                                                    \
     }
 
@@ -254,7 +229,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
     case TypeDesc::DOUBLE :                                             \
         ret = func<Rtype,double> (R, __VA_ARGS__); break;               \
     default:                                                            \
-        (R).error ("%s: Unsupported pixel data format '%s'", name, Atype); \
+        (R).errorf("%s: Unsupported pixel data format '%s'", name, Atype); \
         ret = false;                                                    \
     }
 
@@ -289,7 +264,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
         OIIO_DISPATCH_TYPES2_HELP(ret,name,func,double,Atype,R,__VA_ARGS__);\
         break;                                                          \
     default:                                                            \
-        (R).error ("%s: Unsupported pixel data format '%s'", name, Rtype); \
+        (R).errorf("%s: Unsupported pixel data format '%s'", name, Rtype); \
         ret = false;                                                    \
     }
 
@@ -315,7 +290,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
         if (ret)                                                        \
             (R).copy (Rtmp);                                            \
         else                                                            \
-            (R).error ("%s", Rtmp.geterror());                          \
+            (R).errorf("%s", Rtmp.geterror());                          \
         }                                                               \
     }
 
@@ -364,7 +339,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
         case TypeDesc::DOUBLE :                                         \
             ret = func<double,double> (R, A, __VA_ARGS__); break;       \
         default:                                                        \
-            (R).error ("%s: Unsupported pixel data format '%s'", name, Atype); \
+            (R).errorf("%s: Unsupported pixel data format '%s'", name, Atype); \
             ret = false;                                                \
         }                                                               \
     } else {                                                            \
@@ -391,7 +366,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
             if (ret)                                                    \
                 (R).copy (Rtmp);                                        \
             else                                                        \
-                (R).error ("%s", Rtmp.geterror());                      \
+                (R).errorf("%s", Rtmp.geterror());                      \
             }                                                           \
         }                                                               \
     }
@@ -443,7 +418,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
         if (ret)                                                        \
             (R).copy (Rtmp);                                            \
         else                                                            \
-            (R).error ("%s", Rtmp.geterror());                          \
+            (R).errorf("%s", Rtmp.geterror());                          \
         }                                                               \
     }
 
@@ -496,7 +471,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
         case TypeDesc::DOUBLE :                                         \
             ret = func<double,double,double> (R, A, B, __VA_ARGS__); break; \
         default:                                                        \
-            (R).error ("%s: Unsupported pixel data format '%s'", name, Atype); \
+            (R).errorf("%s: Unsupported pixel data format '%s'", name, Atype); \
             ret = false;                                                \
         }                                                               \
     } else {                                                            \
@@ -530,7 +505,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
 #define IBA_FIX_PERCHAN_LEN(av,len,missing,zdef)                        \
     if (av.size() < len) {                                              \
         int nc = len;                                                   \
-        float *vals = ALLOCA (float, nc);                               \
+        float *vals = OIIO_ALLOCA(float, nc);                           \
         for (int i = 0;  i < nc;  ++i)                                  \
             vals[i] = i < av.size() ? av[i] : (i ? vals[i-1] : zdef);   \
         av = cspan<float>(vals, nc);                                    \

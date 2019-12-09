@@ -1,32 +1,6 @@
-/*
-Copyright 2012 Larry Gritz and the other authors and contributors.
-All Rights Reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-* Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-* Neither the name of the software's owners nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-(This is the Modified BSD License)
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 
 #pragma once
@@ -290,11 +264,12 @@ public:
     /// lock.
     iterator find(const KEY& key, bool do_lock = true)
     {
-        size_t b = whichbin(key);
+        size_t hash = m_hash(key);
+        size_t b    = whichbin(hash);
         Bin& bin(m_bins[b]);
         if (do_lock)
             bin.lock();
-        typename BinMap_t::iterator it = bin.map.find(key);
+        typename BinMap_t::iterator it = bin.map.find(key, hash);
         if (it == bin.map.end()) {
             // not found -- return the 'end' iterator
             if (do_lock)
@@ -316,11 +291,12 @@ public:
     /// already has the bin locked, so do no locking or unlocking.
     bool retrieve(const KEY& key, VALUE& value, bool do_lock = true)
     {
-        size_t b = whichbin(key);
+        size_t hash = m_hash(key);
+        size_t b    = whichbin(hash);
         Bin& bin(m_bins[b]);
         if (do_lock)
             bin.lock();
-        typename BinMap_t::iterator it = bin.map.find(key);
+        typename BinMap_t::iterator it = bin.map.find(key, hash);
         bool found                     = (it != bin.map.end());
         if (found)
             value = it->second;
@@ -336,7 +312,8 @@ public:
     /// has the bin locked, so do no locking or unlocking.
     bool insert(const KEY& key, const VALUE& value, bool do_lock = true)
     {
-        size_t b = whichbin(key);
+        size_t hash = m_hash(key);
+        size_t b    = whichbin(hash);
         Bin& bin(m_bins[b]);
         if (do_lock)
             bin.lock();
@@ -356,11 +333,12 @@ public:
     /// has the bin locked, so do no locking or unlocking.
     void erase(const KEY& key, bool do_lock = true)
     {
-        size_t b = whichbin(key);
+        size_t hash = m_hash(key);
+        size_t b    = whichbin(hash);
         Bin& bin(m_bins[b]);
         if (do_lock)
             bin.lock();
-        bin.map.erase(key);
+        bin.map.erase(key, hash);
         if (do_lock)
             bin.unlock();
     }
@@ -376,7 +354,8 @@ public:
     /// number.
     size_t lock_bin(const KEY& key)
     {
-        size_t b = whichbin(key);
+        size_t hash = m_hash(key);
+        size_t b    = whichbin(hash);
         m_bins[b].lock();
         return b;
     }
@@ -434,23 +413,19 @@ private:
     }
 
     // Which bin will this key always appear in?
-    size_t whichbin(const KEY& key)
+    size_t whichbin(size_t hash)
     {
         constexpr int LOG2_BINS = log2(BINS);
-        constexpr int BIN_SHIFT = 32 - LOG2_BINS;
+        constexpr int BIN_SHIFT = 8 * sizeof(size_t) - LOG2_BINS;
 
         static_assert(1 << LOG2_BINS == BINS,
                       "Number of bins must be a power of two");
-        static_assert(~uint32_t(0) >> BIN_SHIFT == (BINS - 1), "Hash overflow");
+        static_assert(~size_t(0) >> BIN_SHIFT == (BINS - 1), "Hash overflow");
 
         // Use the high order bits of the hash to index the bin. We assume that the
         // low-order bits of the hash will directly be used to index the hash table,
         // so using those would lead to collisions.
-        // To avoid mixups between size_t among platforms, we always cast to a 32-bit
-        // integer first. Its quite possible the hash function only gave us a uint32_t
-        // even though the API technically wants a size_t.
-        size_t hash  = m_hash(key);
-        unsigned bin = uint32_t(hash) >> BIN_SHIFT;
+        size_t bin = hash >> BIN_SHIFT;
         DASSERT(bin < BINS);
         return bin;
     }

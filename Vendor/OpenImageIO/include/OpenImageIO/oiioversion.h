@@ -1,32 +1,6 @@
-/*
-  Copyright 2008 Larry Gritz and the other authors and contributors.
-  All Rights Reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of the software's owners nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  (This is the Modified BSD License)
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 
 #ifndef OPENIMAGEIO_VERSION_H
@@ -35,8 +9,8 @@
 
 // Versioning of the OpenImageIO software
 #define OIIO_VERSION_MAJOR 2
-#define OIIO_VERSION_MINOR 0
-#define OIIO_VERSION_PATCH 11
+#define OIIO_VERSION_MINOR 1
+#define OIIO_VERSION_PATCH 9
 #define OIIO_VERSION_RELEASE_TYPE 
 
 #define OIIO_VERSION (10000 * OIIO_VERSION_MAJOR + \
@@ -56,13 +30,13 @@
 
 
 // Establish the name spaces
-namespace OpenImageIO_v2_0 { }
-namespace OIIO = OpenImageIO_v2_0;
+namespace OpenImageIO_v2_1 { }
+namespace OIIO = OpenImageIO_v2_1;
 
 // Macros to use in each file to enter and exit the right name spaces.
-#define OIIO_NAMESPACE OpenImageIO_v2_0
-#define OIIO_NAMESPACE_STRING "OpenImageIO_v2_0"
-#define OIIO_NAMESPACE_BEGIN namespace OpenImageIO_v2_0 {
+#define OIIO_NAMESPACE OpenImageIO_v2_1
+#define OIIO_NAMESPACE_STRING "OpenImageIO_v2_1"
+#define OIIO_NAMESPACE_BEGIN namespace OpenImageIO_v2_1 {
 #define OIIO_NAMESPACE_END }
 #define OIIO_NAMESPACE_USING using namespace OIIO;
 
@@ -115,13 +89,14 @@ namespace OIIO = OpenImageIO_v2_0;
 #define OIIO_PLUGIN_EXPORTS_END }
 #endif
 
-#define OIIO_BUILD_CPP11 1 /* Always build for C++ >= 11 */
-// OIIO_BUILD_CPP14 will be 1 if this OIIO was built using C++14 or higher
-#define OIIO_BUILD_CPP14 0
-// OIIO_BUILD_CPP17 will be 1 if this OIIO was built using C++17 or higher
-#define OIIO_BUILD_CPP17 0
-// OIIO_BUILD_CPP20 will be 1 if this OIIO was built using C++20 or higher
-#define OIIO_BUILD_CPP20 0
+// Which CPP standard (11, 14, etc.) was this copy of OIIO *built* with?
+#define OIIO_BUILD_CPP 11
+
+// DEPRECATED(2.1): old macros separately giving compatibility.
+#define OIIO_BUILD_CPP11 (11 >= 11)
+#define OIIO_BUILD_CPP14 (11 >= 14)
+#define OIIO_BUILD_CPP17 (11 >= 17)
+#define OIIO_BUILD_CPP20 (11 >= 20)
 
 #endif
 

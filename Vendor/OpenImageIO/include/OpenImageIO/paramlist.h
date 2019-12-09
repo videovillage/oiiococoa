@@ -1,32 +1,6 @@
-/*
-  Copyright 2008 Larry Gritz and the other authors and contributors.
-  All Rights Reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of the software's owners nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  (This is the Modified BSD License)
-*/
+// Copyright 2008-present Contributors to the OpenImageIO project.
+// SPDX-License-Identifier: BSD-3-Clause
+// https://github.com/OpenImageIO/oiio/blob/master/LICENSE.md
 
 
 /// \file
@@ -40,6 +14,7 @@
 
 #include <vector>
 
+#include <attrdelegate.h>
 #include <export.h>
 #include <typedesc.h>
 #include <ustring.h>
@@ -65,40 +40,40 @@ public:
         INTERP_VERTEX   = 3   ///< Interpolated like vertices
     };
 
-    ParamValue() { m_data.ptr = nullptr; }
+    ParamValue() noexcept { m_data.ptr = nullptr; }
     ParamValue(const ustring& _name, TypeDesc _type, int _nvalues,
-               const void* _value, bool _copy = true)
+               const void* _value, bool _copy = true) noexcept
     {
         init_noclear(_name, _type, _nvalues, _value, _copy);
     }
     ParamValue(const ustring& _name, TypeDesc _type, int _nvalues,
-               Interp _interp, const void* _value, bool _copy = true)
+               Interp _interp, const void* _value, bool _copy = true) noexcept
     {
         init_noclear(_name, _type, _nvalues, _interp, _value, _copy);
     }
     ParamValue(string_view _name, TypeDesc _type, int _nvalues,
-               const void* _value, bool _copy = true)
+               const void* _value, bool _copy = true) noexcept
     {
         init_noclear(ustring(_name), _type, _nvalues, _value, _copy);
     }
     ParamValue(string_view _name, TypeDesc _type, int _nvalues, Interp _interp,
-               const void* _value, bool _copy = true)
+               const void* _value, bool _copy = true) noexcept
     {
         init_noclear(ustring(_name), _type, _nvalues, _interp, _value, _copy);
     }
-    ParamValue(string_view _name, int value)
+    ParamValue(string_view _name, int value) noexcept
     {
         init_noclear(ustring(_name), TypeDesc::INT, 1, &value);
     }
-    ParamValue(string_view _name, float value)
+    ParamValue(string_view _name, float value) noexcept
     {
         init_noclear(ustring(_name), TypeDesc::FLOAT, 1, &value);
     }
-    ParamValue(string_view _name, ustring value)
+    ParamValue(string_view _name, ustring value) noexcept
     {
         init_noclear(ustring(_name), TypeDesc::STRING, 1, &value);
     }
-    ParamValue(string_view _name, string_view value)
+    ParamValue(string_view _name, string_view value) noexcept
     {
         ustring u(value);
         init_noclear(ustring(_name), TypeDesc::STRING, 1, &u);
@@ -108,19 +83,19 @@ public:
     ParamValue(string_view _name, TypeDesc type, string_view value);
 
     // Copy constructor
-    ParamValue(const ParamValue& p)
+    ParamValue(const ParamValue& p) noexcept
     {
         init_noclear(p.name(), p.type(), p.nvalues(), p.interp(), p.data(),
                      true);
     }
-    ParamValue(const ParamValue& p, bool _copy)
+    ParamValue(const ParamValue& p, bool _copy) noexcept
     {
         init_noclear(p.name(), p.type(), p.nvalues(), p.interp(), p.data(),
                      _copy);
     }
 
     // Rvalue (move) constructor
-    ParamValue(ParamValue&& p)
+    ParamValue(ParamValue&& p) noexcept
     {
         init_noclear(p.name(), p.type(), p.nvalues(), p.interp(), p.data(),
                      false);
@@ -129,39 +104,39 @@ public:
         p.m_data.ptr = nullptr;  // make sure the old one won't free
     }
 
-    ~ParamValue() { clear_value(); }
+    ~ParamValue() noexcept { clear_value(); }
 
     void init(ustring _name, TypeDesc _type, int _nvalues, Interp _interp,
-              const void* _value, bool _copy = true)
+              const void* _value, bool _copy = true) noexcept
     {
         clear_value();
         init_noclear(_name, _type, _nvalues, _interp, _value, _copy);
     }
     void init(ustring _name, TypeDesc _type, int _nvalues, const void* _value,
-              bool _copy = true)
+              bool _copy = true) noexcept
     {
         init(_name, _type, _nvalues, INTERP_CONSTANT, _value, _copy);
     }
     void init(string_view _name, TypeDesc _type, int _nvalues,
-              const void* _value, bool _copy = true)
+              const void* _value, bool _copy = true) noexcept
     {
         init(ustring(_name), _type, _nvalues, _value, _copy);
     }
     void init(string_view _name, TypeDesc _type, int _nvalues, Interp _interp,
-              const void* _value, bool _copy = true)
+              const void* _value, bool _copy = true) noexcept
     {
         init(ustring(_name), _type, _nvalues, _interp, _value, _copy);
     }
 
     // Assignment
-    const ParamValue& operator=(const ParamValue& p)
+    const ParamValue& operator=(const ParamValue& p) noexcept
     {
         if (this != &p)
             init(p.name(), p.type(), p.nvalues(), p.interp(), p.data(),
                  p.m_copy);
         return *this;
     }
-    const ParamValue& operator=(ParamValue&& p)
+    const ParamValue& operator=(ParamValue&& p) noexcept
     {
         if (this != &p) {
             init(p.name(), p.type(), p.nvalues(), p.interp(), p.data(), false);
@@ -175,17 +150,23 @@ public:
     // FIXME -- some time in the future (after more cleanup), we should make
     // name() return a string_view, and use uname() for the rare time when
     // the caller truly requires the ustring.
-    const ustring& name() const { return m_name; }
-    const ustring& uname() const { return m_name; }
-    TypeDesc type() const { return m_type; }
-    int nvalues() const { return m_nvalues; }
-    const void* data() const { return m_nonlocal ? m_data.ptr : &m_data; }
-    int datasize() const { return m_nvalues * static_cast<int>(m_type.size()); }
-    Interp interp() const { return (Interp)m_interp; }
-    void interp(Interp i) { m_interp = (unsigned char)i; }
-    bool is_nonlocal() const { return m_nonlocal; }
+    const ustring& name() const noexcept { return m_name; }
+    const ustring& uname() const noexcept { return m_name; }
+    TypeDesc type() const noexcept { return m_type; }
+    int nvalues() const noexcept { return m_nvalues; }
+    const void* data() const noexcept
+    {
+        return m_nonlocal ? m_data.ptr : &m_data;
+    }
+    int datasize() const noexcept
+    {
+        return m_nvalues * static_cast<int>(m_type.size());
+    }
+    Interp interp() const noexcept { return (Interp)m_interp; }
+    void interp(Interp i) noexcept { m_interp = (unsigned char)i; }
+    bool is_nonlocal() const noexcept { return m_nonlocal; }
 
-    friend void swap(ParamValue& a, ParamValue& b)
+    friend void swap(ParamValue& a, ParamValue& b) noexcept
     {
         auto tmp = std::move(a);
         a        = std::move(b);
@@ -196,7 +177,7 @@ public:
     // be really sure you are asking for the right type. Note that for
     // "string" data, you can get<ustring> or get<char*>, but it's not
     // a std::string.
-    template<typename T> const T& get(int i = 0) const
+    template<typename T> const T& get(int i = 0) const noexcept
     {
         return (reinterpret_cast<const T*>(data()))[i];
     }
@@ -221,10 +202,12 @@ public:
     /// is returned as one string that's a comma-separated list of double-
     /// quoted, escaped strings.
     std::string get_string(int maxsize = 64) const;
+    std::string get_string_indexed(int index) const;
     /// Convert any type to a ustring value. An optional maximum number of
     /// elements is also passed. Same behavior as get_string, but returning
     /// a ustring.
     ustring get_ustring(int maxsize = 64) const;
+    ustring get_ustring_indexed(int index) const;
 
 private:
     ustring m_name;   ///< data name
@@ -239,10 +222,11 @@ private:
     bool m_nonlocal        = false;
 
     void init_noclear(ustring _name, TypeDesc _type, int _nvalues,
-                      const void* _value, bool _copy = true);
+                      const void* _value, bool _copy = true) noexcept;
     void init_noclear(ustring _name, TypeDesc _type, int _nvalues,
-                      Interp _interp, const void* _value, bool _copy = true);
-    void clear_value();
+                      Interp _interp, const void* _value,
+                      bool _copy = true) noexcept;
+    void clear_value() noexcept;
 };
 
 
@@ -304,18 +288,86 @@ public:
 
     /// Does the list contain the named attribute?
     bool contains(string_view name, TypeDesc type = TypeDesc::UNKNOWN,
-                  bool casesensitive = true);
+                  bool casesensitive = true) const;
 
     // Add the param to the list, replacing in-place any existing one with
     // the same name.
     void add_or_replace(const ParamValue& pv, bool casesensitive = true);
     void add_or_replace(ParamValue&& pv, bool casesensitive = true);
 
-    // Sort alphabetically, optionally case-insensitively, locale-
-    // independently, and with all the "un-namespaced" items appearing
-    // first, followed by items with "prefixed namespaces" (e.g. "z" comes
-    // before "foo:a").
+    /// Add (or replace) a value in the list.
+    void attribute(string_view name, TypeDesc type, int nvalues,
+                   const void* value)
+    {
+        if (!name.empty())
+            add_or_replace(ParamValue(name, type, nvalues, value));
+    }
+
+    void attribute(string_view name, TypeDesc type, const void* value)
+    {
+        attribute(name, type, 1, value);
+    }
+
+    /// Set directly from string -- parse if type is non-string.
+    void attribute(string_view name, TypeDesc type, string_view value)
+    {
+        if (!name.empty())
+            add_or_replace(ParamValue(name, type, value));
+    }
+
+    // Shortcuts for single value of common types.
+    void attribute(string_view name, int value)
+    {
+        attribute(name, TypeInt, 1, &value);
+    }
+    void attribute(string_view name, unsigned int value)
+    {
+        attribute(name, TypeUInt, 1, &value);
+    }
+    void attribute(string_view name, float value)
+    {
+        attribute(name, TypeFloat, 1, &value);
+    }
+    void attribute(string_view name, string_view value)
+    {
+        ustring v(value);
+        attribute(name, TypeString, 1, &v);
+    }
+
+    /// Search list for named item, return its type or TypeUnknnown if not
+    /// found.
+    TypeDesc getattributetype(string_view name,
+                              bool casesensitive = false) const
+    {
+        auto p = find(name, TypeUnknown, casesensitive);
+        return p != cend() ? p->type() : TypeUnknown;
+    }
+
+    /// Retrieve from list: If found its data type is reasonably convertible
+    /// to `type`, copy/convert the value into val[...] and return true.
+    /// Otherwise, return false and don't modify what val points to.
+    bool getattribute(string_view name, TypeDesc type, void* value,
+                      bool casesensitive = false) const;
+    /// Shortcut for retrieving a single string via getattribute.
+    bool getattribute(string_view name, std::string& value,
+                      bool casesensitive = false) const;
+
+    /// Sort alphabetically, optionally case-insensitively, locale-
+    /// independently, and with all the "un-namespaced" items appearing
+    /// first, followed by items with "prefixed namespaces" (e.g. "z" comes
+    /// before "foo:a").
     void sort(bool casesensitive = true);
+
+    /// Merge items from PVL `other` into `*this`. Note how this differs
+    /// from `operator=` : assignment completely replaces the list with
+    /// the contents of another. But merge() adds the other items without
+    /// erasing any items already in this list.
+    ///
+    /// @param override
+    ///     If true, `other` attributes will replace any identically-named
+    ///     attributes already in this list. If false, only attributes whose
+    ///     names are not already in this list will be appended.
+    void merge(const ParamValueList& other, bool override = false);
 
     /// Even more radical than clear, free ALL memory associated with the
     /// list itself.
@@ -324,7 +376,43 @@ public:
         clear();
         shrink_to_fit();
     }
+
+    /// Array indexing by integer will return a reference to the ParamValue
+    /// in that position of the list.
+    ParamValue& operator[](int index)
+    {
+        return std::vector<ParamValue>::operator[](index);
+    }
+    const ParamValue& operator[](int index) const
+    {
+        return std::vector<ParamValue>::operator[](index);
+    }
+
+    /// Array indexing by string will create a "Delegate" that enables a
+    /// convenient shorthand for adding and retrieving values from the list:
+    ///
+    /// 1. Assigning to the delegate adds a ParamValue to the list:
+    ///        ParamValueList list;
+    ///        list["foo"] = 42;       // adds integer
+    ///        list["bar"] = 39.8f;    // adds float
+    ///        list["baz"] = "hello";  // adds string
+    ///    Be very careful, the attribute's type will be implied by the C++
+    ///    type of what you assign.
+    ///
+    /// 2. The delegate supports a get<T>() that retrieves an item of type T:
+    ///         int i = list["foo"].get<int>();
+    ///         std::string s = list["baz"].get<std::string>();
+    ///
+    AttrDelegate<const ParamValueList> operator[](string_view name) const
+    {
+        return { this, name };
+    }
+    AttrDelegate<ParamValueList> operator[](string_view name)
+    {
+        return { this, name };
+    }
 };
+
 
 
 OIIO_NAMESPACE_END
