@@ -123,46 +123,19 @@ static inline uint32_t rotr32 (uint32_t n, unsigned int c)
     
     std::vector<TypeDesc> *formats;
     
-    auto *fr = spec.find_attribute("dpx:FrameRate");
-    float foundFramerate = NAN;
-    
-    if(fr) {
-        foundFramerate = fr->get_float();
-    }
-    
-    if(foundFramerate == NAN || round(foundFramerate) == 0.0 || foundFramerate == INFINITY) {
-        fr = spec.find_attribute("dpx:TemporalFrameRate");
+    *outFramerate = NAN;
+    const string_view framerateKeys[] = {"dpx:FrameRate", "dpx:TemporalFrameRate", "FramesPerSecond", "arnold/fps"};
+    for(const auto key : framerateKeys) {
+        auto *fr = spec.find_attribute(key);
         
-        if(fr) {
-            foundFramerate = fr->get_float();
+        if(fr && fr->type() == TypeFloat) {
+            float foundFramerate = fr->get_float(NAN);
+            
+            if(foundFramerate != NAN && floor(foundFramerate) != 0.0 && foundFramerate != INFINITY){
+                *outFramerate = foundFramerate;
+                break;
+            }
         }
-    }
-    
-    if(foundFramerate == NAN || round(foundFramerate) == 0.0 || foundFramerate == INFINITY){
-        fr = spec.find_attribute("FramesPerSecond");
-        
-        if(fr) {
-            foundFramerate = fr->get_float();
-        }
-    }
-    
-    if(foundFramerate == NAN || round(foundFramerate) == 0.0 || foundFramerate == INFINITY) {
-        fr = spec.find_attribute("arnold/fps");
-        
-        if(fr) {
-            foundFramerate = fr->get_float();
-        }
-    }
-    
-    
-    if(fr) {
-        if(floor(foundFramerate) != 0.0 && foundFramerate != INFINITY && foundFramerate != NAN){
-            *outFramerate = (double)foundFramerate;
-        } else {
-            *outFramerate = NAN;
-        }
-    } else{
-        *outFramerate = NAN;
     }
     
     if (metadata) {
