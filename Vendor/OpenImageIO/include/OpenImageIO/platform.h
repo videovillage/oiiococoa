@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <type_traits>
 #include <utility>  // std::forward
 
 // Make sure all platforms have the explicit sized integer types
@@ -50,9 +51,9 @@
 #include <oiioversion.h>
 
 // Detect which C++ standard we're using, and handy macros.
+// See https://en.cppreference.com/w/cpp/compiler_support
 //
-// OIIO_CPLUSPLUS_VERSION : which C++ standard is compiling (3, 11, 14, ...)
-// OIIO_USING_CPP11 : (deprecated) defined and 1 if using C++11 or newer.
+// OIIO_CPLUSPLUS_VERSION : which C++ standard is compiling (11, 14, ...)
 // OIIO_CONSTEXPR14 : constexpr for C++ >= 14, otherwise nothing (this is
 //                      useful for things that can only be constexpr for 14)
 // OIIO_CONSTEXPR17 : constexpr for C++ >= 17, otherwise nothing (this is
@@ -64,15 +65,20 @@
 // OIIO_CPLUSPLUS_VERSION defined below will be set to the right number for
 // the C++ standard being compiled RIGHT NOW. These two things may be the
 // same when compiling OIIO, but they may not be the same if another
-// packages is compiling against OIIO and using these headers (OIIO may be
-// C++11 but the client package may be older, or vice versa -- use these two
+// package is compiling against OIIO and using these headers (OIIO may be
+// C++11 but the client package may be newer, or vice versa -- use these two
 // symbols to differentiate these cases, when important).
-#if (__cplusplus >= 201703L)
+#if (__cplusplus >= 202001L)
+#    define OIIO_CPLUSPLUS_VERSION 20
+#    define OIIO_CONSTEXPR14 constexpr
+#    define OIIO_CONSTEXPR17 constexpr
+#    define OIIO_CONSTEXPR20 constexpr
+#elif (__cplusplus >= 201703L)
 #    define OIIO_CPLUSPLUS_VERSION 17
 #    define OIIO_CONSTEXPR14 constexpr
 #    define OIIO_CONSTEXPR17 constexpr
 #    define OIIO_CONSTEXPR20 /* not constexpr before C++20 */
-#elif (__cplusplus >= 201402L)
+#elif (__cplusplus >= 201402L) || (defined(_MSC_VER) && _MSC_VER >= 1914)
 #    define OIIO_CPLUSPLUS_VERSION 14
 #    define OIIO_CONSTEXPR14 constexpr
 #    define OIIO_CONSTEXPR17 /* not constexpr before C++17 */
@@ -115,6 +121,16 @@
 
 // Detect which compiler and version we're using
 
+// Notes:
+//   __GNUC__ is defined for gcc and all clang varieties
+//   __clang__ is defined for all clang varieties (generic and Apple)
+//   __apple_build_version__ is only defined for Apple clang
+//   __INTEL_COMPILER is defined only for icc
+//   _MSC_VER is defined for MSVS compiler (not gcc/clang/icc even on Windows)
+//   _WIN32 is defined on Windows regardless of compiler
+//   __CUDACC__ is defined for nvcc and clang during Cuda compilation.
+
+
 // Define OIIO_GNUC_VERSION to hold an encoded gcc version (e.g. 40802 for
 // 4.8.2), or 0 if not a GCC release. N.B.: This will be 0 for clang.
 #if defined(__GNUC__) && !defined(__clang__)
@@ -141,6 +157,22 @@
 #  define OIIO_APPLE_CLANG_VERSION 0
 #endif
 
+// Define OIIO_INTEL_COMPILER_VERSION to hold an encoded Intel compiler
+// version (e.g. 1900), or 0 if not an Intel compiler.
+#if defined(__INTEL_COMPILER)
+#  define OIIO_INTEL_COMPILER_VERSION __INTEL_COMPILER
+#else
+#  define OIIO_INTEL_COMPILER_VERSION 0
+#endif
+
+// Intel's compiler on OSX may still define __clang__ and we have need to
+// know when using a true clang compiler.
+#if !defined(__INTEL_COMPILER) && defined(__clang__)
+#  define OIIO_NON_INTEL_CLANG  __clang__
+#else
+#  define OIIO_NON_INTEL_CLANG  0
+#endif
+
 // Tests for MSVS versions, always 0 if not MSVS at all.
 #if defined(_MSC_VER)
 #  if _MSC_VER < 1900
@@ -160,6 +192,56 @@
 #  define OIIO_MSVS_AT_LEAST_2017 0
 #  define OIIO_MSVS_BEFORE_2017   0
 #endif
+
+
+// Pragma control
+//
+// OIIO_PRAGMA(x)  make a pragma for *unquoted* x
+// OIIO_PRAGMA_WARNING_PUSH/POP -- push/pop warning state
+// OIIO_VISIBILITY_PUSH/POP -- push/pop symbol visibility state
+// OIIO_GCC_PRAGMA(x) -- pragma on gcc/clang/icc only
+// OIIO_CLANG_PRAGMA(x) -- pragma on clang only (not gcc or icc)
+// OIIO_MSVS_PRAGMA(x) -- pragma on MSVS only
+
+// Generic pragma definition
+#if defined(_MSC_VER)
+    // Of couse MS does it in a quirky way
+    #define OIIO_PRAGMA(UnQuotedPragma) __pragma(UnQuotedPragma)
+#else
+    // All other compilers seem to support C99 _Pragma
+    #define OIIO_PRAGMA(UnQuotedPragma) _Pragma(#UnQuotedPragma)
+#endif
+
+#if defined(__GNUC__) /* gcc, clang, icc */
+#    define OIIO_PRAGMA_WARNING_PUSH    OIIO_PRAGMA(GCC diagnostic push)
+#    define OIIO_PRAGMA_WARNING_POP     OIIO_PRAGMA(GCC diagnostic pop)
+#    define OIIO_PRAGMA_VISIBILITY_PUSH OIIO_PRAGMA(GCC visibility push(default))
+#    define OIIO_PRAGMA_VISIBILITY_POP  OIIO_PRAGMA(GCC visibility pop)
+#    define OIIO_GCC_PRAGMA(UnQuotedPragma) OIIO_PRAGMA(UnQuotedPragma)
+#    if defined(__clang__)
+#        define OIIO_CLANG_PRAGMA(UnQuotedPragma) OIIO_PRAGMA(UnQuotedPragma)
+#    else
+#        define OIIO_CLANG_PRAGMA(UnQuotedPragma)
+#    endif
+#    define OIIO_MSVS_PRAGMA(UnQuotedPragma)
+#elif defined(_MSC_VER)
+#    define OIIO_PRAGMA_WARNING_PUSH __pragma(warning(push))
+#    define OIIO_PRAGMA_WARNING_POP  __pragma(warning(pop))
+#    define OIIO_PRAGMA_VISIBILITY_PUSH /* N/A on MSVS */
+#    define OIIO_PRAGMA_VISIBILITY_POP  /* N/A on MSVS */
+#    define OIIO_GCC_PRAGMA(UnQuotedPragma)
+#    define OIIO_CLANG_PRAGMA(UnQuotedPragma)
+#    define OIIO_MSVS_PRAGMA(UnQuotedPragma) OIIO_PRAGMA(UnQuotedPragma)
+#else
+#    define OIIO_PRAGMA_WARNING_PUSH
+#    define OIIO_PRAGMA_WARNING_POP
+#    define OIIO_PRAGMA_VISIBILITY_PUSH
+#    define OIIO_PRAGMA_VISIBILITY_POP
+#    define OIIO_GCC_PRAGMA(UnQuotedPragma)
+#    define OIIO_CLANG_PRAGMA(UnQuotedPragma)
+#    define OIIO_MSVS_PRAGMA(UnQuotedPragma)
+#endif
+
 
 
 /// allocates smallish stack memory, equivalent of C99 type var_name[size]
@@ -183,7 +265,7 @@
 #elif defined(__INTEL_COMPILER)
 #    define OIIO_ALIGN(size) __declspec(align((size)))
 #else
-#    error "Don't know how to define OIIO_ALIGN"
+#    define OIIO_ALIGN(size) alignas(size)
 #endif
 
 // Cache line size is 64 on all modern x86 CPUs. If this changes or we
@@ -345,10 +427,12 @@
 
 // OIIO_PRETTY_FUNCTION gives a text string of the current function
 // declaration.
-#ifndef _MSC_VER
+#if defined(__PRETTY_FUNCTION__)
 #    define OIIO_PRETTY_FUNCTION __PRETTY_FUNCTION__ /* gcc, clang */
-#else
+#elif defined(__FUNCSIG__)
 #    define OIIO_PRETTY_FUNCTION __FUNCSIG__ /* MS gotta be different */
+#else
+#    define OIIO_PRETTY_FUNCTION __FUNCTION__
 #endif
 
 
@@ -455,6 +539,21 @@ inline void aligned_delete(T* t) {
         aligned_free(t);
     }
 }
+
+
+
+#if OIIO_CPLUSPLUS_VERSION >= 14
+    using std::enable_if_t;    // Use C++14 std::enable_if_t
+#else
+    // Define enable_if_t for C++11
+    template <bool B, class T = void>
+    using enable_if_t = typename std::enable_if<B, T>::type;
+#endif
+
+// An enable_if helper to be used in template parameters which results in
+// much shorter symbols: https://godbolt.org/z/sWw4vP
+// Borrowed from fmtlib.
+#define OIIO_ENABLE_IF(...) OIIO::enable_if_t<(__VA_ARGS__), int> = 0
 
 
 OIIO_NAMESPACE_END

@@ -27,6 +27,11 @@
 #include <oiioversion.h>
 #include <string_view.h>
 
+// Define symbols that let client applications determine if newly added
+// features are supported.
+#define OIIO_TYPEDESC_VECTOR2 1
+
+
 
 OIIO_NAMESPACE_BEGIN
 
@@ -166,15 +171,15 @@ struct OIIO_API TypeDesc {
     /// "float", "int[5]", "normal"
     const char *c_str() const;
 
-    friend std::ostream& operator<< (std::ostream& o, TypeDesc t) {
+    friend std::ostream& operator<< (std::ostream& o, const TypeDesc& t) {
         o << t.c_str();  return o;
     }
 
     /// Return the number of elements: 1 if not an array, or the array
     /// length. Invalid to call this for arrays of undetermined size.
     OIIO_CONSTEXPR14 size_t numelements () const noexcept {
-        DASSERT_MSG (arraylen >= 0, "Called numelements() on TypeDesc "
-                     "of array with unspecified length (%d)", arraylen);
+        OIIO_DASSERT_MSG (arraylen >= 0, "Called numelements() on TypeDesc "
+                          "of array with unspecified length (%d)", arraylen);
         return (arraylen >= 1 ? arraylen : 1);
     }
 
@@ -198,8 +203,8 @@ struct OIIO_API TypeDesc {
     /// Return the size, in bytes, of this type.
     ///
     size_t size () const noexcept {
-        DASSERT_MSG (arraylen >= 0, "Called size() on TypeDesc "
-                     "of array with unspecified length (%d)", arraylen);
+        OIIO_DASSERT_MSG (arraylen >= 0, "Called size() on TypeDesc "
+                          "of array with unspecified length (%d)", arraylen);
         size_t a = (size_t) (arraylen > 0 ? arraylen : 1);
         if (sizeof(size_t) > sizeof(int)) {
             // size_t has plenty of room for this multiplication
@@ -222,9 +227,9 @@ struct OIIO_API TypeDesc {
     /// ignoring whether it's an array).
     size_t elementsize () const noexcept { return aggregate * basesize(); }
 
-    // /// Return just the underlying C scalar type, i.e., strip out the
-    // /// array-ness and the aggregateness.
-//    BASETYPE basetype () const { return TypeDesc(base); }
+    /// Return just the underlying C scalar type, i.e., strip out the
+    /// array-ness and the aggregateness.
+    constexpr TypeDesc scalartype() const { return TypeDesc(BASETYPE(basetype)); }
 
     /// Return the base type size, i.e., stripped of both array-ness
     /// and aggregateness.
@@ -240,7 +245,7 @@ struct OIIO_API TypeDesc {
     /// Shortcut: is it UNKNOWN?
     constexpr bool is_unknown () const noexcept { return (basetype == UNKNOWN); }
 
-    /// if (typespec) is the same as asking whether it's not UNKNOWN.
+    /// if (typedesc) is the same as asking whether it's not UNKNOWN.
     constexpr operator bool () const noexcept { return (basetype != UNKNOWN); }
 
     /// Set *this to the type described in the string.  Return the
@@ -290,6 +295,11 @@ struct OIIO_API TypeDesc {
         return this->basetype == b.basetype && this->aggregate == b.aggregate &&
                (this->arraylen == b.arraylen || (this->is_unsized_array() && b.is_sized_array())
                                              || (this->is_sized_array()   && b.is_unsized_array()));
+    }
+
+    /// Is this a 2-vector aggregate (of the given type, float by default)?
+    constexpr bool is_vec2 (BASETYPE b=FLOAT) const noexcept {
+        return this->aggregate == VEC2 && this->basetype == b && !is_array();
     }
 
     /// Is this a 3-vector aggregate (of the given type, float by default)?
@@ -348,6 +358,10 @@ static constexpr TypeDesc TypeNormal (TypeDesc::FLOAT, TypeDesc::VEC3, TypeDesc:
 static constexpr TypeDesc TypeMatrix33 (TypeDesc::FLOAT, TypeDesc::MATRIX33);
 static constexpr TypeDesc TypeMatrix44 (TypeDesc::FLOAT, TypeDesc::MATRIX44);
 static constexpr TypeDesc TypeMatrix = TypeMatrix44;
+static constexpr TypeDesc TypeFloat2 (TypeDesc::FLOAT, TypeDesc::VEC2);
+static constexpr TypeDesc TypeVector2 (TypeDesc::FLOAT, TypeDesc::VEC2, TypeDesc::VECTOR);
+static constexpr TypeDesc TypeFloat4 (TypeDesc::FLOAT, TypeDesc::VEC4);
+static constexpr TypeDesc TypeVector4 = TypeFloat4;
 static constexpr TypeDesc TypeString (TypeDesc::STRING);
 static constexpr TypeDesc TypeInt (TypeDesc::INT);
 static constexpr TypeDesc TypeUInt (TypeDesc::UINT);
@@ -357,11 +371,12 @@ static constexpr TypeDesc TypeInt16 (TypeDesc::INT16);
 static constexpr TypeDesc TypeUInt16 (TypeDesc::UINT16);
 static constexpr TypeDesc TypeInt8 (TypeDesc::INT8);
 static constexpr TypeDesc TypeUInt8 (TypeDesc::UINT8);
+static constexpr TypeDesc TypeVector2i(TypeDesc::INT, TypeDesc::VEC2);
 static constexpr TypeDesc TypeHalf (TypeDesc::HALF);
 static constexpr TypeDesc TypeTimeCode (TypeDesc::UINT, TypeDesc::SCALAR, TypeDesc::TIMECODE, 2);
 static constexpr TypeDesc TypeKeyCode (TypeDesc::INT, TypeDesc::SCALAR, TypeDesc::KEYCODE, 7);
-static constexpr TypeDesc TypeFloat4 (TypeDesc::FLOAT, TypeDesc::VEC4);
 static constexpr TypeDesc TypeRational(TypeDesc::INT, TypeDesc::VEC2, TypeDesc::RATIONAL);
+static constexpr TypeDesc TypePointer(TypeDesc::PTR);
 
 
 
@@ -413,6 +428,9 @@ template<size_t S> struct TypeDescFromC<char[S]> { static const constexpr TypeDe
 template<size_t S> struct TypeDescFromC<const char[S]> { static const constexpr TypeDesc value() { return TypeDesc::STRING; } };
 #ifdef INCLUDED_IMATHVEC_H
 template<> struct TypeDescFromC<Imath::V3f> { static const constexpr TypeDesc value() { return TypeVector; } };
+template<> struct TypeDescFromC<Imath::V2f> { static const constexpr TypeDesc value() { return TypeVector2; } };
+template<> struct TypeDescFromC<Imath::V4f> { static const constexpr TypeDesc value() { return TypeVector4; } };
+template<> struct TypeDescFromC<Imath::V2i> { static const constexpr TypeDesc value() { return TypeVector2i; } };
 #endif
 #ifdef INCLUDED_IMATHCOLOR_H
 template<> struct TypeDescFromC<Imath::Color3f> { static const constexpr TypeDesc value() { return TypeColor; } };
@@ -507,3 +525,34 @@ convert_type(TypeDesc srctype, const void* src,
 
 
 OIIO_NAMESPACE_END
+
+
+
+#if OIIO_USE_FMT
+// Supply a fmtlib compatible custom formatter for TypeDesc.
+FMT_BEGIN_NAMESPACE
+template <>
+struct formatter<OIIO::TypeDesc> {
+    // Parses format specification
+    // C++14: constexpr auto parse(format_parse_context& ctx) {
+    auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) // c++11
+    {
+        // Get the presentation type, if any. Required to be 's'.
+        auto it = ctx.begin(), end = ctx.end();
+        if (it != end && (*it == 's')) ++it;
+        // Check if reached the end of the range:
+        if (it != end && *it != '}')
+            throw format_error("invalid format");
+        // Return an iterator past the end of the parsed range:
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(const OIIO::TypeDesc& t, FormatContext& ctx) -> decltype(ctx.out()){
+        // C++14:   auto format(const point& p, FormatContext& ctx) {
+        // ctx.out() is an output iterator to write to.
+        return format_to(ctx.out(), "{}", t.c_str());
+    }
+};
+FMT_END_NAMESPACE
+#endif

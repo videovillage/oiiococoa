@@ -31,7 +31,7 @@
 
 #if defined(_WIN32) && defined(__GLIBCXX__)
 #    define OIIO_FILESYSTEM_USE_STDIO_FILEBUF 1
-#    include <OpenImageIO/fstream_mingw.h>
+#    include <fstream_mingw.h>
 #endif
 
 
@@ -213,6 +213,11 @@ OIIO_API void open (OIIO::ofstream &stream, string_view path,
 /// Read the entire contents of the named text file and place it in str,
 /// returning true on success, false on failure.
 OIIO_API bool read_text_file (string_view filename, std::string &str);
+
+/// Write the entire contents of the string `str` to the file, overwriting
+/// any prior contents of the file (if it existed), returning true on
+/// success, false on failure.
+OIIO_API bool write_text_file (string_view filename, string_view str);
 
 /// Read a maximum of n bytes from the named file, starting at position pos
 /// (which defaults to the start of the file), storing results in

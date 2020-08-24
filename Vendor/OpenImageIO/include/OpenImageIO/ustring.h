@@ -407,14 +407,14 @@ public:
         return string().rfind(c, pos);
     }
 
-    size_type find_first_of(const ustring& str, size_type pos = 0) const
-        noexcept
+    size_type find_first_of(const ustring& str,
+                            size_type pos = 0) const noexcept
     {
         return string().find_first_of(str.string(), pos);
     }
 
-    size_type find_first_of(const std::string& str, size_type pos = 0) const
-        noexcept
+    size_type find_first_of(const std::string& str,
+                            size_type pos = 0) const noexcept
     {
         return string().find_first_of(str, pos);
     }
@@ -434,14 +434,14 @@ public:
         return string().find_first_of(c, pos);
     }
 
-    size_type find_last_of(const ustring& str, size_type pos = npos) const
-        noexcept
+    size_type find_last_of(const ustring& str,
+                           size_type pos = npos) const noexcept
     {
         return string().find_last_of(str.string(), pos);
     }
 
-    size_type find_last_of(const std::string& str, size_type pos = npos) const
-        noexcept
+    size_type find_last_of(const std::string& str,
+                           size_type pos = npos) const noexcept
     {
         return string().find_last_of(str, pos);
     }
@@ -461,14 +461,14 @@ public:
         return string().find_last_of(c, pos);
     }
 
-    size_type find_first_not_of(const ustring& str, size_type pos = 0) const
-        noexcept
+    size_type find_first_not_of(const ustring& str,
+                                size_type pos = 0) const noexcept
     {
         return string().find_first_not_of(str.string(), pos);
     }
 
-    size_type find_first_not_of(const std::string& str, size_type pos = 0) const
-        noexcept
+    size_type find_first_not_of(const std::string& str,
+                                size_type pos = 0) const noexcept
     {
         return string().find_first_not_of(str, pos);
     }
@@ -488,8 +488,8 @@ public:
         return string().find_first_not_of(c, pos);
     }
 
-    size_type find_last_not_of(const ustring& str, size_type pos = npos) const
-        noexcept
+    size_type find_last_not_of(const ustring& str,
+                               size_type pos = npos) const noexcept
     {
         return string().find_last_not_of(str.string(), pos);
     }
@@ -665,6 +665,12 @@ public:
         return ustring(Strutil::format(fmt, args...));
     }
 
+    /// Concatenate two strings, returning a ustring, implemented carefully
+    /// to not perform any redundant copies or allocations. This is
+    /// semantically equivalent to `ustring::sprintf("%s%s", s, t)`, but is
+    /// more efficient.
+    static ustring concat(string_view s, string_view t);
+
     /// Generic stream output of a ustring.
     friend std::ostream& operator<<(std::ostream& out, const ustring& str)
     {
@@ -699,7 +705,7 @@ public:
     /// again. Use with extreme caution!!!
     static ustring from_unique(const char* unique)
     {
-        DASSERT(is_unique(unique));  // DEBUG builds -- check it!
+        OIIO_DASSERT(is_unique(unique));  // DEBUG builds -- check it!
         ustring u;
         u.m_chars = unique;
         return u;

@@ -92,8 +92,8 @@ class Filter2D;  // forward declaration
 ///
 /// Most ImageBufAlgo functions take an optional ROI parameter that
 /// restricts the operation to a range in x, y, z, and channels. The default
-/// ROI (also known as `ROI::All()) means no region restriction -- the whole
-/// image will be copied or altered.
+/// ROI (also known as `ROI::All()`) means no region restriction -- the
+/// whole image will be copied or altered.
 ///
 /// For ImageBufAlgo functions that write into a destination ImageBuf
 /// parameter and it is already initialized (i.e. allocated with a
@@ -317,6 +317,8 @@ enum class TextAlignY { Baseline, Top, Bottom, Center };
 /// existing image by essentially doing an "over" of the character into the
 /// existing pixel data.
 ///
+/// @param dst
+///             Destination ImageBuf -- text is rendered into this image.
 /// @param x/y
 ///             The position to place the text.
 /// @param text
@@ -416,7 +418,7 @@ bool OIIO_API channels (ImageBuf &dst, const ImageBuf &src,
 /// it will be resized to be big enough for the region.
 ImageBuf OIIO_API channel_append (const ImageBuf &A, const ImageBuf &B,
                                   ROI roi={}, int nthreads=0);
-/// `channelWrite to an exsisting image `dst` (allocating if it is uninitialized).
+/// Write to an exsisting image `dst` (allocating if it is uninitialized).
 bool OIIO_API channel_append (ImageBuf &dst, const ImageBuf &A,
                               const ImageBuf &B, ROI roi={}, int nthreads=0);
 
@@ -536,7 +538,7 @@ bool OIIO_API reorient (ImageBuf &dst, const ImageBuf &src, int nthreads=0);
 ImageBuf OIIO_API circular_shift (const ImageBuf &src,
                                   int xshift, int yshift, int zshift=0,
                                   ROI roi={}, int nthreads=0);
-/// `circularWrite to an exsisting image `dst` (allocating if it is uninitialized).
+/// Write to an exsisting image `dst` (allocating if it is uninitialized).
 bool OIIO_API circular_shift (ImageBuf &dst, const ImageBuf &src,
                               int xshift, int yshift, int zshift=0,
                               ROI roi={}, int nthreads=0);
@@ -761,7 +763,7 @@ bool OIIO_API sub (ImageBuf &dst, Image_or_Const A, Image_or_Const B,
 /// channels. (But at least one must be an image.)
 ImageBuf OIIO_API absdiff (Image_or_Const A, Image_or_Const B,
                            ROI roi={}, int nthreads=0);
-/// `absdifWrite to an exsisting image `dst` (allocating if it is uninitialized).
+/// Write to an exsisting image `dst` (allocating if it is uninitialized).
 bool OIIO_API absdiff (ImageBuf &dst, Image_or_Const A, Image_or_Const B,
                        ROI roi={}, int nthreads=0);
 
@@ -779,7 +781,7 @@ bool OIIO_API abs (ImageBuf &dst, const ImageBuf &A, ROI roi={}, int nthreads=0)
 /// used for all channels.
 ImageBuf OIIO_API mul (Image_or_Const A, Image_or_Const B,
                        ROI roi={}, int nthreads=0);
-/// `rite to an exsisting image `dst` (allocating if it is uninitialized).
+/// Write to an exsisting image `dst` (allocating if it is uninitialized).
 bool OIIO_API mul (ImageBuf &dst, Image_or_Const A, Image_or_Const B,
                    ROI roi={}, int nthreads=0);
 
@@ -956,8 +958,10 @@ OIIO_API bool contrast_remap (ImageBuf &dst, const ImageBuf &src,
                     ROI={}, int nthreads=0);
 
 
-/// @defgroup color_map (color_map: remap value range by spline or name)
+/// @defgroup color_map (Remap value range by spline or name)
 /// @{
+///
+/// Remap value range by spline or name
 ///
 /// Return (or copy into `dst`) pixel values determined by looking up a
 /// color map using values of the source image, using either the channel
@@ -998,9 +1002,10 @@ bool OIIO_API color_map (ImageBuf &dst, const ImageBuf &src, int srcchannel,
 /// @}
 
 
-/// @defgroup rangecompress-rangeexpand (rangecompress/rangeexpand: nonlinear
-/// range remapping for contrast preservationn)
+/// @defgroup range (Nonlinear range remapping for contrast preservation)
 /// @{
+///
+/// Nonlinear range remapping for contrast preservation
 ///
 /// `rangecompress()` returns (or copy into `dst`) all pixels and color
 /// channels of `src` within region `roi` (defaulting to all the defined
@@ -1317,8 +1322,10 @@ bool OIIO_API laplacian (ImageBuf &dst, const ImageBuf &src,
                          ROI roi={}, int nthreads=0);
 
 
-/// @defgroup fft-ifft (fft/ifft -- Fast Fourier Transform and inverse)
+/// @defgroup fft-ifft (Fast Fourier Transform and inverse)
 /// @{
+///
+/// Fast Fourier Transform and inverse
 ///
 /// Return (or copy into `dst`) the discrete Fourier transform (DFT), or its
 /// inverse, of the section of `src` denoted by roi,  If roi is not defined,
@@ -1353,6 +1360,8 @@ bool OIIO_API ifft (ImageBuf &dst, const ImageBuf &src, ROI roi={}, int nthreads
 
 /// @defgroup complex-polar (Converting complex to polar and back)
 /// @{
+///
+/// Converting complex to polar and back
 ///
 /// The `polar_to_complex()` function transforms a 2-channel image whose
 /// channels are interpreted as complex values (real and imaginary
@@ -1511,8 +1520,10 @@ bool OIIO_API erode (ImageBuf &dst, const ImageBuf &src,
 
 
 
-/// @defgroup colorconvert (colorconvert -- convert between color spaces)
+/// @defgroup colorconvert (Color space conversions)
 /// @{
+///
+/// Convert between color spaces
 ///
 /// Return (or copy into `dst`) the pixels of `src` within the ROI, applying
 /// a color space transformation. In-place operations (`dst` == `src`) are
@@ -1676,7 +1687,8 @@ bool OIIO_API ociolook (ImageBuf &dst, const ImageBuf &src, string_view looks,
 ///             it will be assumed to be scene linear.
 /// @param  looks
 ///             The looks to apply (comma-separated). This may be empty,
-///             in which case no "look" is used.
+///             in which case no "look" is used. Note: this parameter value
+///             is not used when building against OpenColorIO 2.x.
 /// @param  unpremult
 ///             If true, divide the RGB channels by alpha (if it exists and
 ///             is nonzero) before color conversion, then re-multiply by
@@ -1744,8 +1756,10 @@ bool OIIO_API ociofiletransform (ImageBuf &dst, const ImageBuf &src,
                                  ROI roi={}, int nthreads=0);
 
 
-/// @defgroup premult-unpremult (unpremult/premult -- Premultiply or un-premultiply color by alpha)
+/// @defgroup premult (Premultiply or un-premultiply color by alpha)
 /// @{
+///
+/// Premultiply or un-premultiply color by alpha
 ///
 /// The `unpremult` operation returns (or copies into `dst`) the pixels of
 /// `src` within the ROI, and in the process divides all color channels

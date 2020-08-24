@@ -15,6 +15,7 @@
 #include <memory>
 
 #include <atomic.h>
+#include <dassert.h>
 
 
 OIIO_NAMESPACE_BEGIN
@@ -115,7 +116,7 @@ public:
         T* p = m_ptr;
         if (p) {
             if (!p->_decref())
-                DASSERT(0 && "release() when you aren't the sole owner");
+                OIIO_DASSERT(0 && "release() when you aren't the sole owner");
             m_ptr = nullptr;
         }
         return p;
@@ -132,14 +133,14 @@ public:
     /// Dereference
     T& operator*() const
     {
-        DASSERT(m_ptr);
+        OIIO_DASSERT(m_ptr);
         return *m_ptr;
     }
 
     /// Dereference
     T* operator->() const
     {
-        DASSERT(m_ptr);
+        OIIO_DASSERT(m_ptr);
         return m_ptr;
     }
 

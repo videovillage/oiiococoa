@@ -258,6 +258,22 @@ public:
     const_iterator find(ustring name, TypeDesc type = TypeDesc::UNKNOWN,
                         bool casesensitive = true) const;
 
+    /// Search for the first entry with matching name, etc., and return
+    /// a pointer to it, or nullptr if it is not found.
+    ParamValue* find_pv(string_view name, TypeDesc type = TypeDesc::UNKNOWN,
+                        bool casesensitive = true)
+    {
+        iterator f = find(name, type, casesensitive);
+        return f != end() ? &(*f) : nullptr;
+    }
+    const ParamValue* find_pv(string_view name,
+                              TypeDesc type      = TypeDesc::UNKNOWN,
+                              bool casesensitive = true) const
+    {
+        const_iterator f = find(name, type, casesensitive);
+        return f != cend() ? &(*f) : nullptr;
+    }
+
     /// Case insensitive search for an integer, with default if not found.
     /// Automatically will return an int even if the data is really
     /// unsigned, short, or byte, but not float. It will retrive from a
@@ -352,6 +368,15 @@ public:
     bool getattribute(string_view name, std::string& value,
                       bool casesensitive = false) const;
 
+    /// Retrieve from list: If found its data type is reasonably convertible
+    /// to `type`, copy/convert the value into val[...] and return true.
+    /// Otherwise, return false and don't modify what val points to.
+    bool getattribute_indexed(string_view name, int index, TypeDesc type,
+                              void* value, bool casesensitive = false) const;
+    /// Shortcut for retrieving a single string via getattribute.
+    bool getattribute_indexed(string_view name, int index, std::string& value,
+                              bool casesensitive = false) const;
+
     /// Sort alphabetically, optionally case-insensitively, locale-
     /// independently, and with all the "un-namespaced" items appearing
     /// first, followed by items with "prefixed namespaces" (e.g. "z" comes
@@ -363,6 +388,8 @@ public:
     /// the contents of another. But merge() adds the other items without
     /// erasing any items already in this list.
     ///
+    /// @param other
+    ///     The ParamValueList whose entries will be merged into this one.
     /// @param override
     ///     If true, `other` attributes will replace any identically-named
     ///     attributes already in this list. If false, only attributes whose

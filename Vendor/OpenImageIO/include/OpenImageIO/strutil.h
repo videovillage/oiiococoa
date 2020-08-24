@@ -41,7 +41,9 @@
 #ifndef FMT_EXCEPTIONS
 #    define FMT_EXCEPTIONS 0
 #endif
-#define FMT_USE_GRISU 1
+#ifndef FMT_USE_GRISU
+#    define FMT_USE_GRISU 1
+#endif
 #if OIIO_USE_FMT
 #    include "fmt/ostream.h"
 #    include "fmt/format.h"
@@ -351,13 +353,27 @@ bool OIIO_API contains (string_view a, string_view b);
 /// comparison?
 bool OIIO_API icontains (string_view a, string_view b);
 
-/// Convert to upper case, faster than std::toupper because we use
+/// Convert to upper case in place, faster than std::toupper because we use
 /// a static locale that doesn't require a mutex lock.
 void OIIO_API to_lower (std::string &a);
 
-/// Convert to upper case, faster than std::toupper because we use
+/// Convert to upper case in place, faster than std::toupper because we use
 /// a static locale that doesn't require a mutex lock.
 void OIIO_API to_upper (std::string &a);
+
+/// Return an all-upper case version of `a` (locale-independent).
+inline std::string OIIO_API lower (string_view a) {
+    std::string result(a);
+    to_lower(result);
+    return result;
+}
+
+/// Return an all-upper case version of `a` (locale-independent).
+inline std::string OIIO_API upper (string_view a) {
+    std::string result(a);
+    to_upper(result);
+    return result;
+}
 
 
 
@@ -447,6 +463,12 @@ std::string join (const Sequence& seq, string_view sep /*= ""*/, size_t len)
     }
     return out.str();
 }
+
+/// Concatenate two strings, returning a std::string, implemented carefully
+/// to not perform any redundant copies or allocations. This is
+/// semantically equivalent to `Strutil::sprintf("%s%s", s, t)`, but is
+/// more efficient.
+std::string OIIO_API concat(string_view s, string_view t);
 
 /// Repeat a string formed by concatenating str n times.
 std::string OIIO_API repeat (string_view str, int n);
@@ -589,8 +611,8 @@ template <> inline bool string_is<float> (string_view s) {
 ///
 /// This can work for type T = int, float, or any type for that has
 /// an explicit constructor from a std::string.
-template<class T>
-int extract_from_list_string (std::vector<T> &vals,
+template<class T, class Allocator>
+int extract_from_list_string (std::vector<T, Allocator> &vals,
                               string_view list,
                               string_view sep = ",")
 {
